@@ -1,0 +1,247 @@
+ASCII-Sketch project work:
+
+80~ hours before recording.
+[
+Start
+End
+]
+
+///////////////////////////////
+07-10-2015 19:58
+07-10-2015 20:36
+
+07-10-2015 21:43
+07-10-2015 23:57
+
+07-11-2015 23:49
+07-12-2015 02:00
+
+07-12-2015 23:37
+07-13-2015 00:51
+
+07-13-2015 23:30
+07-14-2015 01:15
+
+07-15-2015 18:58
+07-15-2015 19:15
+
+07-15-2015 20:30
+07-15-2015 22:02
+
+07-17-2015 17:30
+07-17-2015 18:30
+
+07-17-2015 23:00
+07-18-2015 00:00
+
+07-18-2015 22:30
+07-18-2015 23:40
+
+07-20-2015 22:10
+07-21-2015 00:23
+
+07-22-2015 12:00
+07-22-2015 13:27
+
+07-28-2015 23:00
+07-29-2015 00:20
+
+07-29-2015 11:50
+07-29-2015 13:35
+
+07-31-2015 12:00
+07-31-2015 13:50
+
+08-06-2015 20:30
+08-06-2015 21:30
+
+12-25-2015 16:00
+12-25-2015 18:00
+
+12-25-2015 20:00
+12-25-2015 21:00
+
+///////////////////////////////
+w r
+1 0
+2 .5
+3 1
+4 1.5
+5 2
+radius length: (w - 1)/2
+axis length: w - 1
+//////////////////////////////
+Vector2d is 12% faster than Vector!
+proof:
+function Vector(compenents) {
+    this.comp = compenents;
+    this.dimension = compenents.length;
+    this.length = function() {
+        var i = 0;
+        var sum = 0;
+        while(i < this.dimension)  {
+            sum += Math.pow(this.comp[i++], 2);
+        }
+        return Math.sqrt(sum);
+    };
+    this.dotProduct = function(v) {
+        if(v.dimension === this.dimension) {
+            var result = 0;
+            var i = 0;
+            while(i < this.dimension) {
+                result += this.comp[i] * v.comp[i];
+                i++;
+            }
+            return result;
+        }
+    };
+    this.projectTo = function(v) {
+        var scalar = this.dotProduct(v) / Math.pow(v.length(), 2);
+        if(isNaN(scalar))
+            scalar = 0;
+        if(scalar === undefined)
+            return;
+        var result = [];
+        var i = 0;
+        while(i < this.dimension)
+            result.push(scalar * v.comp[i++]);
+        return new Vector(result);
+    };
+}
+
+function Vector2D(x, y) {
+    this.x = x;
+    this.y = y;
+    this.dimension = 2;
+    this.length = function() {
+        return Math.sqrt(this.x * this.x + this.y * this.y);
+    };
+    this.dotProduct = function(v) {
+        if(v.dimension === this.dimension) {
+            return this.x * v.x + this.y * v.y;
+        }
+    };
+    this.projectToUnit = function(v) {
+        var scalar = this.dotProduct(v) / v.length();
+        if(isNaN(scalar))
+            scalar = 0;
+        if(scalar === undefined)
+            return;
+        return new Vector2D(scalar * v.x, scalar * v.y);
+    };
+}
+
+function vt() {
+    var V = new Vector([0, 0]);
+    var U = new Vector([0, 0]);
+
+    var V2 = new Vector2D(0, 0);
+    var U2 = new Vector2D(0, 0);
+    
+    var t0 = performance.now();
+    for(var i = 0; i < 2000000; i++) {
+        V.projectTo(U);
+        V.comp[0]++;
+        V.comp[1]++;
+        U.comp[0]++;
+        U.comp[1]++;
+    }
+    var t1 = performance.now();
+    
+    for(var i = 0; i < 2000000; i++) {
+        V2.projectToUnit(U2);
+        V2.x++;
+        V2.y++;
+        U2.x++;
+        U2.y++;
+    }
+    var t2 = performance.now();
+    
+    alert("Vector projectTo 1000 runs took " + (t1 - t0) + " ms and Vector2d projectToUnit 1000 runs took " + (t2 - t1) + " ms");
+}
+
+
+////////////////
+addToRange tests
+
+function addToRangesTest() {
+    var t0 = performance.now();
+    var ranges = [];
+    // linear test: add top
+    for(var i = 0; i < 10000; i++) {
+        addToRanges(i, ranges);
+    }
+    var t1 = performance.now();
+    
+    
+    // linear test: add bottom
+    for(var i = 100000; i > 90000; i--) {
+        addToRanges(i, ranges);
+    }
+    var t2 = performance.now();
+    
+    // linear test: add both
+    for(var i = 40000; i < 44000; i++) {
+        addToRanges(i, ranges);
+    }
+    for(var i = 50000; i < 52000; i++) {
+        addToRanges(i, ranges);
+    }
+    for(var i = 70000; i > 66000; i--) {
+        addToRanges(i, ranges);
+    }
+    
+    var t3 = performance.now();
+    alert(ranges + ' (add top) took ' + (t1 - t0) + ' ms!');
+    alert(ranges + ' (add bottom) took ' + (t2 - t1) + ' ms!');
+    alert(ranges + ' (add both) took ' + (t3 - t2) + ' ms!');
+}
+
+////////////////
+Queue tests
+
+
+
+function testLinkedList() {
+    var LL = new LinkedList();
+    LL.enqueue(4);
+    alert("Current back: " + LL.back.item);
+    LL.enqueue('f');
+    alert("Final back: " + LL.back.item);
+    alert("DQ 1: " + LL.dequeue().item);
+    alert("DQ 2: " + LL.dequeue().item);
+    alert("Fin");
+}
+
+/////////////////////
+used exclusively for paste
+
+function mergeTest() {
+    var t0 = performance.now();
+    var layover = '    ';
+    var prevstr = 'abcd';
+    document.getElementById('debug').innerHTML += '"' + layover + '"' + ' + ' + '"' + prevstr + '"' + ' = ' + mergeOverSpace(layover, prevstr) + '<br>';
+    
+    layover = 'abcd';
+    prevstr = '    ';
+    document.getElementById('debug').innerHTML += '"' + layover + '"' + ' + ' + '"' + prevstr + '"' + ' = ' + mergeOverSpace(layover, prevstr) + '<br>';
+    
+    layover = 'a a a a';
+    prevstr = ' b b b ';
+    document.getElementById('debug').innerHTML += '"' + layover + '"' + ' + ' + '"' + prevstr + '"' + ' = ' + mergeOverSpace(layover, prevstr) + '<br>';
+    
+    layover = 'aaaaa';
+    prevstr = 'bbbbb';
+    document.getElementById('debug').innerHTML += '"' + layover + '"' + ' + ' + '"' + prevstr + '"' + ' = ' + mergeOverSpace(layover, prevstr) + '<br>';
+    
+    layover = '';
+    prevstr = '';
+    document.getElementById('debug').innerHTML += '"' + layover + '"' + ' + ' + '"' + prevstr + '"' + ' = ' + mergeOverSpace(layover, prevstr) + '<br>';
+    
+    layover = 'l   l';
+    prevstr = 'p    ';
+    document.getElementById('debug').innerHTML += '"' + layover + '"' + ' + ' + '"' + prevstr + '"' + ' = ' + mergeOverSpace(layover, prevstr) + '<br>';
+    
+    var t1 = performance.now();
+    document.getElementById('debug').innerHTML += 'Completed in ' + (t1 - t0) + ' ms';
+}

@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<html>
+
+    <head>
+
+        <title>
+            ASCII-Sketch
+        </title>
+
+        <link rel="stylesheet" href="../../reset.css" />
+        <link rel="stylesheet" href="ascii.css" />
+        <script src="../jQuery1x10x2.js"></script>
+        <script src="ascii.js"></script>
+    </head>
+
+    <body>
+        <header onClick="retainSelection()">
+            <div id="tabs">
+                <div class="tab active_tab" id="draw" onClick="openTab('draw')">
+                    <span class="tab_text">Draw</span>
+                </div>
+                <div class="tab" id="window" onClick="openTab('window')">
+                    <span class="tab_text">Window</span>
+                </div>
+                <div class="tab" id="edit" onClick="openTab('edit')">
+                    <span class="tab_text">Edit</span>
+                </div>
+                <div class="tab" id="help" onClick="openTab('help')">
+                    <span class="tab_text">Help</span>
+                </div><!--
+                <div class="tab" id="advanced" onClick="openTab('advanced')">
+                    <span class="tab_text">Advanced</span>
+                </div>-->
+            </div>
+            <div id="tab_content">
+                <div class="tab_data" id="help_content">
+                    <a id="back" href="projects/"><span>Back <br />to <br />Projects</span></a>
+                    <button onClick="testCharMap()">DEBUG</button>
+                </div>
+                
+                <div class="tab_data" id="window_content">
+                    <section>
+                        <table>
+                            <tr>
+                                <td colspan="2">
+                                    Canvas dimensions: <br />
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>Height: </td>
+                                <td><input type="text" class="text" id="h" /></td>
+                            </tr>
+                            <tr>
+                                <td>Width: </td>
+                                <td><input type="text" class="text" id="w" /></td>
+                            </tr>
+                        </table>
+                        <table>
+                            <tr>
+                                <td>
+                                    <button onClick="confirmReset()">Reset</button>
+                                </td>
+                                <td>
+                                    <button onClick="changeBox(document.getElementById('h').value, document.getElementById('w').value)">Change dimensions</button>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td colspan="2">
+                            <input type="checkbox" id="tb" onClick="toggleBorders()" style="width: auto" /> <label for="tb">Edge Borders</label>
+                                    </td>
+                            </tr>
+                        </table>
+                    </section>
+                    <section class="left_bar">
+                        <table id="shifts">
+                            <tr>
+                                <td>
+                                    <button style="margin-top: 15px; margin-left: 10px;" onClick="shiftVert(document.getElementById('shiftValue').value)">Shift image up (negative for down) this much: </button>
+                                </td>
+                                <td rowspan="2">
+                                    <input type="text" class="text" id="shiftValue" value="1" style="margin-right: 10px" />
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>
+                                    <button style="margin-top: 5px; margin-left: 10px;"  onClick="shiftHoriz(document.getElementById('shiftValue').value)">Shift image right (negative for left) this much: </button>
+                                </td>
+                            </tr>
+                        </table>
+                    </section>
+                    <section class="left_bar">
+                        <button onClick="trimArea()" style="margin-left: 10px; height: 50px; margin-top: 10px">
+                            Trim Edges
+                        </button>
+                    </section>
+                </div>
+                
+                <div class="tab_data" id="draw_content" style="display: block">
+                    <section id="draw_buttons">
+                        <img src="line.png" id="line" onClick="setMode('line');" class="active_img" />
+                        <img src="square.png" id="block" onClick="setMode('block');" />
+                        <br />
+                        <img src="bucket.png" id="bucket" onClick="setMode('bucket');" />
+                        <img src="circle.png" id="circle" onClick="setMode('circle');" />
+                    </section>
+                    <section id="fill_options">
+                        <label for="fill">Fill</label> <input type="checkbox" id="fill" name="Phil" onClick="toggleFill()" /> <span id="fillOptions"></span>
+                    </section>
+                    <section id="palette">
+                        <input class="palette" type="button" onclick="usePalette(this)" ondblclick="setPalette(this)" onblur="this.type='button'; retainSelection()" maxlength="1" value=" " />
+                        <input class="palette" type="button" ondblclick="setPalette(this)" onblur="this.type='button'; retainSelection()" maxlength="1" value=" " />
+                        <input class="palette" type="button" ondblclick="setPalette(this)" onblur="this.type='button'; retainSelection()" maxlength="1" value=" " />
+                        <input class="palette" type="button" ondblclick="setPalette(this)" onblur="this.type='button'; retainSelection()" maxlength="1" value=" " />
+                        <input class="palette" type="button" ondblclick="setPalette(this)" onblur="this.type='button'; retainSelection()" maxlength="1" value=" " />
+                        <input class="palette" type="button" ondblclick="setPalette(this)" onblur="this.type='button'; retainSelection()" maxlength="1" value=" " />
+                        <input class="palette" type="button" ondblclick="setPalette(this)" onblur="this.type='button'; retainSelection()" maxlength="1" value=" " />
+                        <input class="palette" type="button" ondblclick="setPalette(this)" onblur="this.type='button'; retainSelection()" maxlength="1" value=" " />
+                        <input class="palette" type="button" ondblclick="setPalette(this)" onblur="this.type='button'; retainSelection()" maxlength="1" value=" " />
+                        <input class="palette" type="button" ondblclick="setPalette(this)" onblur="this.type='button'; retainSelection()" maxlength="1" value=" " />
+
+                        <br />
+
+                    </section>
+                
+                </div>
+                
+                <div class="tab_data" id="edit_content">
+                    <section>
+                        <button onClick="copy(true)">
+                            Cut<br />
+                            <span>(<span class="cmd">Ctrl</span> + X)</span>
+                        </button>
+                        <button onClick="copy(false)">
+                            Copy<br />
+                            <span>(<span class="cmd">Ctrl</span> + C)</span>
+                        </button>
+                        <div style="display: inline-block; margin-right: 10px; text-align: center">
+                            <button onClick="paste()" style="float: none">
+                                Paste<br />
+                                <span>(<span class="cmd">Ctrl</span> + V)</span>
+                            </button><br />
+                            <input type="checkbox" id="pasteTrans" onClick="togglePaste()" style="display: block; float: left" />
+                            <label for="pasteTrans" style="display: block; float: left">
+                                Transparent
+                            </label>
+                        </div>
+                    </section>
+                    <section class="left_bar">
+                        <button onClick="popUndo()">
+                            Undo<br />
+                            <span>(<span class="cmd">Ctrl</span> + Z)</span>
+                        </button>
+                        <button onClick="popRedo()">
+                            Redo<br />
+                            <span>(<span class="cmd">Ctrl</span> + Y)</span>
+                        </button>
+                    </section>
+                </div>
+                
+                <div class="tab_data" id="advanced_content">
+                    <div id="extra">
+                        <table style="float: left">
+                            <tr>
+                                <!--<td>
+                                    <label for="character">Character: </label>
+                                </td>
+                                <td>
+                                    <input type="text" id="character" maxlength="1" style="width: 12px" value="/" onchange="setCopyLinearArgs()" />
+                                </td>-->
+                            </tr>
+                            <tr>
+                                <td>
+                                    <label for="rise">Rise: </label>
+                                </td>
+                                <td>
+                                    <input type="text" name="rise" id="rise" class="text" style="width: 48px" value="1" onchange="setCopyLinearArgs()" />
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>
+                                    <label for="rise">Run: </label>
+                                </td>
+                                <td>
+                                    <input type="text" name="run" id="run" class="text" style="width: 48px" value="1" onchange="setCopyLinearArgs()" />
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>
+                                    <label for="rise">Times to copy: </label>
+                                </td>
+                                <td>
+                                    <input type="text" class="text" name="iters" id="iters" style="width: 48px" value="3" onchange="setCopyLinearArgs()" />
+                                </td>
+                            </tr>
+                        </table>
+                        <button style="float: left; height: 50px; margin-left: 5px; margin-top: 15px" onclick="copyLinear(document.getElementById('character').value, document.getElementById('rise').value, document.getElementById('run').value, document.getElementById('iters').value)">Print this<br />line at cursor</button>
+                    </div>
+                </div>
+            </div>
+        </header>
+        <div id="content">
+            <!--
+
+
+
+                     /----------\               
+                    /            \              
+                   /              \             
+                  /    O     O     \            
+                 /                  \           
+                |                    |          
+                |         ^          |          
+                |                    |          
+                |     \       /      |          
+                \      \_____/      /           
+                 \                 /            
+                  \               /             
+                   \-------------/              
+
+
+
+
+                                   ^^^ ^^^^                         
+                                   ^^ ^^ ^^                         
+                                   ^ ^ ^ ^                          
+                                  ^ ^ ^ ^                           
+                                 _______                            
+                                |       |                           
+                                |       |                           
+                                |       |___________                
+                     \O/        |       |      |    |               
+                       \        |       |      |____|               
+            ___________/\_______|_______|___________|_________      
+            \       _     |    _          _          _       /      
+             \     (_)   _|   (_)        (_)        (_)     /       
+              \         (O)                   U.S.S. Lorem /        
+               \                                          /         
+                \________________________________________/          
+        ~~~  ~~~~~~~~~~~~~  ~~~~~~~~ ~~~~~~~~   ~~~~~~~~ ~~~~~~~~   
+        ~~~~~~~~   ~~~~~~~~   ~~~~~~~~~~~   ~~~~~~~~~~~~~~~  ~~~~~~~
+        ~~~~~~~~~~~~ ~~~~~~~~   ~~~~~~~~   ~~~~~~~~  ~~~~~~~~~~~~~~~
+        ~~~~~~~~    ~~~~~~~~   ~~~~~~~~  ~~~~~~~~    ~~~~~~~~  ~~~~~
+        -->
+            <span id="debug"></span>
+            <div id="box" onload="init()"></div>
+        <script>init()</script>
+        </div>
+        <footer>
+            <span id="coords">(0, 0)</span><span id="dims"></span>
+        </footer>
+    </body>
+
+</html>
