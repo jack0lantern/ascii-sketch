@@ -32,22 +32,22 @@ var CHAR_Z = 26;
 var DELETE = 46;    //keycodes, duh
 var WINDOWS = 91;
 var MENU = 93;
-var CHAR_SPACE = ' ';
-var DEFAULT_ROWS = 40;
-var DEFAULT_COLS = 80;
-var MAX_BOX_WIDTH = 1000;
-var MAX_BOX_HEIGHT = 1000;
+var CHAR_SPACE = ' '; // put in ui.js
+var DEFAULT_ROWS = 40; // put in ui.js
+var DEFAULT_COLS = 80; // put in ui.js
+var MAX_BOX_WIDTH = 1000; // put in ui.js
+var MAX_BOX_HEIGHT = 1000; // put in ui.js
 var TAB_CONTENT_SUFFIX = '_content';
-var IS_MAC = navigator.platform.match(/Mac/i) ? true : false;
+var IS_MAC = navigator.platform.match(/Mac/i) ? true : false;// put in ui.js
 
 /*** GLOBAL VARIABLES ***/
-var r;              // the number of rows in the box
-var c;              // the number of cols in the box
+var r;              // the number of rows in the box    // put in ui.js
+var c;              // the number of cols in the box    // put in ui.js
 var spaces = '';         // A padder line representing an empty, bordered line. e.g. "   |\n"
-var currStr = '';        // the string that goes in the box
-var position;       // index of cursor in text area
-var selection;      // two-element array of user selection
-var wrap = true;    // TODO: implement toggle text wrap to next line
+var currStr = '';        // the string that goes in the box // put in ui.js
+var position;       // index of cursor in text area // put in ui.js
+var selection;      // two-element array of user selection  // put in ui.js
+var wrap = true;    // TODO: implement toggle text wrap to next line    // put in ui.js
 //use set variable to determine if the box has been set before 
 var DEBUG = false;
 var mouseDown = false;
@@ -154,7 +154,7 @@ function Vector2D(x, y) {
 //    stop: 3
 //};
 
-var settings = {
+var settings = { // put in ui.js
     mode: 'line',                   // 'line', 'block', 'bucket'
     fillMode: 'transparent',        // 'fill', 'transparent', 'custom'
     fillChar: CHAR_SPACE,
@@ -184,7 +184,7 @@ function testCharMap() {
 
 /*** BASIC FUNCTIONS ***/
 
-(function ($) {
+(function ($) { // put in ui.js
     $.fn.getCursorPosition = function() {
         var el = $(this).get(0);
         var pos = 0;
