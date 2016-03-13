@@ -55,7 +55,8 @@ var mouseDown = false;
 var hasBorders = false; // put in ui.js
 
 /*** CONSTRUCTORS ***/
-function Image(s, pos) {
+// Container for a string representing the canvas
+function Image(s, pos) {// TODO: put in model.js
     this.s = s;
     this.pos = pos;
     this.prev = null;
@@ -65,7 +66,8 @@ function Image(s, pos) {
     this.hb = hasBorders;
 }
 
-function Stack() {
+// Stack that takes an element with a prev property, hopefully Images
+function Stack() {// TODO: put in model.js
     this.top = null;
     this.pop = function() {
         var temp = this.top;
@@ -82,12 +84,12 @@ function Stack() {
     };
 }
 
-function Node(item) {
+function Node(item) {// TODO: put in model.js
     this.item = item;
     this.next = null;
 }
 
-function Queue() {
+function Queue() {// TODO: put in model.js
     this.front = null;
     this.back = null;
     
@@ -128,7 +130,8 @@ function Queue() {
     }
 }
 
-function Vector2D(x, y) {
+// 
+function Vector2D(x, y) { // TODO: put in model.js
     this.x = x;
     this.y = y;
     this.length = function() {
@@ -163,16 +166,16 @@ var settings = { // put in ui.js
     pasteTransparent: false
 };
 
-var sqrt2by2 = Math.sqrt(2)/2;
-var unitVectors = {
+var sqrt2by2 = Math.sqrt(2)/2; // TODO: put in model.js
+var unitVectors = { // TODO: put in model.js
     NW: new Vector2D(-sqrt2by2, sqrt2by2),
     N: new Vector2D(1, 0),
     NE: new Vector2D(sqrt2by2, sqrt2by2),
     E: new Vector2D(0, 1)
 };
 
-var undo = new Stack();
-var redo = new Stack();
+var undo = new Stack();// TODO: put in model.js
+var redo = new Stack();// TODO: put in model.js
 
 var clipboard = [];
 
@@ -201,24 +204,7 @@ function testCharMap() {
     }
 })(jQuery);
 
-// http://stackoverflow.com/questions/499126/jquery-set-cursor-position-in-text-area
-$.fn.selectRange = function(start, end) {
-    if (!end) end = start; 
-    return this.each(function() {
-        if (this.setSelectionRange) {
-            this.focus();
-            this.setSelectionRange(start, end);
-        } else if (this.createTextRange) {
-            var range = this.createTextRange();
-            range.collapse(true);
-            range.moveEnd('character', end);
-            range.moveStart('character', start);
-            range.select();
-        }
-    });
-};
-
-function setSelectionRange(input, selectionStart, selectionEnd) {
+function setSelectionRange(input, selectionStart, selectionEnd) {// put in ui.js
   if (input.setSelectionRange) {
     input.focus();
     input.setSelectionRange(selectionStart, selectionEnd);
@@ -265,14 +251,14 @@ function setCaretToPos (input, pos) {   // put in ui.js
 
 /* Sets whatever is in the area to currStr. This is necessary because 
  * onkeydown/up/press executes js but never knows the result of the action. */
-function setCurr() {    // TODO: put in ui.js
+function setCurr() {    // put in ui.js
     currStr = document.getElementById('area').value;
 }
 
 /* puts whatever is in currStr in the textarea, then sets currStr.
  * An essential function to call before performing any kind of text area
  * manipulation. */
-function setArea() {// TODO: put in ui.js
+function setArea() {// put in ui.js
     document.getElementById('area').value = currStr;
     setCaretToPos(document.getElementById('area'), position);
 }
@@ -309,7 +295,7 @@ function positionFromCoordinates(ri, ci) {// TODO: put in ui.js
    return ri * (hasBorders ? (c + 2) : (c + 1)) + ci; 
 }
 
-function adjustBox() {// TODO: put in ui.js
+function adjustBox() {// put in ui.js
     document.getElementById('area').rows = r + 1;
     document.getElementById('area').cols = c + 1;
         
@@ -317,12 +303,12 @@ function adjustBox() {// TODO: put in ui.js
     document.getElementById('w').value = c;
 }
 
-function clearStacks() {
+function clearStacks() {// TODO: put in model.js
     undo = new Stack();
     redo = new Stack();
 }
 
-function resetCurrStr() {// TODO: put in ui.js
+function resetCurrStr() {// put in ui.js
     var i;
     var j;
     var border = hasBorders ? '|' : '';
@@ -347,14 +333,14 @@ function confirmReset() {// TODO: put in ui.js
     }
 }
 
-function makeBox(rows, cols) {// TODO: put in ui.js
+function makeBox(rows, cols) {// put in ui.js
     spaces = '';
     currStr = '';
     r = Math.min(parseInt(rows), MAX_BOX_HEIGHT);
     c = Math.min(parseInt(cols), MAX_BOX_WIDTH);
     
     var boxCode = '<textarea id="area" spellcheck="false"></textarea>';
-    // TODO: configure the css to have white-space: nowrap; since HTML wrap is depreciated
+    // TODO: configure the css to have white-space: nowrap; since HTML wrap is deprecated
     resetCurrStr();
 
     //document.getElementById('content').innerHTML = spaces;
@@ -457,13 +443,13 @@ function init() {
 }
 
 // Pushes a change to currStr to undo
-function pushUndo() {
+function pushUndo() {// TODO: put in ui.js
     undo.push(new Image(currStr, position + 1));
     redo = new Stack();
 }
 
 // Pops from the undo stack and sets the stack top to the image
-function popUndo() {
+function popUndo() {// TODO: put in ui.js
     var ret;
     redo.push(ret = undo.pop(), position);
     if (undo.top) {
@@ -487,7 +473,7 @@ function popUndo() {
 }
 
 // Pops from the redo stack and sets the stack top to the image
-function popRedo() {
+function popRedo() {// TODO: put in ui.js
     var undid = redo.top;
     undo.push(redo.pop());
     if (undid) {
@@ -516,7 +502,7 @@ a a a a ... a   | \n
 TODO should do nothing on (but no preventDefault()):
 esc, f1, f2, ... f12, prtsc, (ins?), home, end, pgUp, pgDown, tab, capslock, shift(unless its with a char), ctrl, alt, windows, command, apple, arrow keys, menu, scroll lock, num lock
 */
-function changeChar(e) {// TODO: put in ui.js?
+function changeChar(e) {// TODO: split
     var unicode = null;
     
     var range = getSelectionRange(document.getElementById('area'));
@@ -596,7 +582,7 @@ function changeChar(e) {// TODO: put in ui.js?
     setFooterCoords();
 }
 
-function nonKeyPress(e) {// TODO: put in ui.js?
+function nonKeyPress(e) {// TODO: split
     if (!(e.altKey || e.ctrlKey)) {
         var unicode = null;
         if (window.event) { // IE					
@@ -722,7 +708,7 @@ function setMouseUp() {// TODO: put in ui.js
 }
 
 // Takes a new subject and imposes it on tgt, taking tgt's content where subject has a space.
-function mergeOverSpace(subject, tgt) {// TODO: put in ui.js
+function mergeOverSpace(subject, tgt) {// TODO: put in model.js
     if (subject && tgt && subject.length === tgt.length) {
         var i = 0;
         var result = '';
@@ -740,7 +726,7 @@ function mergeOverSpace(subject, tgt) {// TODO: put in ui.js
 }
 
 // display the borders, or don't display the borders.
-function toggleBorders() {// TODO: put in ui.js
+function toggleBorders() {// TODO: split
     var newStr = '';
     var temp = '';
     var i;
@@ -787,7 +773,7 @@ function usePalette(inElement) {// TODO: put in ui.js
 /*** MACROS ***/
 // Puts a block selection in the clipboard.
 // If cut is set, we white-space out the block selection in addition.
-function copy(cut) {
+function copy(cut) {// TODO: split
     var range = getSelectionRange(document.getElementById('area'));
     var start = range[0], end = range[1];
     var startRow = getRow(start), endRow = getRow(end);
@@ -822,7 +808,7 @@ function copy(cut) {
 }
 
 // Places the contents of clipboard at user cursor to the best of our ability
-function paste() {
+function paste() {// TODO: split
     if (clipboard.length) {
         setPos();
         var newStr = currStr.substring(0, position);
@@ -850,7 +836,7 @@ function paste() {
 
 // loop through ranges list, if it is within 1 outside of a range, absorb it, otherwise add new range
 // return the changed range
-function addToRanges(value, ranges) {
+function addToRanges(value, ranges) {// TODO: put in model.js
     var changedRange = null;
     for (var i = 0; i < ranges.length && !changedRange; i++) {
         if (i < ranges.length - 1 && value - ranges[i][1] === 1 && ranges[i + 1][0] - value === 1) {
@@ -882,14 +868,14 @@ function addToRanges(value, ranges) {
     return changedRange;
 }
 
-function shouldEnqueue(toReplace, pos, visited) {
+function shouldEnqueue(toReplace, pos, visited) {// TODO: put in model.js
     return visited[pos] === undefined && pos >= 0 && getRow(pos) < r && getCol(pos) < c && currStr.charAt(pos) === toReplace;
 }
 
 // Determine a list of ranges in which to assign the new character (in ranges, 
 // a array of two-element range arrays, which are inclusive endpoints)
 // A dynamic approach
-function dynBucketHelper(ranges, toReplace, pos) {
+function dynBucketHelper(ranges, toReplace, pos) {// TODO: put in model.js
     var toCheckQ = new Queue();
     var visited = [];
     
@@ -921,7 +907,7 @@ function dynBucketHelper(ranges, toReplace, pos) {
 }
 
 // 
-function loadRanges(charToPut, ranges, colDiff) {// TODO: put in ui.js
+function loadRanges(charToPut, ranges, colDiff) {// TODO: split
     var fillLine = '';
     var newStr = '';
     
@@ -962,7 +948,7 @@ function loadRanges(charToPut, ranges, colDiff) {// TODO: put in ui.js
     pushUndo();
 }
 
-function bucket(charToPut, start) {
+function bucket(charToPut, start) {// TODO: split
     var charToFlood = currStr.charAt(start);
     var ranges = [];
     dynBucketHelper(ranges, charToFlood, start);
@@ -972,7 +958,7 @@ function bucket(charToPut, start) {
 }
 
 // Macro to shift all written text in the box right if units > 0, left otherwise.
-function shiftHoriz(units) {
+function shiftHoriz(units) {// TODO: split
     var newStr = '';
     var temp = '';
     var padSpaces = '';
@@ -1015,7 +1001,7 @@ function shiftHoriz(units) {
 }
 
 // Macro to shift all written text in the box up if units > 0, down otherwise.
-function shiftVert(units) {
+function shiftVert(units) {// TODO: split
     var newStr = '';
     var temp = '';
     var padLine = '';
@@ -1064,7 +1050,7 @@ function shiftVert(units) {
 
 // Takes a list, returns a reversed version of that list without modifying it
 // (and this is because arguments are passed by value)
-function reverseList(list) {
+function reverseList(list) {// TODO: put in model.js
     var tempVal;
     for (var i = 0; i < Math.floor(list.length/2); i++) {
         tempVal = list[i];
@@ -1076,7 +1062,7 @@ function reverseList(list) {
 
 // Clears out all whitespace surrounding the image and resizes to close on
 // the image as tightly as possible.
-function trimArea() {
+function trimArea() {// TODO: split
     var matches = [];
     var beginIndex = -1;
     var endIndex = -1;
@@ -1154,7 +1140,7 @@ function setCopyLinearArgs() {// TODO: put in ui.js
 
 // Changes the textarea content so that a character is repeated over a specified interval and frequency in a linear fashion.
 // This method requires the user to input everything.
-function copyLinear(charToPut, rise, run, stop) {
+function copyLinear(charToPut, rise, run, stop) {// TODO: split
     var posToPutChars = [];
     var offset = hasBorders ? 2 : 1;
     var p;
@@ -1208,12 +1194,12 @@ function copyLinear(charToPut, rise, run, stop) {
     setArea();
 }
 
-function inRange(value, a, b) {
+function inRange(value, a, b) {// TODO: put in model.js
     return (a <= value && value <= b) || (b <= value && value <= a);
 }
 
 // Draws a line of copies of a character, repeated as frequently as possible over an interval specified by the user's selection
-function traceLinear(charToPut, start, end) {
+function traceLinear(charToPut, start, end) {// TODO: split
     var startRow = getRow(start), endRow = getRow(end);
     var startCol = getCol(start), endCol = getCol(end);
     // note: rowDiff always >= 0, same CANNOT be said for colDiff
@@ -1300,7 +1286,7 @@ function traceLinear(charToPut, start, end) {
 }
 
 // Create the range set for a block and load it
-function traceBlock(charToPut, start, end) {
+function traceBlock(charToPut, start, end) {// TODO: split
     var startRow = getRow(start), endRow = getRow(end);
     var startCol = Math.min(getCol(start), getCol(end)), endCol = Math.max(getCol(start), getCol(end));
     // NOTE: "cleaning" the start/end col is not the same kind of behavior tracelinear does, which handles
@@ -1326,7 +1312,7 @@ function traceBlock(charToPut, start, end) {
 }
 
 // Put all the ranges of currStr that must be changes to user-input char into ranges
-function getEllipseRanges(start, xRad, yRad) {
+function getEllipseRanges(start, xRad, yRad) {// TODO: put in model.js
     var xLim = Math.ceil(xRad);
     var yLim = Math.ceil(yRad);
     var xDen = xRad * xRad;
@@ -1362,7 +1348,7 @@ function getEllipseRanges(start, xRad, yRad) {
     return ranges;
 }
 
-function traceEllipse(charToPut, start, end) {
+function traceEllipse(charToPut, start, end) {// TODO: put in ui.js
     var startRow = getRow(start), endRow = getRow(end);
     var startCol = Math.min(getCol(start), getCol(end)), endCol = Math.max(getCol(start), getCol(end));
     // NOTE: "cleaning" the start/end col is not the same kind of behavior tracelinear does, which handles

@@ -1,16 +1,44 @@
+var CHAR_SPACE = ' ';
 
-
-function Box (id, DR, DC, MH, MW) {  // TODO: no privacy here
+function Box (id, DR, DC, MH, MW) {  // TODO: little privacy here
+    var DEFAULT_ROWS = this.r = DR;// TODO: delete these vars. just here for legacy reasons
+    var DEFAULT_COLS = this.c = DC;
     this.id = id;
-    this.r = this.DEFAULT_ROWS = DR;
-    this.c = this.DEFAULT_COLS = DC;
-    this.MAX_HEIGHT = MH;
-    this.MAX_WIDTH = MW;
-    this.hasBorders = false;
-    this.currStr = '';
-    this.position = 0;
-    this.range = [0, 0];
-    this.wrap = true;
+    var MAX_HEIGHT = MH;    // TODO: delete these vars. just here for legacy reasons
+    var MAX_WIDTH = MW;
+    var hasBorders = false;
+    var currStr = '';
+    var position = 0;
+    var range = [0, 0];
+    var wrap = true;
+    var spaces = '';
+    
+    var getCurr = function () {
+        return currStr;
+    };
+    
+    /* Sets whatever is in the area to currStr. This is necessary because 
+     * onkeydown/up/press executes js but never knows the result of the action. */
+    var setCurr = function () {    
+        currStr = document.getElementById(this.id).value;
+    };
+
+    this.resetCurrStr = function () {
+        var i;
+        var j;
+        var border = hasBorders ? '|' : '';
+        currStr = '';
+        for (i = 0; i < this.c; i++) { 
+            spaces += CHAR_SPACE;
+        }
+        spaces += border + '\n';
+        for (j = 0; j < this.r; j++) {
+            if (j < this.r - 1)
+                currStr += spaces;
+            else
+                currStr += spaces.substring(0, spaces.length - 1);  // chop off last \n
+        }
+    };
     
     // http://stackoverflow.com/questions/275761/how-to-get-selected-text-from-textbox-control-with-javascript
     // returns a two-element array of the selection's start and end indices
@@ -35,7 +63,7 @@ function Box (id, DR, DC, MH, MW) {  // TODO: no privacy here
       return [startPos, endPos];
     };
     
-    var setSelectionRange = function (selectionStart, selectionEnd) {
+     this.setSelectionRange = function (selectionStart, selectionEnd) {
         var input = document.getElementById(this.id);  // alternatively, $(id)
         if (input.setSelectionRange) {
             input.focus();
@@ -52,12 +80,74 @@ function Box (id, DR, DC, MH, MW) {  // TODO: no privacy here
     
     var setCaretToPos = function (pos) {
       setSelectionRange(pos, pos);
-    }
+    };
+    
+//    this.resetCurrStr();
+    
+//    this.curr = currStr;
+}
+
+/* puts whatever is in currStr in the textarea, then sets currStr.
+ * An essential function to call before performing any kind of text area
+ * manipulation. */
+function setArea(box) {// put in ui.js
+    document.getElementById(box.id).value = currStr;
+    setCaretToPos(document.getElementById(box.id), position);
+}
+
+function adjustBox(box) {
+    document.getElementById(box.id).rows = box.r + 1;
+    document.getElementById(box.id).cols = box.c + 1;
+        
+    // The below has not been adjusted to respond to boxes of differing size.
+    document.getElementById('h').value = r;
+    document.getElementById('w').value = c;
+}
+
+function makeBox(box, tareaId) {
+    var boxCode = '<textarea id="area" spellcheck="false"></textarea>';
+    var boxObj = $('#' + box.id);
+    
+    document.getElementById(tareaId).innerHTML = boxCode;
+    setArea();
+    
+    adjustBox();
+    
+    boxObj.on('cut', function(event) {
+        copy(true);
+    });
+    boxObj.on('copy', function(event) {
+        copy(false);
+    });
+    boxObj.on('paste', function(event) {
+        event.preventDefault();
+        paste();
+    });
+    boxObj.addEventListener('click', function() {
+        document.getElementById('dims').innerHTML = '';
+    });
+    boxObj.addEventListener('keydown', nonKeyPress);
+    boxObj.addEventListener('keypress', changeChar);
+    boxObj.addEventListener('keyup', setFooterCoords);
+    boxObj.addEventListener('mousedown', function() {
+        setMouseDown();
+        setFooterCoords(); 
+        setCaretToPos(boxObj, 0);
+    });
+                                                            
+    boxObj.addEventListener('mousemove', setFooterCoords); 
+    boxObj.addEventListener('mouseup', function() {
+        setFooterCoords(); setMouseUp()
+    });
+    boxObj.addEventListener('dragstart', function() {return false});
+    boxObj.addEventListener('drop', function() {return false});
+    boxObj.rows = r;
+    boxObj.cols = c;
+    boxObj.wrap = "off";
 }
 
 // User Interface module for handling user settings
 var ui = (function () {
-    var CHAR_SPACE = ' ';
     var IS_MAC = navigator.platform.match(/Mac/i) ? true : false;
     var settings = {
         mode: 'line',                   // 'line', 'block', 'bucket'
@@ -68,15 +158,19 @@ var ui = (function () {
         pasteTransparent: false
     };
     var boxes = {
-        // id (like '#box') must begin with a # to be a valid id
-        main: new Box('#box', 40, 20, 1000, 1000)
+        // id (like 'box', no #) must begin with a # to be a valid id
+        main: new Box('area', 40, 20, 1000, 1000)
     };
     return {settings: settings, boxes: boxes};
 })();
 
 // for testing
 function testCompiles(){
-    alert(ui.boxes.main.r);
+    var b = ui.boxes.main;
+    b.setSelectionRange(10, 20);
+//    selectRange(20, 30);
+    var sr = b.getSelectionRange();
+    alert(sr);
 }
 
 $(document).ready(testCompiles);
