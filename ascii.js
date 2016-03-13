@@ -52,7 +52,7 @@ var wrap = true;    // TODO: implement toggle text wrap to next line    // put i
 var DEBUG = false;
 var mouseDown = false;
 
-var hasBorders = false;
+var hasBorders = false; // put in ui.js
 
 /*** CONSTRUCTORS ***/
 function Image(s, pos) {
@@ -234,7 +234,7 @@ function setSelectionRange(input, selectionStart, selectionEnd) {
 
 // http://stackoverflow.com/questions/275761/how-to-get-selected-text-from-textbox-control-with-javascript
 // returns a two-element array of the selection's start and end indices
-function getSelectionRange(input) {
+function getSelectionRange(input) { // put in ui.js
     var textComponent = input;
     var startPos;
     var endPos;
@@ -255,30 +255,30 @@ function getSelectionRange(input) {
   return [startPos, endPos];
 }
 
-function setFillChar() {
+function setFillChar() {    // TODO: put in ui.js
     settings.fillChar = document.getElementById('fillChar').value;
 }
 
-function setCaretToPos (input, pos) {
+function setCaretToPos (input, pos) {   // put in ui.js
   setSelectionRange(input, pos, pos);
 }
 
 /* Sets whatever is in the area to currStr. This is necessary because 
  * onkeydown/up/press executes js but never knows the result of the action. */
-function setCurr() {
+function setCurr() {    // TODO: put in ui.js
     currStr = document.getElementById('area').value;
 }
 
 /* puts whatever is in currStr in the textarea, then sets currStr.
  * An essential function to call before performing any kind of text area
  * manipulation. */
-function setArea() {
+function setArea() {// TODO: put in ui.js
     document.getElementById('area').value = currStr;
     setCaretToPos(document.getElementById('area'), position);
 }
 
 // returns the line at a given row index. This cuts off the ending \n.
-function getLine(line, withNewLine) {    // lines are 0 indexed
+function getLine(line, withNewLine) {    // lines are 0 indexed// TODO: put in ui.js
     if (line < r) {
         var str = '';
         var newlineIndex = currStr.indexOf('\n');  // find first instance of \n
@@ -290,26 +290,26 @@ function getLine(line, withNewLine) {    // lines are 0 indexed
 }
 
 // Sets the value of global position to wherever user cursor is
-function setPos() {
+function setPos() {// TODO: put in ui.js
     return position = $('#area').getCursorPosition(); //position is the OLD location of the cursor before typing
 }
 
 // returns the row index from the cursor position.
-function getRow(pos) {
+function getRow(pos) {// TODO: put in ui.js
     return Math.floor(pos / (hasBorders ? (c + 2) : (c + 1)));
 }
 
 // returns the col index from the cursor position.
-function getCol(pos) {
+function getCol(pos) {// TODO: put in ui.js
     return pos % (hasBorders ? (c + 2) : (c + 1));
 }
 
 // return the textarea index of the character at a specified row and col
-function positionFromCoordinates(ri, ci) {
+function positionFromCoordinates(ri, ci) {// TODO: put in ui.js
    return ri * (hasBorders ? (c + 2) : (c + 1)) + ci; 
 }
 
-function adjustBox() {
+function adjustBox() {// TODO: put in ui.js
     document.getElementById('area').rows = r + 1;
     document.getElementById('area').cols = c + 1;
         
@@ -322,7 +322,7 @@ function clearStacks() {
     redo = new Stack();
 }
 
-function resetCurrStr() {
+function resetCurrStr() {// TODO: put in ui.js
     var i;
     var j;
     var border = hasBorders ? '|' : '';
@@ -339,7 +339,7 @@ function resetCurrStr() {
     }
 }
 
-function confirmReset() {
+function confirmReset() {// TODO: put in ui.js
     var reset = confirm('Are you sure you want to clear the image? All your work will be lost. Press OK to continue or Cancel to cancel.');
     if (reset) {
         makeBox(parseInt(document.getElementById('h').value), parseInt(document.getElementById('w').value));
@@ -347,7 +347,7 @@ function confirmReset() {
     }
 }
 
-function makeBox(rows, cols) {
+function makeBox(rows, cols) {// TODO: put in ui.js
     spaces = '';
     currStr = '';
     r = Math.min(parseInt(rows), MAX_BOX_HEIGHT);
@@ -397,7 +397,7 @@ function makeBox(rows, cols) {
 }
 
 // Grow or shrink the textarea's dimensions while maintaining content as much as possible. Chops off content on shrink, adds spaces on grow.
-function changeBox(rows, cols) {
+function changeBox(rows, cols) {// TODO: put in ui.js
     rows = Math.min(parseInt(rows), MAX_BOX_HEIGHT);
     cols = Math.min(parseInt(cols), MAX_BOX_WIDTH);
     var emptyRow = '';
@@ -516,7 +516,7 @@ a a a a ... a   | \n
 TODO should do nothing on (but no preventDefault()):
 esc, f1, f2, ... f12, prtsc, (ins?), home, end, pgUp, pgDown, tab, capslock, shift(unless its with a char), ctrl, alt, windows, command, apple, arrow keys, menu, scroll lock, num lock
 */
-function changeChar(e) {
+function changeChar(e) {// TODO: put in ui.js?
     var unicode = null;
     
     var range = getSelectionRange(document.getElementById('area'));
@@ -596,7 +596,7 @@ function changeChar(e) {
     setFooterCoords();
 }
 
-function nonKeyPress(e) {
+function nonKeyPress(e) {// TODO: put in ui.js?
     if (!(e.altKey || e.ctrlKey)) {
         var unicode = null;
         if (window.event) { // IE					
@@ -643,14 +643,14 @@ function nonKeyPress(e) {
 }
 
 /*** INTERFACE ***/
-function retainSelection() {
+function retainSelection() {// TODO: put in ui.js
     // TODO: UNDER CONSTRUCTION
 //    var range = getSelectionRange(document.getElementById('area'));
 //    setSelectionRange(document.getElementById('area'), range[0], range[1]);
 }
 
 // Assigns correct user choices to settings global object
-function setBlockRadioSettings() {
+function setBlockRadioSettings() {// TODO: put in ui.js
     if (document.getElementById('fill').checked) {
         if (document.getElementById('fillSame').checked)
             settings.fillMode = 'fill';
@@ -664,7 +664,7 @@ function setBlockRadioSettings() {
 }
 
 // changes the state of fillMode
-function toggleFill() {
+function toggleFill() {// TODO: put in ui.js
     if (settings.fillMode === 'transparent') {
         document.getElementById('fillOptions').innerHTML = '<label for="fillChar">with: </label> <br /> <input type="radio" id="fillSame" name="fillOptions" value="same" checked /> <label for="fillSame"> Same characters </label><br /> <input type="radio" id="fillDiff" name="fillOptions" value="diff" /> <label for="fillDiff">This character: </label><input type="text" class="text" id="fillChar" maxlength="1" value=" " onChange="setBlockRadioSettings()" />';
     }
@@ -675,7 +675,7 @@ function toggleFill() {
 }
 
 // Sets the selection mode to user specified mode
-function setMode(newMode) {
+function setMode(newMode) {// TODO: put in ui.js
     var oldSetting = $('#' + settings.mode);
     if (settings.mode === 'custom')
         oldSetting = $('#block');
@@ -685,7 +685,7 @@ function setMode(newMode) {
     $('#' + newMode).addClass('active_img');
 }
 
-function openTab(newTab) {
+function openTab(newTab) {// TODO: put in ui.js
     $('#' + settings.currentTab).removeClass('active_tab');
     $('#' + settings.currentTab + TAB_CONTENT_SUFFIX).css('display', 'none');
     
@@ -694,7 +694,7 @@ function openTab(newTab) {
     settings.currentTab =  newTab;
 }
 
-function setFooterCoords() {
+function setFooterCoords() {// TODO: put in ui.js
     setPos();
     var selection = getSelectionRange(document.getElementById('area'));
     if (DEBUG)
@@ -712,17 +712,17 @@ function setFooterCoords() {
 }
 
 // Clears the box dimensions area of the footer and sets mouseDown
-function setMouseDown() {
+function setMouseDown() {// TODO: put in ui.js
     mouseDown = true;
 }
 
 // Sets mouseDown false.
-function setMouseUp() {
+function setMouseUp() {// TODO: put in ui.js
     mouseDown = false;
 }
 
 // Takes a new subject and imposes it on tgt, taking tgt's content where subject has a space.
-function mergeOverSpace(subject, tgt) {
+function mergeOverSpace(subject, tgt) {// TODO: put in ui.js
     if (subject && tgt && subject.length === tgt.length) {
         var i = 0;
         var result = '';
@@ -740,7 +740,7 @@ function mergeOverSpace(subject, tgt) {
 }
 
 // display the borders, or don't display the borders.
-function toggleBorders() {
+function toggleBorders() {// TODO: put in ui.js
     var newStr = '';
     var temp = '';
     var i;
@@ -765,12 +765,12 @@ function toggleBorders() {
     setCaretToPos(document.getElementById('area'), position + offset);
 }
 
-function togglePaste() {
+function togglePaste() {// TODO: put in ui.js
     settings.pasteTransparent = !settings.pasteTransparent;
 }
 
 // When a user double clicks a palette button, they choose a char or not.
-function setPalette(inElement) {
+function setPalette(inElement) {// TODO: put in ui.js
     // inElement should never be null, but just in case
     if (inElement) {
         inElement.type = 'text';
@@ -778,7 +778,7 @@ function setPalette(inElement) {
     }
 }
 
-function usePalette(inElement) {
+function usePalette(inElement) {// TODO: put in ui.js
     var e = $.Event('keypress');
     e.which = inElement.value.charCodeAt(0);
     changeChar(e);
@@ -921,7 +921,7 @@ function dynBucketHelper(ranges, toReplace, pos) {
 }
 
 // 
-function loadRanges(charToPut, ranges, colDiff) {
+function loadRanges(charToPut, ranges, colDiff) {// TODO: put in ui.js
     var fillLine = '';
     var newStr = '';
     
@@ -1145,7 +1145,7 @@ function trimArea() {
 
 // Assigns the global object fields to user input for the purposes of restoring 
 // after the copyLinear interface has been hidden
-function setCopyLinearArgs() {
+function setCopyLinearArgs() {// TODO: put in ui.js
     copyLinearArgs.ch = document.getElementById('character').value;
     copyLinearArgs.rise = parseInt(document.getElementById('rise').value);
     copyLinearArgs.run = parseInt(document.getElementById('run').value);
