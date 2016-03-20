@@ -13,7 +13,19 @@ function Box (id, DR, DC, MH, MW) {  // TODO: little privacy here
     var wrap = true;
     var spaces = '';
     
-    var getCurr = function () {
+    this.setPos = function (p) {
+        position = p;
+    };
+    
+    this.getPos = function () {
+        return position;
+    }
+    
+    this.setCurr = function (s) {
+        currStr = s;
+    };
+    
+    this.getCurr = function () {
         return currStr;
     };
     
@@ -91,8 +103,9 @@ function Box (id, DR, DC, MH, MW) {  // TODO: little privacy here
  * An essential function to call before performing any kind of text area
  * manipulation. */
 function setArea(box) {// put in ui.js
-    document.getElementById(box.id).value = currStr;
-    setCaretToPos(document.getElementById(box.id), position);
+    alert(box.id);
+    document.getElementById(box.id).value = box.getCurr();
+//    b.setCaretToPos(b.getPos());
 }
 
 function adjustBox(box) {
@@ -166,11 +179,14 @@ var ui = (function () {
 
 // for testing
 function testCompiles(){
+    var setStr = '                                                                                \n                                                                                \n                                                                                \n                                                                                \n                                                                                \n                                                                                \n                                                                                \n                                                                                \n                                                                                \n                                                                                \n                                                                                \n                                                                                \n               d                                                                \n                                                                                \n                                                                                \n                                                                                \n                                                                                \n                                                                                \n                                                                                \n                                                                                \n                                                                                \n                                                                                \n                                                                                \n                                                                                \n                                                                                \n                                                                                \n                                                                                \n                                                                                \n                                                                                \n                                                                                \n                                                                                \n                                                                                \n                                                                                \n                                                                                \n                                                                                \n                                                                                \n                                                                                \n                                                                                \n                                                                                \n                                                                                ';
     var b = ui.boxes.main;
+    b.setCurr(setStr);
+    setArea(b);
     b.setSelectionRange(10, 20);
 //    selectRange(20, 30);
     var sr = b.getSelectionRange();
-    alert(sr);
+    alert(b.getCurr());
 }
 
 $(document).ready(testCompiles);
