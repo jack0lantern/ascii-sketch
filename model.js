@@ -1,3 +1,13 @@
+function assert(condition, message) {
+    if (!condition) {
+        message = message || "Assertion failed";
+        if (typeof Error !== "undefined") {
+            throw new Error(message);
+        }
+        throw message; // Fallback
+    }
+}
+
 // yes, I got this from stackoverflow. Use: getCursorPosition() to get the cursor position from any box
 (function ($) {
     $.fn.getCursorPosition = function() {
@@ -33,3 +43,9 @@ $.fn.selectRange = function(start, end) {
     });
 };
 
+
+
+var model = (function () {
+    
+    return {data: 5};
+})();

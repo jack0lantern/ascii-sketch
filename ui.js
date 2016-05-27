@@ -1,3 +1,5 @@
+// TODO: DELETE ALL DEBUG SECTIONS
+
 var CHAR_SPACE = ' ';
 
 function Box (id, DR, DC, MH, MW) {  // TODO: little privacy here
@@ -12,14 +14,16 @@ function Box (id, DR, DC, MH, MW) {  // TODO: little privacy here
     var range = [0, 0];
     var wrap = true;
     var spaces = '';
+//    var bc = BoxComputer();
     
-    this.setPos = function (p) {
-        position = p;
+    var setPos = function () {// TODO: put in ui.js
+        return position = $(id).getCursorPosition(); //position is the OLD location of the cursor before typing
     };
     
+    /*** DEBUG ***/
     this.getPos = function () {
         return position;
-    }
+    };
     
     this.setCurr = function (s) {
         currStr = s;
@@ -28,6 +32,7 @@ function Box (id, DR, DC, MH, MW) {  // TODO: little privacy here
     this.getCurr = function () {
         return currStr;
     };
+    /*** /DEBUG ***/
     
     /* Sets whatever is in the area to currStr. This is necessary because 
      * onkeydown/up/press executes js but never knows the result of the action. */
@@ -35,6 +40,7 @@ function Box (id, DR, DC, MH, MW) {  // TODO: little privacy here
         currStr = document.getElementById(this.id).value;
     };
 
+    // Sets currStr to an empty box string
     this.resetCurrStr = function () {
         var i;
         var j;
@@ -75,7 +81,7 @@ function Box (id, DR, DC, MH, MW) {  // TODO: little privacy here
       return [startPos, endPos];
     };
     
-     this.setSelectionRange = function (selectionStart, selectionEnd) {
+    this.setSelectionRange = function (selectionStart, selectionEnd) {
         var input = document.getElementById(this.id);  // alternatively, $(id)
         if (input.setSelectionRange) {
             input.focus();
@@ -103,7 +109,8 @@ function Box (id, DR, DC, MH, MW) {  // TODO: little privacy here
  * An essential function to call before performing any kind of text area
  * manipulation. */
 function setArea(box) {// put in ui.js
-    alert(box.id);
+//    alert("ui.js: " + document.getElementById(box.id));
+    assert(document.getElementById(box.id), 'invalid box id');
     document.getElementById(box.id).value = box.getCurr();
 //    b.setCaretToPos(b.getPos());
 }
@@ -177,6 +184,7 @@ var ui = (function () {
     return {settings: settings, boxes: boxes};
 })();
 
+/*** DEBUG ***/
 // for testing
 function testCompiles(){
     var setStr = '                                                                                \n                                                                                \n                                                                                \n                                                                                \n                                                                                \n                                                                                \n                                                                                \n                                                                                \n                                                                                \n                                                                                \n                                                                                \n                                                                                \n               d                                                                \n                                                                                \n                                                                                \n                                                                                \n                                                                                \n                                                                                \n                                                                                \n                                                                                \n                                                                                \n                                                                                \n                                                                                \n                                                                                \n                                                                                \n                                                                                \n                                                                                \n                                                                                \n                                                                                \n                                                                                \n                                                                                \n                                                                                \n                                                                                \n                                                                                \n                                                                                \n                                                                                \n                                                                                \n                                                                                \n                                                                                \n                                                                                ';
@@ -190,3 +198,4 @@ function testCompiles(){
 }
 
 $(document).ready(testCompiles);
+/*** /DEBUG ***/
