@@ -15,7 +15,16 @@ $(document).ready(
                 $(tabs[j]).on('click', tempFunc);
                 })(j);
             }
+            
+//            console.log(ui.f[i].boxes);
+            for(b in ui.f[i].boxes) {
+                var currBox = ui.f[i].boxes[b];
+                currBox.bd.makeBox();
+                currBox.bd.setArea();
+        //        console.log(boxes[b]);
+            }
         }
+        
 //        var tabs = ui.f[0].window.getElementsByClassName('tab');
 //        $(tabs[0]).on('click', function() {
 //            console.log(0);

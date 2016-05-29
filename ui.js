@@ -4,11 +4,11 @@ var CHAR_SPACE = ' ';
 var TAB_CONTENT_SUFFIX = '_content';
 
 // A box is a logical contrcut representing an individual textarea ("canvas") in which a user can draw on. It by itself should not have the ability to "draw" on itself, but a BoxStencil does that.
-// @param id: String passed in with no #, but stores internally with a #
+// @param id: String stored with no #
 function Box (id, DR, DC, MH, MW) {  // TODO: little privacy here
     var DEFAULT_ROWS = this.r = DR;// TODO: delete these vars. just here for legacy reasons
     var DEFAULT_COLS = this.c = DC;
-    this.id = Id(id);
+    this.id = id;
     var MAX_HEIGHT = MH;    // TODO: delete these vars. just here for legacy reasons
     var MAX_WIDTH = MW;
     var hasBorders = false;
@@ -21,7 +21,7 @@ function Box (id, DR, DC, MH, MW) {  // TODO: little privacy here
     this.container = 'boxes';
     
     this.setPos = function () { // put in ui.js
-        return position = $(this.id).getCursorPosition(); //position is the OLD location of the cursor before typing
+        return position = $(Id(this.id)).getCursorPosition(); //position is the OLD location of the cursor before typing
     };
     
     /*** DEBUG ***/
@@ -75,7 +75,7 @@ function Box (id, DR, DC, MH, MW) {  // TODO: little privacy here
     };
     
     this.setSelectionRange = function (selectionStart, selectionEnd) {
-        var input = $(this.id);  // alternatively, $(id)
+        var input = $(Id(this.id));  // alternatively, $(id)
         if (input.setSelectionRange) {
             input.focus();
             input.setSelectionRange(selectionStart, selectionEnd);
@@ -113,12 +113,12 @@ function Box (id, DR, DC, MH, MW) {  // TODO: little privacy here
         this.bd.adjustBox();
     };
     
-/*
-onkeydown:
-1. script runs
-2. key executes
-a a a a ... a   | \n
-0 1 2 3 ... c-1 c c+1
+    /*
+    onkeydown:
+    1. script runs
+    2. key executes
+    a a a a ... a   | \n
+    0 1 2 3 ... c-1 c c+1
 
     TODO should do nothing on (but no preventDefault()):
     esc, f1, f2, ... f12, prtsc, (ins?), home, end, pgUp, pgDown, tab, capslock, shift(unless its with a char), ctrl, alt, windows, command, apple, arrow keys, menu, scroll lock, num lock
@@ -126,7 +126,7 @@ a a a a ... a   | \n
     this.changeChar = function(e) {// TODO: split
         var unicode = null;
 
-        var range = getSelectionRange(document.getElementById('area'));
+        var range = this.getSelectionRange(document.getElementById(this.id));
 
         if (window.event) { // IE					
                 unicode = e.keyCode;
@@ -250,6 +250,24 @@ a a a a ... a   | \n
         }
         setFooterCoords();
     };
+    
+    this.setFooterCoords = function () { // put in ui.js
+//        console.log(this);
+        this.setPos();
+        var selection = getSelectionRange($(Id(this.id)));
+        if (DEBUG)
+            document.getElementById('debug').innerHTML = selection + " " + position;
+        document.getElementById('coords').innerHTML = '(' + getCol(position) + ', ' + getRow(position) + ')';
+
+        if (selection[1] - selection[0]) {
+            var x1 = getCol(selection[0]), x2 = getCol(selection[1]);
+            var y1 = getRow(selection[0]), y2 = getRow(selection[1]);
+            var xdiff = Math.abs(x2 - x1);
+            var ydiff = Math.abs(y2 - y1);
+            document.getElementById('coords').innerHTML = '(' + x1 + ', ' + y1 + ') -- ' + '(' + x2 + ', ' + y2 + ')';
+            document.getElementById('dims').innerHTML = (xdiff + 1) + ' x ' + (ydiff + 1);
+        }
+    };
 }
 
 function BoxDisplay(outerBox) {
@@ -277,7 +295,7 @@ function BoxDisplay(outerBox) {
         var boxCode = '<textarea id="' + box.id + '" spellcheck="false"></textarea>';
         document.getElementById(box.container).innerHTML = '<div id="box0">' + boxCode + '</div>';
         
-        var boxObj = $(box.id);
+        var boxObj = $(Id(box.id));
 
         this.setArea();
 
@@ -298,23 +316,24 @@ function BoxDisplay(outerBox) {
         });
         boxObj.on('keydown', box.nonKeyPress);
         boxObj.on('keypress', box.changeChar);
-        boxObj.on('keyup', this.setFooterCoords);
+        boxObj.on('keyup', box.setFooterCoords);
         boxObj.on('mousedown', function() {
             setMouseDown();
             this.setFooterCoords(); 
             box.setCaretToPos(boxObj, 0);
         });
 
-        boxObj.on('mousemove', this.setFooterCoords); 
+        boxObj.on('mousemove', box.setFooterCoords); 
         boxObj.on('mouseup', function() {
             setFooterCoords(); 
             setMouseUp();
         });
         boxObj.on('dragstart', function() {return false});
         boxObj.on('drop', function() {return false});
+        boxObj.wrap = "off";
+
         boxObj.rows = box.r;
         boxObj.cols = box.c;
-        boxObj.wrap = "off";
     };
     
     // Clears the box dimensions area of the footer and sets mouseDown
@@ -322,21 +341,8 @@ function BoxDisplay(outerBox) {
         mouseDown = true;
     };
     
-    this.setFooterCoords = function () { // put in ui.js
-        box.setPos();
-        var selection = getSelectionRange(document.getElementById('area'));
-        if (DEBUG)
-            document.getElementById('debug').innerHTML = selection + " " + position;
-        document.getElementById('coords').innerHTML = '(' + getCol(position) + ', ' + getRow(position) + ')';
-
-        if (selection[1] - selection[0]) {
-            var x1 = getCol(selection[0]), x2 = getCol(selection[1]);
-            var y1 = getRow(selection[0]), y2 = getRow(selection[1]);
-            var xdiff = Math.abs(x2 - x1);
-            var ydiff = Math.abs(y2 - y1);
-            document.getElementById('coords').innerHTML = '(' + x1 + ', ' + y1 + ') -- ' + '(' + x2 + ', ' + y2 + ')';
-            document.getElementById('dims').innerHTML = (xdiff + 1) + ' x ' + (ydiff + 1);
-        }
+    this.displayFooterCoords = function(x1, y1, x2, y2) {
+        
     };
 }
 
@@ -381,8 +387,9 @@ var ui = (function () {
     };
     var boxes = {
         // id (like 'box', no #) must begin with a # to be a valid id
-        main: new Box('area', 40, 20, 1000, 1000)
+        main: new Box('area', 20, 40, 1000, 1000)
     };
+    
     
     var frames = [new Frame(settings, boxes)];
     

@@ -1,5 +1,5 @@
 var clipboard = [];
-
+var DEBUG = false;
 /*** CONSTRUCTORS ***/
 // Container for a string representing the canvas
 function Image(s, pos) {// TODO: put in model.js

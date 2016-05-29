@@ -278,7 +278,7 @@ function getLine(line, withNewLine) {    // lines are 0 indexed// TODO: put in u
 
 // Sets the value of global position to wherever user cursor is
 function setPos() {// TODO: put in ui.js
-    return position = $('#area').getCursorPosition(); //position is the OLD location of the cursor before typing
+    return position = $(Id(this.id)).getCursorPosition(); //position is the OLD location of the cursor before typing
 }
 
 // returns the row index from the cursor position.
