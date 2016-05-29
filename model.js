@@ -119,9 +119,7 @@ function Id(name) {
 
 // yes, I got this from stackoverflow. Use: getCursorPosition() to get the cursor position from any box
 (function ($) {
-    console.log("getCursorPosition declared");
     $.fn.getCursorPosition = function() {
-        console.log(this);
         var el = $(this).get(0);
         var pos = 0;
         if ('selectionStart' in el) {

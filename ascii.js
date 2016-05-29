@@ -699,12 +699,12 @@ function setFooterCoords() {// TODO: put in ui.js
 }
 
 // Clears the box dimensions area of the footer and sets mouseDown
-function setMouseDown() {// TODO: put in ui.js
+function setMouseDown() {// put in ui.js
     mouseDown = true;
 }
 
 // Sets mouseDown false.
-function setMouseUp() {// TODO: put in ui.js
+function setMouseUp() {// put in ui.js
     mouseDown = false;
 }
 

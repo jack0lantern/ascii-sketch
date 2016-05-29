@@ -37,17 +37,17 @@ function Box (id, DR, DC, MH, MW) {  // TODO: little privacy here
     
     // returns the row index from the cursor position.
     this.getRow = function(pos) {// put in ui.js  - done
-        return Math.floor(pos / (hasBorders ? (c + 2) : (c + 1)));
+        return Math.floor(pos / (hasBorders ? (this.c + 2) : (this.c + 1)));
     };
 
     // returns the col index from the cursor position.
     this.getCol = function(pos) {// put in ui.js - done
-        return pos % (hasBorders ? (c + 2) : (c + 1));
+        return pos % (hasBorders ? (this.c + 2) : (this.c + 1));
     };
     
     // return the textarea index of the character at a specified row and col
     this.positionFromCoordinates = function(ri, ci) {// put in ui.js - done
-       return ri * (hasBorders ? (c + 2) : (c + 1)) + ci; 
+       return ri * (hasBorders ? (this.c + 2) : (this.c + 1)) + ci; 
     };
 
     
@@ -90,7 +90,7 @@ function Box (id, DR, DC, MH, MW) {  // TODO: little privacy here
     };
     
     this.setCaretToPos = function (pos) {
-      setSelectionRange(pos, pos);
+        this.setSelectionRange(pos, pos);
     };
     
     this.confirmReset = function () {// put in ui.js
@@ -136,8 +136,8 @@ function Box (id, DR, DC, MH, MW) {  // TODO: little privacy here
              }
 
         if (!(e.altKey || e.ctrlKey) && unicode) {
-            var row = getRow(position);
-            var d = getCol(position);
+            var row = this.getRow(position);
+            var d = this.getCol(position);
 
             this.setPos();
             this.bs.setCurr();
@@ -216,7 +216,7 @@ function Box (id, DR, DC, MH, MW) {  // TODO: little privacy here
 
             this.setPos();
             this.setCurr();
-            var d = getCol(position);
+            var d = this.getCol(position);
 
             // the below should be in model.js TODOs
             if (unicode === BACKSPACE) {
@@ -252,16 +252,15 @@ function Box (id, DR, DC, MH, MW) {  // TODO: little privacy here
     };
     
     this.setFooterCoords = function () { // put in ui.js
-//        console.log(this);
         this.setPos();
-        var selection = getSelectionRange($(Id(this.id)));
+        var selection = this.getSelectionRange($(Id(this.id)));
         if (DEBUG)
             document.getElementById('debug').innerHTML = selection + " " + position;
-        document.getElementById('coords').innerHTML = '(' + getCol(position) + ', ' + getRow(position) + ')';
+        document.getElementById('coords').innerHTML = '(' + this.getCol(position) + ', ' + this.getRow(position) + ')';
 
         if (selection[1] - selection[0]) {
-            var x1 = getCol(selection[0]), x2 = getCol(selection[1]);
-            var y1 = getRow(selection[0]), y2 = getRow(selection[1]);
+            var x1 = this.getCol(selection[0]), x2 = this.getCol(selection[1]);
+            var y1 = this.getRow(selection[0]), y2 = this.getRow(selection[1]);
             var xdiff = Math.abs(x2 - x1);
             var ydiff = Math.abs(y2 - y1);
             document.getElementById('coords').innerHTML = '(' + x1 + ', ' + y1 + ') -- ' + '(' + x2 + ', ' + y2 + ')';
@@ -302,34 +301,42 @@ function BoxDisplay(outerBox) {
         this.adjustBox();
 
         boxObj.on('cut', function(event) {
-            copy(true);
+            this.copy(true);
         });
         boxObj.on('copy', function(event) {
-            copy(false);
+            this.copy(false);
         });
         boxObj.on('paste', function(event) {
             event.preventDefault();
-            paste();
+            this.paste();
         });
         boxObj.on('click', function() {
             document.getElementById('dims').innerHTML = '';
         });
-        boxObj.on('keydown', box.nonKeyPress);
-        boxObj.on('keypress', box.changeChar);
-        boxObj.on('keyup', box.setFooterCoords);
+        boxObj.on('keydown', function() {
+            box.nonKeyPress();
+        });
+        boxObj.on('keypress', function() {
+            box.changeChar();
+        });
+        boxObj.on('keyup', function() {
+            box.setFooterCoords();
+        });
         boxObj.on('mousedown', function() {
             setMouseDown();
-            this.setFooterCoords(); 
+            box.setFooterCoords(); 
             box.setCaretToPos(boxObj, 0);
         });
 
-        boxObj.on('mousemove', box.setFooterCoords); 
+        boxObj.on('mousemove', function() {
+            box.setFooterCoords();
+        }); 
         boxObj.on('mouseup', function() {
-            setFooterCoords(); 
+            box.setFooterCoords(); 
             setMouseUp();
         });
-        boxObj.on('dragstart', function() {return false});
-        boxObj.on('drop', function() {return false});
+        boxObj.on('dragstart', function() {return false;});
+        boxObj.on('drop', function() {return false;});
         boxObj.wrap = "off";
 
         boxObj.rows = box.r;
@@ -338,8 +345,13 @@ function BoxDisplay(outerBox) {
     
     // Clears the box dimensions area of the footer and sets mouseDown
     var setMouseDown = function () {// TODO: put in ui.js
-        mouseDown = true;
+        this.mouseDown = true;
     };
+    
+    // Sets mouseDown false.
+    var setMouseUp = function() {// TODO: put in ui.js
+        this.mouseDown = false;
+    }
     
     this.displayFooterCoords = function(x1, y1, x2, y2) {
         
