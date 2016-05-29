@@ -344,7 +344,7 @@ function makeBox(rows, cols) {// put in ui.js
     resetCurrStr();
 
     //document.getElementById('content').innerHTML = spaces;
-    document.getElementById('box').innerHTML = boxCode;
+    document.getElementById('boxes').innerHTML = boxCode;
     setArea();
     
     adjustBox();
@@ -1366,3 +1366,5 @@ function traceEllipse(charToPut, start, end) {// TODO: put in ui.js
     var ranges = getEllipseRanges(positionFromCoordinates(startRow, startCol), (endCol - startCol)/2, (endRow - startRow)/2);
     loadRanges(charToPut, ranges, colDiff);
 }
+
+$(document).ready(init);
