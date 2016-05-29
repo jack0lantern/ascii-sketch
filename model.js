@@ -113,6 +113,10 @@ function assert(condition, message) {
     }
 }
 
+function Id(name) {
+    return '#' + name;
+}
+
 // yes, I got this from stackoverflow. Use: getCursorPosition() to get the cursor position from any box
 (function ($) {
     console.log("getCursorPosition declared");

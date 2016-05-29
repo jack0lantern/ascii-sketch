@@ -662,7 +662,7 @@ function toggleFill() {// TODO: put in ui.js
 }
 
 // Sets the selection mode to user specified mode
-function setMode(newMode) {// TODO: put in ui.js
+function setMode(newMode) {// put in ui.js
     var oldSetting = $('#' + settings.mode);
     if (settings.mode === 'custom')
         oldSetting = $('#block');
@@ -672,7 +672,7 @@ function setMode(newMode) {// TODO: put in ui.js
     $('#' + newMode).addClass('active_img');
 }
 
-function openTab(newTab) {// TODO: put in ui.js
+function openTab(newTab) {// put in ui.js
     $('#' + settings.currentTab).removeClass('active_tab');
     $('#' + settings.currentTab + TAB_CONTENT_SUFFIX).css('display', 'none');
     

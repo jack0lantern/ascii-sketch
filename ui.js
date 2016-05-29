@@ -1,13 +1,14 @@
 // TODO: DELETE ALL DEBUG SECTIONS
 
 var CHAR_SPACE = ' ';
+var TAB_CONTENT_SUFFIX = '_content';
 
 // A box is a logical contrcut representing an individual textarea ("canvas") in which a user can draw on. It by itself should not have the ability to "draw" on itself, but a BoxStencil does that.
 // @param id: String passed in with no #, but stores internally with a #
 function Box (id, DR, DC, MH, MW) {  // TODO: little privacy here
     var DEFAULT_ROWS = this.r = DR;// TODO: delete these vars. just here for legacy reasons
     var DEFAULT_COLS = this.c = DC;
-    this.id = '#' + id;
+    this.id = Id(id);
     var MAX_HEIGHT = MH;    // TODO: delete these vars. just here for legacy reasons
     var MAX_WIDTH = MW;
     var hasBorders = false;
@@ -339,6 +340,34 @@ function BoxDisplay(outerBox) {
     };
 }
 
+// Class constructor representing a collection of boxes and their associated settings. 
+// Currently having only one frame, so window_ is document by default.
+function Frame (settings_, boxes_, window_) {
+    this.settings = settings_;
+    this.boxes = boxes_;
+    this.window = window_||document;
+    
+    // Sets the selection mode to user specified mode
+    this.setMode = function(newMode) {// TODO: put in ui.js
+        var oldSetting = $(Id(settings.mode));
+        if (settings.mode === 'custom')
+            oldSetting = $(Id('block'));
+        oldSetting.removeClass('active_img');
+
+        settings.mode = newMode;
+        $(Id(newMode)).addClass('active_img');
+    }
+
+    this.openTab = function(newTab) {// TODO: put in ui.js
+        $(Id(this.settings.currentTab)).removeClass('active_tab');
+        $(Id(this.settings.currentTab) + TAB_CONTENT_SUFFIX).css('display', 'none');
+
+        $(Id(newTab) + TAB_CONTENT_SUFFIX).css('display', 'block');
+        $(Id(newTab)).addClass('active_tab');
+        this.settings.currentTab =  newTab;
+    }
+}
+
 // User Interface module for handling user settings
 var ui = (function () {
     var IS_MAC = navigator.platform.match(/Mac/i) ? true : false;
@@ -354,7 +383,10 @@ var ui = (function () {
         // id (like 'box', no #) must begin with a # to be a valid id
         main: new Box('area', 40, 20, 1000, 1000)
     };
-    return {settings: settings, boxes: boxes};
+    
+    var frames = [new Frame(settings, boxes)];
+    
+    return {f: frames};
 })();
 
 /*** DEBUG ***/
@@ -362,7 +394,7 @@ var ui = (function () {
 function testCompiles(){
     var setStr = '                                                                                \n                                                                                \n                                                                                \n                                                                                \n                                                                                \n                                                                                \n                                                                                \n                                                                                \n                                                                                \n                                                                                \n                                                                                \n                                                                                \n               d                                                                \n                                                                                \n                                                                                \n                                                                                \n                                                                                \n                                                                                \n                                                                                \n                                                                                \n                                                                                \n                                                                                \n                                                                                \n                                                                                \n                                                                                \n                                                                                \n                                                                                \n                                                                                \n                                                                                \n                                                                                \n                                                                                \n                                                                                \n                                                                                \n                                                                                \n                                                                                \n                                                                                \n                                                                                \n                                                                                \n                                                                                \n                                                                                ';
 //    alert(ui.boxes.main);
-    var b = ui.boxes.main;
+    var b = ui.f[0].boxes.main;
     b.setCurr(setStr);
     console.log(b.bd);
     b.bd.makeBox();
