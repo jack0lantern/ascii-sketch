@@ -1,5 +1,6 @@
 $(document).ready(
     function() {
-        alert("ascii2.js");
+        console.log("ascii2.js");
+        testCompiles();
     }
 );

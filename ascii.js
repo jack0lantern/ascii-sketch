@@ -189,6 +189,7 @@ function testCharMap() {
 
 (function ($) { // put in ui.js
     $.fn.getCursorPosition = function() {
+        console.log(this);
         var el = $(this).get(0);
         var pos = 0;
         if ('selectionStart' in el) {
@@ -1367,4 +1368,7 @@ function traceEllipse(charToPut, start, end) {// TODO: put in ui.js
     loadRanges(charToPut, ranges, colDiff);
 }
 
-$(document).ready(init);
+$(document).ready(function() {
+    console.log("init"); 
+    init();
+});
