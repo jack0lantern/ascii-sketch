@@ -1,38 +1,53 @@
 var clipboard = [];
 var DEBUG = false;
+var BACKSPACE = 8;
+var TAB = 9;
+var ENTER = 13;
+var SHIFT = 16;
+var CTRL = 17;
+var CAPS_LOCK = 20;
+var CHAR_C = 3;
+var CHAR_P = 15;    // TODO not sure, lol
+var CHAR_X = 24;
+var CHAR_Y = 25;
+var CHAR_Z = 26;
+//arrow keys are 37-40
+var DELETE = 46;    //keycodes, duh
+var WINDOWS = 91;
+var MENU = 93;
+
 /*** CONSTRUCTORS ***/
 // Container for a string representing the canvas
 function Image(s, pos) {// TODO: put in model.js
     this.s = s;
     this.pos = pos;
-    this.prev = null;
     this.ir = r;
     this.ic = c;
     this.sp = spaces;
     this.hb = hasBorders;
 }
 
+function Node(item, nextNode) {// TODO: put in model.js
+    this.item = item;
+    this.next = nextNode||null;
+}
+
+// TODO: test
 // Stack that takes an element with a prev property, hopefully Images
 function Stack() {// put in model.js - done
     this.top = null;
     this.pop = function() {
         var temp = this.top;
         if (temp) {
-            this.top = temp.prev;
+            this.top = temp.next;
         }
         return temp;
     };
     this.push = function(img) {
         if (img) {
-            img.prev = this.top;
-            this.top = img;
+            this.top = new Node(img, this.top);
         }
     };
-}
-
-function Node(item) {// TODO: put in model.js
-    this.item = item;
-    this.next = null;
 }
 
 function Queue() {// TODO: put in model.js
@@ -185,14 +200,14 @@ function BoxStencil(outerBox) {
     this.resetCurrStr = function () {
         var i;
         var j;
-        var border = hasBorders ? '|' : '';
+        var border = box.hasBorders ? '|' : '';
         currStr = '';
-        for (i = 0; i < this.c; i++) { 
+        for (i = 0; i < box.c; i++) { 
             spaces += CHAR_SPACE;
         }
         spaces += border + '\n';
-        for (j = 0; j < this.r; j++) {
-            if (j < this.r - 1)
+        for (j = 0; j < box.r; j++) {
+            if (j < box.r - 1)
                 currStr += spaces;
             else
                 currStr += spaces.substring(0, spaces.length - 1);  // chop off last \n

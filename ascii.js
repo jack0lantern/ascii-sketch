@@ -666,10 +666,10 @@ function setMode(newMode) {// put in ui.js
     var oldSetting = $('#' + settings.mode);
     if (settings.mode === 'custom')
         oldSetting = $('#block');
-    oldSetting.removeClass('active_img');
+    oldSetting.removeClass('active_tool');
     
     settings.mode = newMode;
-    $('#' + newMode).addClass('active_img');
+    $('#' + newMode).addClass('active_tool');
 }
 
 function openTab(newTab) {// put in ui.js

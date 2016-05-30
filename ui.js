@@ -5,9 +5,9 @@ var TAB_CONTENT_SUFFIX = '_content';
 
 // A box is a logical contrcut representing an individual textarea ("canvas") in which a user can draw on. It by itself should not have the ability to "draw" on itself, but a BoxStencil does that.
 // @param id: String stored with no #
-function Box (id, DR, DC, MH, MW) {  // TODO: little privacy here
-    var DEFAULT_ROWS = this.r = DR;// TODO: delete these vars. just here for legacy reasons
-    var DEFAULT_COLS = this.c = DC;
+function Box (id, rows, cols, MH, MW) {  // TODO: little privacy here
+    this.r = rows;
+    this.c = cols;
     this.id = id;
     var MAX_HEIGHT = MH;    // TODO: delete these vars. just here for legacy reasons
     var MAX_WIDTH = MW;
@@ -143,7 +143,7 @@ function Box (id, DR, DC, MH, MW) {  // TODO: little privacy here
             this.bs.setCurr();
 
             var start = range[0], end = range[1];
-            if (d < c) { // d is the column index. index c is either the | or newline, depending on whether or not borders are on.
+            if (d < this.c) { // d is the column index. index c is either the | or newline, depending on whether or not borders are on.
                 // TODO: SO much repetitive code! There must be a better design.
                 if (settings.mode === 'line') {
                     e.preventDefault();
@@ -248,7 +248,7 @@ function Box (id, DR, DC, MH, MW) {  // TODO: little privacy here
                 }
             }
         }
-        setFooterCoords();
+        this.setFooterCoords();
     };
     
     this.setFooterCoords = function () { // put in ui.js
@@ -281,6 +281,7 @@ function BoxDisplay(outerBox) {
     //    b.setCaretToPos(b.getPos());
     };
 
+    // Sets the box's dimensions to its logical values
     this.adjustBox = function() {
         document.getElementById(box.id).rows = box.r + 1;
         document.getElementById(box.id).cols = box.c + 1;
@@ -290,14 +291,14 @@ function BoxDisplay(outerBox) {
         document.getElementById('w').value = box.c;
     };
 
-    this.makeBox = function() {
+    this.makeBox = function(rows, cols) {
         var boxCode = '<textarea id="' + box.id + '" spellcheck="false"></textarea>';
         document.getElementById(box.container).innerHTML = '<div id="box0">' + boxCode + '</div>';
         
         var boxObj = $(Id(box.id));
-
+        
+        box.bs.resetCurrStr();
         this.setArea();
-
         this.adjustBox();
 
         boxObj.on('cut', function(event) {
@@ -313,11 +314,11 @@ function BoxDisplay(outerBox) {
         boxObj.on('click', function() {
             document.getElementById('dims').innerHTML = '';
         });
-        boxObj.on('keydown', function() {
-            box.nonKeyPress();
+        boxObj.on('keydown', function(e) {
+            box.nonKeyPress(e);
         });
-        boxObj.on('keypress', function() {
-            box.changeChar();
+        boxObj.on('keypress', function(e) {
+            box.changeChar(e);
         });
         boxObj.on('keyup', function() {
             box.setFooterCoords();
@@ -366,23 +367,25 @@ function Frame (settings_, boxes_, window_) {
     this.window = window_||document;
     
     // Sets the selection mode to user specified mode
+    // @param newMode: HTML element to set the mode of
     this.setMode = function(newMode) {// TODO: put in ui.js
-        var oldSetting = $(Id(settings.mode));
-        if (settings.mode === 'custom')
+        var oldSetting = $(Id(this.settings.mode));
+        if (this.settings.mode === 'custom')
             oldSetting = $(Id('block'));
-        oldSetting.removeClass('active_img');
+        oldSetting.removeClass('active_tool');
 
-        settings.mode = newMode;
-        $(Id(newMode)).addClass('active_img');
+        this.settings.mode = newMode.id;
+        $(Id(newMode.id)).addClass('active_tool');
     }
 
+    // @param newTab: HTML element (a tab, presumably) to activate
     this.openTab = function(newTab) {// TODO: put in ui.js
         $(Id(this.settings.currentTab)).removeClass('active_tab');
         $(Id(this.settings.currentTab) + TAB_CONTENT_SUFFIX).css('display', 'none');
 
-        $(Id(newTab) + TAB_CONTENT_SUFFIX).css('display', 'block');
-        $(Id(newTab)).addClass('active_tab');
-        this.settings.currentTab =  newTab;
+        $(Id(newTab.id) + TAB_CONTENT_SUFFIX).css('display', 'block');
+        $(Id(newTab.id)).addClass('active_tab');
+        this.settings.currentTab = newTab.id;
     }
 }
 
