@@ -56,7 +56,7 @@ var hasBorders = false; // put in ui.js
 
 /*** CONSTRUCTORS ***/
 // Container for a string representing the canvas
-function Image(s, pos) {// TODO: put in model.js
+function Image(s, pos) {// put in model.js
     this.s = s;
     this.pos = pos;
     this.prev = null;
@@ -67,7 +67,7 @@ function Image(s, pos) {// TODO: put in model.js
 }
 
 // Stack that takes an element with a prev property, hopefully Images
-function Stack() {// TODO: put in model.js
+function Stack() {// put in model.js
     this.top = null;
     this.pop = function() {
         var temp = this.top;
@@ -84,12 +84,12 @@ function Stack() {// TODO: put in model.js
     };
 }
 
-function Node(item) {// TODO: put in model.js
+function Node(item) {// put in model.js
     this.item = item;
     this.next = null;
 }
 
-function Queue() {// TODO: put in model.js
+function Queue() {// put in model.js
     this.front = null;
     this.back = null;
     
@@ -131,7 +131,7 @@ function Queue() {// TODO: put in model.js
 }
 
 // 
-function Vector2D(x, y) { // TODO: put in model.js
+function Vector2D(x, y) { // put in model.js
     this.x = x;
     this.y = y;
     this.length = function() {
@@ -174,8 +174,8 @@ var unitVectors = { // TODO: put in model.js
     E: new Vector2D(0, 1)
 };
 
-var undo = new Stack();// TODO: put in model.js
-var redo = new Stack();// TODO: put in model.js
+var undo = new Stack();// put in model.js
+var redo = new Stack();// put in model.js
 
 var clipboard = [];
 
@@ -265,7 +265,7 @@ function setArea() {// put in ui.js
 }
 
 // returns the line at a given row index. This cuts off the ending \n.
-function getLine(line, withNewLine) {    // lines are 0 indexed// TODO: put in ui.js
+function getLine(line, withNewLine) {    // lines are 0 indexed// put in ui.js
     if (line < r) {
         var str = '';
         var newlineIndex = currStr.indexOf('\n');  // find first instance of \n
@@ -277,17 +277,17 @@ function getLine(line, withNewLine) {    // lines are 0 indexed// TODO: put in u
 }
 
 // Sets the value of global position to wherever user cursor is
-function setPos() {// TODO: put in ui.js
+function setPos() {// put in ui.js
     return position = $(Id(this.id)).getCursorPosition(); //position is the OLD location of the cursor before typing
 }
 
 // returns the row index from the cursor position.
-function getRow(pos) {// TODO: put in ui.js
+function getRow(pos) {// put in ui.js
     return Math.floor(pos / (hasBorders ? (c + 2) : (c + 1)));
 }
 
 // returns the col index from the cursor position.
-function getCol(pos) {// TODO: put in ui.js
+function getCol(pos) {// put in ui.js
     return pos % (hasBorders ? (c + 2) : (c + 1));
 }
 
@@ -304,7 +304,7 @@ function adjustBox() {// put in ui.js
     document.getElementById('w').value = c;
 }
 
-function clearStacks() {// TODO: put in model.js
+function clearStacks() {// put in model.js
     undo = new Stack();
     redo = new Stack();
 }
@@ -326,7 +326,7 @@ function resetCurrStr() {// put in ui.js
     }
 }
 
-function confirmReset() {// TODO: put in ui.js
+function confirmReset() {// put in ui.js
     var reset = confirm('Are you sure you want to clear the image? All your work will be lost. Press OK to continue or Cancel to cancel.');
     if (reset) {
         makeBox(parseInt(document.getElementById('h').value), parseInt(document.getElementById('w').value));
@@ -384,7 +384,7 @@ function makeBox(rows, cols) {// put in ui.js
 }
 
 // Grow or shrink the textarea's dimensions while maintaining content as much as possible. Chops off content on shrink, adds spaces on grow.
-function changeBox(rows, cols) {// TODO: put in ui.js
+function changeBox(rows, cols) {// put in ui.js
     rows = Math.min(parseInt(rows), MAX_BOX_HEIGHT);
     cols = Math.min(parseInt(cols), MAX_BOX_WIDTH);
     var emptyRow = '';
@@ -444,13 +444,13 @@ function init() {
 }
 
 // Pushes a change to currStr to undo
-function pushUndo() {// TODO: put in ui.js
+function pushUndo() {// TODO: put in model.js
     undo.push(new Image(currStr, position + 1));
     redo = new Stack();
 }
 
 // Pops from the undo stack and sets the stack top to the image
-function popUndo() {// TODO: put in ui.js
+function popUndo() {// TODO: put in ui.js and split to model.js
     var ret;
     redo.push(ret = undo.pop(), position);
     if (undo.top) {
@@ -467,7 +467,7 @@ function popUndo() {// TODO: put in ui.js
     else {
         makeBox(r, c);
     }
-    
+    // TODO: change area to this.id
     setCaretToPos(document.getElementById('area'), undo.top.pos);
     adjustBox();
     return ret;
@@ -637,7 +637,7 @@ function retainSelection() {// TODO: put in ui.js
 }
 
 // Assigns correct user choices to settings global object
-function setBlockRadioSettings() {// TODO: put in ui.js
+function setBlockRadioSettings() {// put in ui.js
     if (document.getElementById('fill').checked) {
         if (document.getElementById('fillSame').checked)
             settings.fillMode = 'fill';
@@ -651,7 +651,7 @@ function setBlockRadioSettings() {// TODO: put in ui.js
 }
 
 // changes the state of fillMode
-function toggleFill() {// TODO: put in ui.js
+function toggleFill() {// put in ui.js
     if (settings.fillMode === 'transparent') {
         document.getElementById('fillOptions').innerHTML = '<label for="fillChar">with: </label> <br /> <input type="radio" id="fillSame" name="fillOptions" value="same" checked /> <label for="fillSame"> Same characters </label><br /> <input type="radio" id="fillDiff" name="fillOptions" value="diff" /> <label for="fillDiff">This character: </label><input type="text" class="text" id="fillChar" maxlength="1" value=" " onChange="setBlockRadioSettings()" />';
     }
@@ -681,7 +681,7 @@ function openTab(newTab) {// put in ui.js
     settings.currentTab =  newTab;
 }
 
-function setFooterCoords() {// TODO: put in ui.js
+function setFooterCoords() {// put in ui.js
     setPos();
     var selection = getSelectionRange(document.getElementById('area'));
     if (DEBUG)
@@ -709,7 +709,7 @@ function setMouseUp() {// put in ui.js
 }
 
 // Takes a new subject and imposes it on tgt, taking tgt's content where subject has a space.
-function mergeOverSpace(subject, tgt) {// TODO: put in model.js
+function mergeOverSpace(subject, tgt) {// put in model.js
     if (subject && tgt && subject.length === tgt.length) {
         var i = 0;
         var result = '';
@@ -837,7 +837,7 @@ function paste() {// TODO: split
 
 // loop through ranges list, if it is within 1 outside of a range, absorb it, otherwise add new range
 // return the changed range
-function addToRanges(value, ranges) {// TODO: put in model.js
+function addToRanges(value, ranges) {// put in model.js
     var changedRange = null;
     for (var i = 0; i < ranges.length && !changedRange; i++) {
         if (i < ranges.length - 1 && value - ranges[i][1] === 1 && ranges[i + 1][0] - value === 1) {
@@ -869,14 +869,14 @@ function addToRanges(value, ranges) {// TODO: put in model.js
     return changedRange;
 }
 
-function shouldEnqueue(toReplace, pos, visited) {// TODO: put in model.js
+function shouldEnqueue(toReplace, pos, visited) {// put in model.js
     return visited[pos] === undefined && pos >= 0 && getRow(pos) < r && getCol(pos) < c && currStr.charAt(pos) === toReplace;
 }
 
 // Determine a list of ranges in which to assign the new character (in ranges, 
 // a array of two-element range arrays, which are inclusive endpoints)
 // A dynamic approach
-function dynBucketHelper(ranges, toReplace, pos) {// TODO: put in model.js
+function dynBucketHelper(ranges, toReplace, pos) {// put in model.js
     var toCheckQ = new Queue();
     var visited = [];
     
@@ -949,7 +949,7 @@ function loadRanges(charToPut, ranges, colDiff) {// TODO: split
     pushUndo();
 }
 
-function bucket(charToPut, start) {// TODO: split
+function bucket(charToPut, start) {// split
     var charToFlood = currStr.charAt(start);
     var ranges = [];
     dynBucketHelper(ranges, charToFlood, start);
@@ -1349,7 +1349,7 @@ function getEllipseRanges(start, xRad, yRad) {// TODO: put in model.js
     return ranges;
 }
 
-function traceEllipse(charToPut, start, end) {// TODO: put in ui.js
+function traceEllipse(charToPut, start, end) {// TODO: put in model.js
     var startRow = getRow(start), endRow = getRow(end);
     var startCol = Math.min(getCol(start), getCol(end)), endCol = Math.max(getCol(start), getCol(end));
     // NOTE: "cleaning" the start/end col is not the same kind of behavior tracelinear does, which handles

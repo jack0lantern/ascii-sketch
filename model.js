@@ -132,6 +132,78 @@ function Id(name) {
     return '#' + name;
 }
 
+// Takes a new subject and imposes it on tgt, taking tgt's content where subject has a space.
+function mergeOverSpace(subject, tgt) {// put in model.js
+    if (subject && tgt && subject.length === tgt.length) {
+        var i = 0;
+        var result = '';
+        while(i < subject.length) { // TODO: make more efficient with regex? Will be more complicated
+            if (subject[i] === CHAR_SPACE)
+                result += tgt[i];
+            else
+                result += subject[i];
+            i++;
+        }
+        return result;
+    }
+    else
+        return null;
+}
+
+// Takes a list, returns a reversed version of that list without modifying it
+// (and this is because arguments are passed by value)
+function reverseList(list) {// TODO: put in model.js
+    var tempVal;
+    for (var i = 0; i < Math.floor(list.length/2); i++) {
+        tempVal = list[i];
+        list[i] = list[list.length - 1 - i];
+        list[list.length - 1 - i] = tempVal;
+    }
+    return list;
+}
+
+function inRange(value, a, b) {// put in model.js
+    return (a <= value && value <= b) || (b <= value && value <= a);
+}
+
+// loop through ranges list, if it is within 1 outside of a range, absorb it, otherwise add new range
+// return the changed range
+function addToRanges(value, ranges) {// TODO: put in model.js
+    var changedRange = null;
+    for (var i = 0; i < ranges.length && !changedRange; i++) {
+        if (i < ranges.length - 1 && value - ranges[i][1] === 1 && ranges[i + 1][0] - value === 1) {
+            ranges.splice(i, 2, [ranges[i][0], ranges[i + 1][1]]);
+            changedRange = ranges[i];
+        }
+        else if (ranges[i][0] - value === 1) {
+            ranges[i][0]--;
+            changedRange = ranges[i];
+        }
+        else if (value - ranges[i][1] === 1) {
+            ranges[i][1]++;
+            changedRange = ranges[i];
+        }
+        else if (ranges[i][0] <= value && value <= ranges[i][1]) {
+            changedRange = ranges[i];
+        }
+    }
+    if (!changedRange) {
+        var insert = 0;
+        if (ranges.length) {
+            while(insert < ranges.length && value >= ranges[insert][0]) {
+                insert++;
+            }
+        }
+        ranges.splice(insert, 0, [value, value]);
+        changedRange = ranges[insert];
+    }
+    return changedRange;
+}
+
+function shouldEnqueue(toReplace, pos, visited) {// TODO: put in model.js
+    return visited[pos] === undefined && pos >= 0 && getRow(pos) < r && getCol(pos) < c && currStr.charAt(pos) === toReplace;
+}
+
 // yes, I got this from stackoverflow. Use: getCursorPosition() to get the cursor position from any box
 (function ($) {
     $.fn.getCursorPosition = function() {
@@ -176,10 +248,12 @@ function BoxStencil(outerBox) {
     var redo = new Stack();
     
     this.setCurr = function (s) {
-        currStr = s;
+        console.log('setCurr called with ' + s);
+        currStr = s || document.getElementById(box.id).value;
     };
     
     this.getCurr = function () {
+        console.log('getCurr called');
         return currStr;
     };
     
@@ -198,6 +272,7 @@ function BoxStencil(outerBox) {
     
     // Sets currStr to an empty box string
     this.resetCurrStr = function () {
+        console.log('resetCurrStr called');
         var i;
         var j;
         var border = box.hasBorders ? '|' : '';
@@ -268,7 +343,75 @@ function BoxStencil(outerBox) {
 //        }
         /*** /REFACTOR ***/
 
-        this.currStr = newStr||this.currStr;
+        currStr = newStr||currStr;
+    };
+    
+    this.assignCurrByRange = function (charToPut, ranges, colDiff, settings) {
+        console.log('this get curr in model at top of assignBy... : ' + this.getCurr()); // undefined
+        var fillLine = '';
+        var newStr = '';
+        var appendage = '';
+        
+        for (var i = 0; i < this.c; i++)
+            fillLine += charToPut;
+        
+        if (colDiff) {
+            if (settings.fillMode === 'custom') 
+                for (var i = 0; i < colDiff; i++) 
+                    appendage += settings.fillChar;
+            else
+                appendage = fillLine;
+        }
+
+        newStr = currStr.substring(0, ranges[0][0]);
+        
+        for (var i = 0; i < ranges.length; i++) {
+            var endIndex = ranges[i][1] - ranges[i][0] + 1;
+            newStr += fillLine.substring(0, endIndex);
+            if (i < ranges.length - 1) {
+                if (settings.mode === 'bucket' || settings.fillMode === 'transparent' || box.getRow(ranges[i][1]) != box.getRow(ranges[i + 1][0]))
+                    newStr += currStr.substring(ranges[i][1] + 1, ranges[i + 1][0]);
+                else
+                    newStr += appendage.substring(0, ranges[i + 1][0] - ranges[i][1] - 1);                            
+            }
+            else
+                newStr += currStr.substring(ranges[i][1] + 1);
+        }
+        currStr = newStr;
+    };
+    
+    // Determine a list of ranges in which to assign the new character (in ranges, 
+    // a array of two-element range arrays, which are inclusive endpoints)
+    // A dynamic approach
+    this.dynBucketHelper = function (ranges, toReplace, pos) {// put in model.js
+        var toCheckQ = new Queue();
+        var visited = [];
+
+        toCheckQ.enqueue(pos);
+        visited[pos] = true;
+
+        while(!toCheckQ.isEmpty()) {
+            var currentPos = toCheckQ.dequeue().item;
+
+            addToRanges(currentPos, ranges);
+
+            if (shouldEnqueue(toReplace, currentPos - 1, visited)) {
+                toCheckQ.enqueue(currentPos - 1);
+                visited[currentPos - 1] = true;
+            }
+            if (shouldEnqueue(toReplace, currentPos + 1, visited)) {
+                toCheckQ.enqueue(currentPos + 1);
+                visited[currentPos + 1] = true;
+            }
+            if (shouldEnqueue(toReplace, positionFromCoordinates(getRow(currentPos) - 1, getCol(currentPos)), visited)) {
+                toCheckQ.enqueue(positionFromCoordinates(getRow(currentPos) - 1, getCol(currentPos)));
+                visited[positionFromCoordinates(getRow(currentPos) - 1, getCol(currentPos))] = true;
+            }
+            if (shouldEnqueue(toReplace, positionFromCoordinates(getRow(currentPos) + 1, getCol(currentPos)), visited)) {
+                toCheckQ.enqueue(positionFromCoordinates(getRow(currentPos) + 1, getCol(currentPos)));
+                visited[positionFromCoordinates(getRow(currentPos) + 1, getCol(currentPos))] = true;
+            }
+        }
     };
 }
 

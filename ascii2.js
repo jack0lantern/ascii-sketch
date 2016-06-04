@@ -38,7 +38,7 @@ $(document).ready(
             for(b in ui.f[i].boxes) {
                 var currBox = ui.f[i].boxes[b];
                 currBox.bd.makeBox();
-                currBox.bd.setArea();
+//                currBox.bd.setArea();
         //        console.log(boxes[b]);
                 
             }

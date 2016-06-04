@@ -5,20 +5,23 @@ var TAB_CONTENT_SUFFIX = '_content';
 
 // A box is a logical contrcut representing an individual textarea ("canvas") in which a user can draw on. It by itself should not have the ability to "draw" on itself, but a BoxStencil does that.
 // @param id: String stored with no #
-function Box (id, rows, cols, MH, MW) {  // TODO: little privacy here
+function Box (id, rows, cols, settings) {  // TODO: little privacy here
     this.r = rows;
     this.c = cols;
     this.id = id;
-    var MAX_HEIGHT = MH;    // TODO: delete these vars. just here for legacy reasons
-    var MAX_WIDTH = MW;
-    var hasBorders = false;
-    var position = 0;
-    var range = [0, 0];
-    var wrap = true;
     this.bs = new BoxStencil(this);
     this.bd = new BoxDisplay(this);
     // id of the containing div
     this.container = 'boxes';
+    this.settings = settings;
+
+    var hasBorders = false;
+    var position = 0;
+    var range = [0, 0];
+    var wrap = true;
+    
+    var MAX_BOX_HEIGHT = 1000;
+    var MAX_BOX_WIDTH = 1000;
     
     this.setPos = function () { // put in ui.js
         return position = $(Id(this.id)).getCursorPosition(); //position is the OLD location of the cursor before typing
@@ -103,7 +106,7 @@ function Box (id, rows, cols, MH, MW) {  // TODO: little privacy here
     
     
     // Grow or shrink the textarea's dimensions while maintaining content as much as possible. Chops off content on shrink, adds spaces on grow.
-    this.changeBox = function(rows, cols) {// TODO: put in ui.js
+    this.changeBox = function (rows, cols) {// TODO: put in ui.js
         rows = Math.min(parseInt(rows), MAX_BOX_HEIGHT);
         cols = Math.min(parseInt(cols), MAX_BOX_WIDTH);
         this.bs.changeCurrStrDims(rows, cols);
@@ -123,8 +126,10 @@ function Box (id, rows, cols, MH, MW) {  // TODO: little privacy here
     TODO should do nothing on (but no preventDefault()):
     esc, f1, f2, ... f12, prtsc, (ins?), home, end, pgUp, pgDown, tab, capslock, shift(unless its with a char), ctrl, alt, windows, command, apple, arrow keys, menu, scroll lock, num lock
     */
-    this.changeChar = function(e) {// TODO: split
+    this.changeChar = function (e) {// TODO: split
         var unicode = null;
+
+        console.log('this, yes closure: ' + this);
 
         var range = this.getSelectionRange(document.getElementById(this.id));
 
@@ -147,37 +152,38 @@ function Box (id, rows, cols, MH, MW) {  // TODO: little privacy here
                 // TODO: SO much repetitive code! There must be a better design.
                 if (settings.mode === 'line') {
                     e.preventDefault();
-                    traceLinear(String.fromCharCode(unicode), start, end);
+                    this.traceLinear(String.fromCharCode(unicode), start, end);
                 }
                 else if (settings.mode === 'block') {
                     e.preventDefault();
-                    traceBlock(String.fromCharCode(unicode), start, end);
+                    
+                    this.traceBlock(String.fromCharCode(unicode), start, end);
                 }
                 else if (settings.mode === 'bucket') {
                     e.preventDefault();
-                    bucket(String.fromCharCode(unicode), start);
+                    this.bucket(String.fromCharCode(unicode), start);
                 }
                 else if (settings.mode === 'circle') {
                     e.preventDefault();
-                    traceEllipse(String.fromCharCode(unicode), start, end);
+                    this.traceEllipse(String.fromCharCode(unicode), start, end);
                 }
                 else {
                     // Here's where we actually change a character.
-                    currStr = currStr.substring(0, position) + currStr.substring(position + 1);    
-                    setArea();
+                    this.bs.currStr = this.bs.currStr.substring(0, position) + this.bs.currStr.substring(position + 1);    
+                    this.bd.setArea();
                 }
             }
             else {
                 // stop user from overwriting the | or newline
                 e.preventDefault();
                 if (settings.mode === 'line') {
-                    traceLinear(String.fromCharCode(unicode), start, end);
+                    this.traceLinear(String.fromCharCode(unicode), start, end);
                 }
                 else if (settings.mode === 'block')
-                    traceBlock(String.fromCharCode(unicode), start, end);
+                    this.traceBlock(String.fromCharCode(unicode), start, end);
             }
             if (start != end)
-                setSelectionRange(document.getElementById('area'), start, end);
+                this.setSelectionRange(document.getElementById('area'), start, end);
         }
         else if (e.ctrlKey) {  // the key bind at the top of this file takes care of CUT/COPY/PASTE for now
             if (e.which === CHAR_Z) {
@@ -201,7 +207,7 @@ function Box (id, rows, cols, MH, MW) {  // TODO: little privacy here
     //            paste();
     //        }
         }
-        bd.setFooterCoords();
+        this.bd.setFooterCoords();
     };
 
     this.nonKeyPress = function (e) {// TODO: split
@@ -222,9 +228,9 @@ function Box (id, rows, cols, MH, MW) {  // TODO: little privacy here
             if (unicode === BACKSPACE) {
                 if (d > c || d == 0) {
                     e.preventDefault();
-                    setCaretToPos(document.getElementById('area'), position - 1);
                 }
                 else {
+                    setCaretToPos(document.getElementById(this.id), position - 1);
                     this.bs.currStr = this.bs.currStr.substring(0, position) + ' ' +  this.bs.currStr.substring(position);
                     this.bd.setArea();
                 }
@@ -267,22 +273,396 @@ function Box (id, rows, cols, MH, MW) {  // TODO: little privacy here
             document.getElementById('dims').innerHTML = (xdiff + 1) + ' x ' + (ydiff + 1);
         }
     };
+    
+    // Macro to shift all written text in the box right if units > 0, left otherwise.
+    this.shiftHoriz = function (units) {// TODO: split
+        var newStr = '';
+        var temp = '';
+        var padSpaces = '';
+        var i;
+        var startIdx = 0;
+        var endIdx = c;
+
+        setPos();
+        setCurr();
+        units = parseInt(units);
+        if (units > 0) {
+            units = Math.min(c, units); // in case the user puts a number > cols
+            endIdx -= units;
+        }
+        else if (units < 0) {
+            units = Math.max(-c, units);
+            startIdx -= units;
+        }
+        else
+            return;
+
+        for (i = 0; i < Math.abs(units); i++)
+            padSpaces += ' ';
+
+        for (i = 0; i < r; i++) {
+            temp = getLine(i, false);
+            if (units > 0)
+                newStr += padSpaces;
+            newStr += temp.substring(startIdx, endIdx);
+            if (units < 0)
+                newStr += padSpaces;
+            newStr += hasBorders ? '|' : '';
+            newStr += i < (r - 1) ? '\n' : '';
+        }
+
+        currStr = newStr;
+        setArea();
+        setCaretToPos(document.getElementById('area'), position);
+        pushUndo();
+    };
+
+    // Macro to shift all written text in the box up if units > 0, down otherwise.
+    this.shiftVert = function (units) {// TODO: split
+        var newStr = '';
+        var temp = '';
+        var padLine = '';
+        var i;
+        var lineLen;
+
+        setPos();
+        setCurr();
+        var startIdx = 0;
+        var endIdx = currStr.length;
+        units = parseInt(units);
+
+        for (i = 0; i < c; i++)
+            padLine += CHAR_SPACE;
+        padLine += hasBorders ? '|\n' : '\n';
+
+        lineLen = padLine.length;
+        if (units > 0) {
+            units = Math.min(r, units); // in case the user puts a number > rows
+            startIdx += units*lineLen;
+        }
+        else if (units < 0) {
+            units = Math.max(-r, units);
+            endIdx += units*lineLen;
+        }
+        else
+            return;
+
+        if (units < 0) {
+            for (i = 0; i < Math.abs(units); i++)
+                newStr += padLine;
+        }
+        newStr += currStr.substring(startIdx, endIdx);
+        if (units > 0) {
+            newStr += '\n';
+            for (i = 0; i < Math.abs(units); i++)
+                newStr += padLine;
+            newStr = newStr.substring(0, newStr.length - 1); // take off the last \n
+        }
+
+        currStr = newStr;
+        setArea();
+        setCaretToPos(document.getElementById('area'), position);
+        pushUndo();
+    };
+    
+    // Clears out all whitespace surrounding the image and resizes to close on
+    // the image as tightly as possible.
+    this.trimArea = function () {// TODO: split
+        var matches = [];
+        var beginIndex = -1;
+        var endIndex = -1;
+        var minCol = c - 1, maxCol = 0;
+        var re = '';
+
+        setPos();
+        setCurr();
+        if (hasBorders)
+            re = /[^\s][^\n]/gi; // /( [^\s][^\n])|([^\s][^\n]( |\|\n))/gi;
+        else
+            re = /[^\s]/gi; // /( [^\s])|(([^\s] )|[^\s]\|\n)/gi;
+        matches = document.getElementById('area').value.match(re);
+
+        if (matches.length) {
+            beginIndex = document.getElementById('area').value.indexOf(matches[0]);
+            endIndex = document.getElementById('area').value.lastIndexOf(matches[matches.length - 1]);
+        }
+
+        // rows have been cut down; trim extra col space now.
+        var trimmed = document.getElementById('area').value.substring(beginIndex, endIndex + 1);
+
+        if (DEBUG)
+            document.getElementById('debug').innerHTML = beginIndex + " " + endIndex;
+
+        var line = getRow(beginIndex);
+        var stop = getRow(endIndex);
+        var currLine;
+
+        // find the min and max col values
+        for (; line <= stop; line++) {
+            currLine = getLine(line, false);
+            matches = currLine.match(re);
+
+            if (currLine.indexOf(matches[0]) < minCol)
+                minCol = currLine.indexOf(matches[0]);
+            if (currLine.lastIndexOf(matches[matches.length - 1]) > maxCol)
+                maxCol = currLine.lastIndexOf(matches[matches.length - 1]);
+        }
+
+        if (DEBUG)
+            document.getElementById('debug').innerHTML = "min/max col values: " + minCol + " " + maxCol;
+
+        // Create the new canvas string
+        var newStr = '';
+        for (line = getRow(beginIndex); line <= stop; line++) {
+            currLine = getLine(line, false);
+
+            newStr += currLine.substring(minCol, maxCol + 1);
+            if (hasBorders)
+                newStr += '|';
+            if (line < stop)
+                newStr += '\n';
+        }
+
+        //document.getElementById('debug').innerHTML = newStr;
+        currStr = newStr;
+        setArea();
+
+        r = stop - getRow(beginIndex) + 1;
+        c = maxCol - minCol + 1;
+
+        adjustBox();
+        pushUndo();
+    };
+    
+    // Assigns correct user choices to settings global object
+    // TODO: reduce rigidity?
+    this.setBlockRadioSettings = function () {// put in ui.js
+        if (document.getElementById('fill').checked) {
+            if (document.getElementById('fillSame').checked)
+                this.settings.fillMode = 'fill';
+            else if (document.getElementById('fillDiff').checked) {
+                this.settings.fillMode = 'custom';
+                this.settings.fillChar = document.getElementById('fillChar').value;
+            }
+        }
+        else
+            this.settings.fillMode = 'transparent';
+    };
+    
+    // 
+    this.loadRanges = function (charToPut, ranges, colDiff) {// TODO: split
+//        console.log(this.getCurr()); // undefined
+        this.setCurr();
+        this.setPos();
+        this.setBlockRadioSettings();
+
+        // ASSERT ranges[0][0] is defined
+        if(ranges[0][0] === undefined)
+            return;
+        this.bs.assignCurrByRange(charToPut, ranges, colDiff, this.settings);
+        this.bd.setArea();
+        this.setCaretToPos($(Id(this.id)), this.position);
+        this.bs.pushUndo(); // TODO: reimplement
+    };
+
+    // Draws a line of copies of a character, repeated as frequently as possible over an interval specified by the user's selection
+    // TODO: refactor for loadranges use
+    this.traceLinear = function (charToPut, start, end) {// TODO: split
+        var startRow = this.getRow(start), endRow = this.getRow(end);
+        var startCol = this.getCol(start), endCol = this.getCol(end);
+        // note: rowDiff always >= 0, same CANNOT be said for colDiff
+        var rowDiff = endRow - startRow, colDiff = endCol - startCol;
+        var rowsMoreThanCols = rowDiff > Math.abs(colDiff);
+        var d = rowsMoreThanCols ? colDiff / rowDiff : Math.abs(rowDiff / colDiff);
+        d = d || 0; // in case d is NaN due to 0/0
+        //document.getElementById('debug').innerHTML = d;
+        var ri = startRow, ci = startCol;
+        var i = 0;
+        var count = 0;
+
+        this.setPos();
+        this.setCurr();
+        
+        var r = this.r;
+        var c = this.c;
+
+        var newStr;
+        //alert(newStr);
+        if (rowsMoreThanCols) {
+            while(Math.round(ci) >= c) {
+                ri++;
+                if (colDiff < 0) {
+                    ci += d;
+                    continue;
+                }
+                else {
+                    newStr = currStr;
+                    break;
+                }
+            }
+            if (ci < c)
+                newStr = this.getCurr().substring(0, positionFromCoordinates(ri, Math.round(ci)));
+            while(ri <= endRow && Math.round(ci) < c) {
+                var oldri = ri;
+                var oldci = ci;
+                newStr += charToPut;
+                ri++;
+                ci += d;
+                newStr += this.bs.currStr.substring(this.positionFromCoordinates(oldri, Math.round(oldci)) + 1,  this.positionFromCoordinates(ri, Math.round(ci)));
+            }
+            var iterationLength = newStr.length;
+            newStr += this.bs.currStr.substring(iterationLength);
+        }
+        else {
+            // if the selected column cannot be written to, skip those iterations
+            // until a valid one is computed.
+            while(ci >= c) {
+                ri += d;
+                if (colDiff < 0) {
+                    ci--;
+                    continue;
+                }
+                else {
+                    newStr = this.bs.currStr;
+                    break;
+                }
+            }
+            if (ci < c)
+                newStr = this.getCurr().substring(0, this.positionFromCoordinates(Math.round(ri), ci));
+            //alert(ci);
+            // Once we have a valid ci, compute the number of chars we write to one line.
+            while(inRange(ci, startCol, endCol) && ci < c && (colDiff > 0 || ci >= 0)) {
+                var oldri = Math.round(ri);
+                var oldci = ci;
+
+                var appendage = '';
+                do {
+                    appendage += charToPut;
+                    ri += d;
+                    colDiff > 0 ? ci++ : ci--;
+                } while(Math.round(ri) === oldri && inRange(ci, startCol, endCol) && ci < c && ci >= 0);
+                // chop off count many characters
+                if (colDiff < 0) {
+                    newStr = newStr.substring(0, this.positionFromCoordinates(oldri, oldci) - appendage.length + 1);
+                }
+                var newPos = this.positionFromCoordinates(Math.round(ri), ci);
+                newStr += appendage + this.bs.currStr.substring(this.positionFromCoordinates(oldri, (colDiff > 0) ? ci : oldci + 1), (inRange(ci, startCol, endCol) && ci < c && ci >= 0) ? newPos : this.bs.currStr.length);
+            }
+        }
+
+        this.bs.currStr = newStr;
+        setArea();
+        pushUndo();
+        setCaretToPos(document.getElementById('area'), ++position);   // TODO: setArea already does a cursor shift. this is inefficient.
+    };
+
+    // Create the range set for a block and load it
+    this.traceBlock = function (charToPut, start, end) {// TODO: split
+        var startRow = this.getRow(start), endRow = this.getRow(end);
+        var startCol = Math.min(this.getCol(start), this.getCol(end)), endCol = Math.max(this.getCol(start), this.getCol(end));
+        // NOTE: "cleaning" the start/end col is not the same kind of behavior tracelinear does, which handles
+        // the off-screen cursor as if it were really there
+        startCol = Math.min(startCol, this.c - 1);
+        endCol = Math.min(endCol, this.c - 1);
+        // note: rowDiff always >= 0, same CANNOT be said for colDiff
+        var rowDiff = endRow - startRow, colDiff = endCol - startCol;    
+        if (rowDiff === 0 || colDiff === 0) {
+            this.traceLinear(charToPut, start, end);
+            return;
+        }
+
+        var trueStart = this.positionFromCoordinates(startRow, startCol);
+        var ranges = [[trueStart, trueStart + endCol - startCol], [this.positionFromCoordinates(endRow, startCol), this.positionFromCoordinates(endRow, endCol)]];
+
+        for (var i = 1; i < endRow - startRow; i++) {
+            addToRanges(this.positionFromCoordinates(startRow + i, startCol), ranges);
+            addToRanges(this.positionFromCoordinates(startRow + i, endCol), ranges);
+        }
+
+        this.loadRanges(charToPut, ranges, Math.abs(endCol - startCol) + 1)
+    };
+
+    // Put all the ranges of currStr that must be changes to user-input char into ranges
+    this.getEllipseRanges = function (start, xRad, yRad) {// TODO: put in model.js
+        var xLim = Math.ceil(xRad);
+        var yLim = Math.ceil(yRad);
+        var xDen = xRad * xRad;
+        var yDen = yRad * yRad;
+        var dydx = 1;       // NOT NECESSARY, but keeping just cuz math
+        var xPivot = 0;//Math.floor(xRad-Math.sqrt(xDen*yDen/(yDen + yDen*yDen/xDen/dydx/dydx))); 
+        var yPivot = 0;//Math.floor(yRad - Math.sqrt(yDen*(1 - (xPivot*xPivot/xDen)))); 
+
+        var ranges = [];
+
+        var startRow = getRow(start);
+        var startCol = getCol(start);
+        var col;
+        var row;
+
+        for (var y = yPivot; y < Math.min(2 * yLim - yPivot, r - 1 - startRow); y++) {
+            col = startCol + Math.round(-Math.sqrt((1 - Math.pow(y - yRad, 2)/yDen)*xDen) + xRad);
+            addToRanges(positionFromCoordinates(startRow + y, col), ranges);
+
+            col = startCol + Math.round(Math.sqrt((1 - Math.pow(y - yRad, 2)/yDen)*xDen) + xRad);
+            addToRanges(positionFromCoordinates(startRow + y, col), ranges);
+        }
+
+        // For the octant, xLim is the stopping point, but use 2*xLim-Pivot to mirror it across the y axis. Cuz math.
+        for (var x = xPivot; x <= Math.min(2 * xLim - xPivot, c - 1 - startCol); x++) {
+            row = startRow + Math.round(-Math.sqrt((1 - Math.pow(x - xRad, 2)/xDen)*yDen) + yRad);
+            addToRanges(positionFromCoordinates(row, startCol + x), ranges);
+
+            row = startRow + Math.round(Math.sqrt((1 - Math.pow(x - xRad, 2)/xDen)*yDen) + yRad);
+            addToRanges(positionFromCoordinates(row, startCol + x), ranges);
+        }
+        //alert(ranges);
+        return ranges;
+    }
+
+    this.traceEllipse = function (charToPut, start, end) {// TODO: put in model.js
+        var startRow = getRow(start), endRow = getRow(end);
+        var startCol = Math.min(getCol(start), getCol(end)), endCol = Math.max(getCol(start), getCol(end));
+        // NOTE: "cleaning" the start/end col is not the same kind of behavior tracelinear does, which handles
+        // the off-screen cursor as if it were really there
+        startCol = Math.min(startCol, c - 1);
+        endCol = Math.min(endCol, c - 1);
+
+        // note: rowDiff always >= 0, same CANNOT be said for colDiff
+        var rowDiff = endRow - startRow, colDiff = Math.abs(endCol - startCol);    
+        if (rowDiff === 0 || colDiff === 0) {
+            this.traceLinear(charToPut, start, end);
+            return;
+        }
+
+        var ranges = getEllipseRanges(positionFromCoordinates(startRow, startCol), (endCol - startCol)/2, (endRow - startRow)/2);
+        loadRanges(charToPut, ranges, colDiff);
+    };
+    
+    this.bucket = function (charToPut, start) {// TODO: split
+        var charToFlood = currStr.charAt(start);
+        var ranges = [];
+        dynBucketHelper(ranges, charToFlood, start);
+        //bucketHelper(ranges, charToFlood, [], start);
+        loadRanges(charToPut, ranges, 0);
+        pushUndo();
+    };
 }
 
-function BoxDisplay(outerBox) {
+function BoxDisplay (outerBox) {
     var box = outerBox;
-    /* puts whatever is in currStr in the textarea, then sets currStr.
+    /* puts whatever is in currStr in the textarea.
      * An essential function to call before performing any kind of text area
      * manipulation. */
     this.setArea = function() {// put in ui.js
     //    alert("ui.js: " + document.getElementById(box.id));
         assert(document.getElementById(box.id), 'invalid box id');
         document.getElementById(box.id).value = box.getCurr();
+        console.log('setarea getcurr: ' + box.getCurr());
     //    b.setCaretToPos(b.getPos());
     };
 
     // Sets the box's dimensions to its logical values
-    this.adjustBox = function() {
+    this.adjustBox = function () {
         document.getElementById(box.id).rows = box.r + 1;
         document.getElementById(box.id).cols = box.c + 1;
 
@@ -291,7 +671,8 @@ function BoxDisplay(outerBox) {
         document.getElementById('w').value = box.c;
     };
 
-    this.makeBox = function(rows, cols) {
+    this.makeBox = function (rows, cols) {
+
         var boxCode = '<textarea id="' + box.id + '" spellcheck="false"></textarea>';
         document.getElementById(box.container).innerHTML = '<div id="box0">' + boxCode + '</div>';
         
@@ -300,6 +681,7 @@ function BoxDisplay(outerBox) {
         box.bs.resetCurrStr();
         this.setArea();
         this.adjustBox();
+        console.log('box get curr in ui: ' + box.getCurr());
 
         boxObj.on('cut', function(event) {
             this.copy(true);
@@ -314,13 +696,21 @@ function BoxDisplay(outerBox) {
         boxObj.on('click', function() {
             document.getElementById('dims').innerHTML = '';
         });
-        boxObj.on('keydown', function(e) {
-            box.nonKeyPress(e);
+        // Issues in Chrome: http://stackoverflow.com/questions/12308525/object-shows-properties-but-accessing-them-returns-undefined
+        // Trying to access object members gets undefined because they are defined after we try to access in certain asynch events, like pushing a key
+//        this.self = this;
+        console.log('b4 attaching key events: ' + box.getCurr());
+        
+        boxObj.on('keydown', function(event) {
+            box.nonKeyPress(event);
         });
-        boxObj.on('keypress', function(e) {
-            box.changeChar(e);
+        boxObj.on('keypress', function(event) {
+console.log('keypress box.getCurr ' + box.getCurr());   // undefined
+            box.changeChar(event);
         });
         boxObj.on('keyup', function() {
+//            for(prop in this.bs)
+        console.log('in keyup getcurr: ' + box.getCurr()); // undefined
             box.setFooterCoords();
         });
         boxObj.on('mousedown', function() {
@@ -354,17 +744,33 @@ function BoxDisplay(outerBox) {
         this.mouseDown = false;
     }
     
-    this.displayFooterCoords = function(x1, y1, x2, y2) {
+    this.displayFooterCoords = function (x1, y1, x2, y2) {
         
     };
+    
+    // changes the state of fillMode
+    // TODO: refactor HTML injection
+    this.toggleFill = function () {// put in ui.js
+        if (settings.fillMode === 'transparent') {
+            document.getElementById('fillOptions').innerHTML = '<label for="fillChar">with: </label> <br /> <input type="radio" id="fillSame" name="fillOptions" value="same" checked /> <label for="fillSame"> Same characters </label><br /> <input type="radio" id="fillDiff" name="fillOptions" value="diff" /> <label for="fillDiff">This character: </label><input type="text" class="text" id="fillChar" maxlength="1" value=" " onChange="setBlockRadioSettings()" />';
+        }
+        else {
+            document.getElementById('fillOptions').innerHTML = '';
+        }
+        this.setBlockRadioSettings();
+    }
 }
 
-// Class constructor representing a collection of boxes and their associated settings. 
+// Class constructor representing a collection of boxes and their associated settings. Basically, a wrapper for settings.
 // Currently having only one frame, so window_ is document by default.
-function Frame (settings_, boxes_, window_) {
+function Frame (settings_, window_) {
     this.settings = settings_;
-    this.boxes = boxes_;
+    this.boxes = [];
     this.window = window_||document;
+    
+    this.addBox = function(id, rows, cols) {
+        this.boxes.push(new Box(id, rows, cols, this.settings));
+    };
     
     // Sets the selection mode to user specified mode
     // @param newMode: HTML element to set the mode of
@@ -376,7 +782,7 @@ function Frame (settings_, boxes_, window_) {
 
         this.settings.mode = newMode.id;
         $(Id(newMode.id)).addClass('active_tool');
-    }
+    };
 
     // @param newTab: HTML element (a tab, presumably) to activate
     this.openTab = function(newTab) {// TODO: put in ui.js
@@ -386,7 +792,7 @@ function Frame (settings_, boxes_, window_) {
         $(Id(newTab.id) + TAB_CONTENT_SUFFIX).css('display', 'block');
         $(Id(newTab.id)).addClass('active_tab');
         this.settings.currentTab = newTab.id;
-    }
+    };
 }
 
 // User Interface module for handling user settings
@@ -400,13 +806,9 @@ var ui = (function () {
         currentTab: 'draw',
         pasteTransparent: false
     };
-    var boxes = {
-        // id (like 'box', no #) must begin with a # to be a valid id
-        main: new Box('area', 20, 40, 1000, 1000)
-    };
     
-    
-    var frames = [new Frame(settings, boxes)];
+    var frames = [new Frame(settings)];
+    frames[0].addBox('area', 20, 40);
     
     return {f: frames};
 })();
