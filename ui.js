@@ -1,4 +1,5 @@
 // TODO: DELETE ALL DEBUG SECTIONS
+// TODO: Don't use upward references to the outer box in Boxstencil and Boxdisplay
 
 var CHAR_SPACE = ' ';
 var TAB_CONTENT_SUFFIX = '_content';
@@ -207,7 +208,7 @@ function Box (id, rows, cols, settings) {  // TODO: little privacy here
     //            paste();
     //        }
         }
-        this.bd.setFooterCoords();
+        this.setFooterCoords();
     };
 
     this.nonKeyPress = function (e) {// TODO: split

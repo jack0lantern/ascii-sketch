@@ -444,13 +444,13 @@ function init() {
 }
 
 // Pushes a change to currStr to undo
-function pushUndo() {// TODO: put in model.js
+function pushUndo() {// put in model.js
     undo.push(new Image(currStr, position + 1));
     redo = new Stack();
 }
 
 // Pops from the undo stack and sets the stack top to the image
-function popUndo() {// TODO: put in ui.js and split to model.js
+function popUndo() {// put in ui.js and split to model.js
     var ret;
     redo.push(ret = undo.pop(), position);
     if (undo.top) {
@@ -474,7 +474,7 @@ function popUndo() {// TODO: put in ui.js and split to model.js
 }
 
 // Pops from the redo stack and sets the stack top to the image
-function popRedo() {// TODO: put in ui.js
+function popRedo() {// put in ui.js and split to model.js
     var undid = redo.top;
     undo.push(redo.pop());
     if (undid) {

@@ -18,13 +18,13 @@ var MENU = 93;
 
 /*** CONSTRUCTORS ***/
 // Container for a string representing the canvas
-function Image(s, pos) {// TODO: put in model.js
-    this.s = s;
-    this.pos = pos;
-    this.ir = r;
-    this.ic = c;
-    this.sp = spaces;
-    this.hb = hasBorders;
+function Image(box) {// TODO: put in model.js
+    this.s = box.s;
+    this.pos = box.position;
+    this.ir = box.r;
+    this.ic = box.c;
+    this.sp = box.bs.spaces;
+    this.hb = box.hasBorders;
 }
 
 function Node(item, nextNode) {// TODO: put in model.js
@@ -412,6 +412,56 @@ function BoxStencil(outerBox) {
                 visited[positionFromCoordinates(getRow(currentPos) + 1, getCol(currentPos))] = true;
             }
         }
+    };
+    
+    // Pushes a change to currStr to undo
+    this.pushUndo = function () {// put in model.js
+        undo.push(new Image(box));
+        redo = new Stack();
+    };
+
+    // Pops from the undo stack and sets the stack top to the image
+    this.popUndo = function () {// TODO: put in ui.js and split to model.js
+        var ret;
+        redo.push(ret = undo.pop(), position);
+        if (undo.top) {
+            box.r = undo.top.ir;
+            box.c = undo.top.ic;
+            spaces = undo.top.sp;
+            currStr = undo.top.s;
+            box.bd.setArea();
+            if (box.hasBorders != undo.top.hb) {
+                box.hasBorders = undo.top.hb;
+                box.toggleBorders();
+            }
+        }
+        else {
+            box.bd.makeBox(r, c);
+        }
+        // TODO: change area to this.id
+        setCaretToPos(document.getElementById('area'), undo.top.pos);
+        box.bd.adjustBox();
+        return ret;
+    };
+
+    // Pops from the redo stack and sets the stack top to the image
+    this.popRedo = function () {// TODO: put in ui.js and split to model.js
+        var undid = redo.top;
+        undo.push(redo.pop());
+        if (undid) {
+            box.r = undid.ir;
+            box.c = undid.ic;
+            spaces = undid.sp;
+            currStr = undid.s;
+            box.bd.setArea();
+            if (box.hasBorders != undid.hb) {
+                box.hasBorders = undid.hb;
+                box.toggleBorders();
+            }
+            box.setCaretToPos(document.getElementById('area'), undid.pos);
+            box.bd.adjustBox();
+        }
+        return undid.s;
     };
 }
 
