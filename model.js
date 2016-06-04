@@ -347,12 +347,11 @@ function BoxStencil(outerBox) {
     };
     
     this.assignCurrByRange = function (charToPut, ranges, colDiff, settings) {
-        console.log('this get curr in model at top of assignBy... : ' + this.getCurr()); // undefined
         var fillLine = '';
         var newStr = '';
         var appendage = '';
         
-        for (var i = 0; i < this.c; i++)
+        for (var i = 0; i < box.c; i++)
             fillLine += charToPut;
         
         if (colDiff) {

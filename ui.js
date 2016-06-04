@@ -580,7 +580,10 @@ function Box (id, rows, cols, settings) {  // TODO: little privacy here
             addToRanges(this.positionFromCoordinates(startRow + i, endCol), ranges);
         }
 
-        this.loadRanges(charToPut, ranges, Math.abs(endCol - startCol) + 1)
+        this.loadRanges(charToPut, ranges, Math.abs(endCol - startCol) + 1);
+        this.bs.assignCurrByRange(charToPut, ranges, colDiff, this.settings);
+        console.log('after traceblock: ' + this.getCurr());
+        this.bd.setArea();
     };
 
     // Put all the ranges of currStr that must be changes to user-input char into ranges
