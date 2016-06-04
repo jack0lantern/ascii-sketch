@@ -130,7 +130,7 @@ function Box (id, rows, cols, settings) {  // TODO: little privacy here
     this.changeChar = function (e) {// TODO: split
         var unicode = null;
 
-        console.log('this, yes closure: ' + this);
+        log('this, yes closure: ' + this);
 
         var range = this.getSelectionRange(document.getElementById(this.id));
 
@@ -452,7 +452,7 @@ function Box (id, rows, cols, settings) {  // TODO: little privacy here
     
     // 
     this.loadRanges = function (charToPut, ranges, colDiff) {// TODO: split
-//        console.log(this.getCurr()); // undefined
+//        log(this.getCurr()); // undefined
         this.setCurr();
         this.setPos();
         this.setBlockRadioSettings();
@@ -547,14 +547,14 @@ function Box (id, rows, cols, settings) {  // TODO: little privacy here
                     newStr = newStr.substring(0, this.positionFromCoordinates(oldri, oldci) - appendage.length + 1);
                 }
                 var newPos = this.positionFromCoordinates(Math.round(ri), ci);
-                newStr += appendage + this.bs.currStr.substring(this.positionFromCoordinates(oldri, (colDiff > 0) ? ci : oldci + 1), (inRange(ci, startCol, endCol) && ci < c && ci >= 0) ? newPos : this.bs.currStr.length);
+                newStr += appendage + this.getCurr().substring(this.positionFromCoordinates(oldri, (colDiff > 0) ? ci : oldci + 1), (inRange(ci, startCol, endCol) && ci < c && ci >= 0) ? newPos : this.getCurr().length);
             }
         }
 
-        this.bs.currStr = newStr;
-        setArea();
-        pushUndo();
-        setCaretToPos(document.getElementById('area'), ++position);   // TODO: setArea already does a cursor shift. this is inefficient.
+        this.setCurr(newStr);
+        this.bd.setArea();
+        this.bs.pushUndo();
+        setCaretToPos(document.getElementById(this.id), ++position);   // TODO: setArea already does a cursor shift. this is inefficient.
     };
 
     // Create the range set for a block and load it
@@ -582,7 +582,7 @@ function Box (id, rows, cols, settings) {  // TODO: little privacy here
 
         this.loadRanges(charToPut, ranges, Math.abs(endCol - startCol) + 1);
         this.bs.assignCurrByRange(charToPut, ranges, colDiff, this.settings);
-        console.log('after traceblock: ' + this.getCurr());
+        log('after traceblock: ' + this.getCurr());
         this.bd.setArea();
     };
 
@@ -661,7 +661,7 @@ function BoxDisplay (outerBox) {
     //    alert("ui.js: " + document.getElementById(box.id));
         assert(document.getElementById(box.id), 'invalid box id');
         document.getElementById(box.id).value = box.getCurr();
-        console.log('setarea getcurr: ' + box.getCurr());
+        log('setarea getcurr: ' + box.getCurr());
     //    b.setCaretToPos(b.getPos());
     };
 
@@ -685,7 +685,7 @@ function BoxDisplay (outerBox) {
         box.bs.resetCurrStr();
         this.setArea();
         this.adjustBox();
-        console.log('box get curr in ui: ' + box.getCurr());
+        log('box get curr in ui: ' + box.getCurr());
 
         boxObj.on('cut', function(event) {
             this.copy(true);
@@ -700,21 +700,22 @@ function BoxDisplay (outerBox) {
         boxObj.on('click', function() {
             document.getElementById('dims').innerHTML = '';
         });
-        // Issues in Chrome: http://stackoverflow.com/questions/12308525/object-shows-properties-but-accessing-them-returns-undefined
-        // Trying to access object members gets undefined because they are defined after we try to access in certain asynch events, like pushing a key
-//        this.self = this;
-        console.log('b4 attaching key events: ' + box.getCurr());
-        
+
+        // TODO: keydown always happens when a keypress happens; 
+        // so then setCurr happens twice, which is a little expensive.
+        // Can we factor it out somehow? Maybe if we can guarantee that
+        // keydown always happens first.
         boxObj.on('keydown', function(event) {
+            log('keydown');
             box.nonKeyPress(event);
         });
         boxObj.on('keypress', function(event) {
-console.log('keypress box.getCurr ' + box.getCurr());   // undefined
+            log('keypress');
             box.changeChar(event);
         });
         boxObj.on('keyup', function() {
 //            for(prop in this.bs)
-        console.log('in keyup getcurr: ' + box.getCurr()); // undefined
+        log('in keyup getcurr: ' + box.getCurr()); // undefined
             box.setFooterCoords();
         });
         boxObj.on('mousedown', function() {
@@ -824,13 +825,13 @@ function testCompiles(){
 //    alert(ui.boxes.main);
     var b = ui.f[0].boxes.main;
     b.setCurr(setStr);
-    console.log(b.bd);
+    log(b.bd);
     b.bd.makeBox();
 //    b.bd.setArea(
     b.setSelectionRange(10, 20);
 //    selectRange(20, 30);
     var sr = b.getSelectionRange();
-    console.log(b.getCurr());
+    log(b.getCurr());
 }
 
 //$(document).ready();

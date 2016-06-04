@@ -1,5 +1,5 @@
 var clipboard = [];
-var DEBUG = false;
+var DEBUG = true;
 var BACKSPACE = 8;
 var TAB = 9;
 var ENTER = 13;
@@ -15,6 +15,10 @@ var CHAR_Z = 26;
 var DELETE = 46;    //keycodes, duh
 var WINDOWS = 91;
 var MENU = 93;
+
+function log(message) {
+    if (DEBUG) console.log(message);
+}
 
 /*** CONSTRUCTORS ***/
 // Container for a string representing the canvas
@@ -246,14 +250,14 @@ function BoxStencil(outerBox) {
     var spaces = '';
     var undo = new Stack();
     var redo = new Stack();
-    
+        
     this.setCurr = function (s) {
-        console.log('setCurr called with ' + s);
         currStr = s || document.getElementById(box.id).value;
+        log('setCurr called with ' + currStr);
     };
     
     this.getCurr = function () {
-        console.log('getCurr called');
+        log('getCurr called');
         return currStr;
     };
     
@@ -272,7 +276,7 @@ function BoxStencil(outerBox) {
     
     // Sets currStr to an empty box string
     this.resetCurrStr = function () {
-        console.log('resetCurrStr called');
+        log('resetCurrStr called');
         var i;
         var j;
         var border = box.hasBorders ? '|' : '';
