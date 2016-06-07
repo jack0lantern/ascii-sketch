@@ -21,6 +21,29 @@ function log(message) {
 }
 
 /*** CONSTRUCTORS ***/
+
+function Point(x, y) {
+    this.row = y;
+    this.col = x;
+}
+
+function PointRange(p1, p2) {
+    this.start = p1;
+    this.end = p2;
+    var colSpan = null;
+    var rowSpan = null;
+    this.getColSpan = function() { return colSpan; };
+    this.setColSpan = function(getColFun) {
+        // TODO: ensure getColFun is a function
+        this.colSpan = getColFun(p2) - getColFun(p1);
+    };
+    this.getRowSpan = function() { return rowSpan; };
+    this.setRowSpan = function(getRowFun) {
+        // TODO: ensure getColFun is a function
+        this.rowSpan = getRowFun(p2) - getRowFun(p1);
+    };
+}
+    
 // Container for a string representing the canvas
 function Image(box) {// TODO: put in model.js
     this.s = box.s;
@@ -357,14 +380,11 @@ function BoxStencil(outerBox) {
         
         for (var i = 0; i < box.c; i++)
             fillLine += charToPut;
-        
-        if (colDiff) {
-            if (settings.fillMode === 'custom') 
-                for (var i = 0; i < colDiff; i++) 
-                    appendage += settings.fillChar;
-            else
-                appendage = fillLine;
-        }
+
+        if (settings.fillMode === 'custom') 
+            for (var i = 0; i < colDiff; i++) 
+                appendage += settings.fillChar;
+        else
 
         newStr = currStr.substring(0, ranges[0][0]);
         

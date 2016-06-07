@@ -1,5 +1,6 @@
 // TODO: DELETE ALL DEBUG SECTIONS
 // TODO: Don't use upward references to the outer box in Boxstencil and Boxdisplay
+// TODO: Replace all two-element arrays representing points with Point objs, and ranges with PointRange objs 
 
 var CHAR_SPACE = ' ';
 var TAB_CONTENT_SUFFIX = '_content';
@@ -94,6 +95,7 @@ function Box (id, rows, cols, settings) {  // TODO: little privacy here
     };
     
     this.setCaretToPos = function (pos) {
+        log('setCaretToPos Calledddddddd ' + pos);
         this.setSelectionRange(pos, pos);
     };
     
@@ -150,47 +152,34 @@ function Box (id, rows, cols, settings) {  // TODO: little privacy here
 
             var start = range[0], end = range[1];
             
-            // TODO: SO much repetitive code! There must be a better design.
             e.preventDefault();
-            var ranges = [];
-            var startRow = this.getRow(start), endRow = this.getRow(end);
-            var startCol = Math.min(this.getCol(start), this.getCol(end)), endCol = Math.max(this.getCol(start), this.getCol(end));
 
-            // Make sure we don't try to overwrite a border char or something
-            startCol = Math.min(startCol, this.c - 1);
-            endCol = Math.min(endCol, this.c - 1);
-
-            // note: rowDiff always >= 0, same CANNOT be said for colDiff
-            var rowDiff = endRow - startRow, colDiff = Math.abs(endCol - startCol);    
-            if (rowDiff === 0 || colDiff === 0) {
-                this.traceLinear(String.fromCharCode(unicode), start, end);
-                return;
-            }
-
+            // TODO: SO much repetitive code! There must be a better design.
             switch (settings.mode) {
                 case 'line':
-                    ranges = this.traceLinear(String.fromCharCode(unicode), start, end);
+                    ranges = this.getLineRanges(start, end);
                     break;
 
                 case 'block':
-                    ranges = this.traceBlock(String.fromCharCode(unicode), start, end);
+                    ranges = this.getBlockRanges(start, end);
                     break;
 
                 case 'bucket':
-                    ranges =                     this.bucket(String.fromCharCode(unicode), start);
+                    ranges = this.getBucketRanges(start);
                     break;
 
                 case 'circle':                      
-                    ranges = this.traceEllipse(String.fromCharCode(unicode), start, end);
+                    ranges = this.getEllipseRanges(start, end);
                     break;
 
                 default:
                     ranges = null;
                     console.log('invalid mode');
             }
-            
-            if (start != end)
-                this.setSelectionRange(document.getElementById('area'), start, end);
+                                
+            log(ranges);
+            // TODO: by using PointRange, get rid of colDiff arg/param
+            this.loadRanges(String.fromCharCode(unicode), ranges, Math.abs(this.getCol(end) - this.getCol(start)) + 1);
         }
         else if (e.ctrlKey) {  
             // event listeners do CUT/COPY/PASTE. Should have event listeners for this too?
@@ -226,7 +215,7 @@ function Box (id, rows, cols, settings) {  // TODO: little privacy here
                     e.preventDefault();
                 }
                 else {
-                    setCaretToPos(document.getElementById(this.id), position - 1);
+                    this.setCaretToPos(position - 1);
                     this.bs.currStr = this.bs.currStr.substring(0, position) + ' ' +  this.bs.currStr.substring(position);
                     this.bd.setArea();
                 }
@@ -237,12 +226,12 @@ function Box (id, rows, cols, settings) {  // TODO: little privacy here
                 else {
                     currStr = currStr.substring(0, position + 1) + CHAR_SPACE +  currStr.substring(position + 1);
                     document.getElementById(this.id).value = currStr;
-                    setCaretToPos(document.getElementById(this.id), position);
+                    this.setCaretToPos(position);
                 }
             }
             else if (unicode === ENTER) {
                 e.preventDefault();
-                setCaretToPos(document.getElementById(this.id), positionFromCoordinates(getRow(position) + 1, 0));
+                this.setCaretToPos(positionFromCoordinates(getRow(position) + 1, 0));
             }
             else if (unicode === SHIFT) {
                 if (mouseDown) {
@@ -309,7 +298,7 @@ function Box (id, rows, cols, settings) {  // TODO: little privacy here
 
         currStr = newStr;
         setArea();
-        setCaretToPos(document.getElementById('area'), position);
+        this.setCaretToPos(position);
         pushUndo();
     };
 
@@ -357,7 +346,7 @@ function Box (id, rows, cols, settings) {  // TODO: little privacy here
 
         currStr = newStr;
         setArea();
-        setCaretToPos(document.getElementById('area'), position);
+        setCaretToPos(position);
         pushUndo();
     };
     
@@ -459,13 +448,16 @@ function Box (id, rows, cols, settings) {  // TODO: little privacy here
             return;
         this.bs.assignCurrByRange(charToPut, ranges, colDiff, this.settings);
         this.bd.setArea();
-        this.setCaretToPos($(Id(this.id)), this.position);
+        log('position in loadranges' + position);
+        this.setCaretToPos(position);
+        
+        log(this.getPos());
         this.bs.pushUndo(); // TODO: reimplement
     };
 
     // Draws a line of copies of a character, repeated as frequently as possible over an interval specified by the user's selection
     // TODO: refactor for loadranges use
-    this.traceLinear = function (charToPut, start, end) {// TODO: split
+    this.getLineRanges = function (start, end) {// TODO: split
         var startRow = this.getRow(start), endRow = this.getRow(end);
         var startCol = Math.min(this.getCol(start), this.c - 1), endCol = Math.min(this.getCol(end), this.c - 1);
         // note: rowDiff always >= 0, same CANNOT be said for colDiff
@@ -475,17 +467,7 @@ function Box (id, rows, cols, settings) {  // TODO: little privacy here
         var d = rowDiff / colDiff;
         d = d || 0; // in case d is NaN due to 0/0
         
-        if (rowDiff === 0) { // TODO: factor out?
-            ranges = [[start, this.positionFromCoordinates(startRow, endCol)]];
-            this.bs.assignCurrByRange(charToPut, ranges, colDiff, this.settings);
-            this.bd.setArea();
-            this.bs.pushUndo();
-            this.setCaretToPos(document.getElementById(this.id), ++position);   // TODO: setArea already does a cursor shift. this is inefficient.
-            return;
-        }
         log('d: ' + d);
-        //document.getElementById('debug').innerHTML = d;
-        var ri = startRow, ci = startCol;
         var ranges = [];
         var currentCol = 0;
         var finalCol = 0;
@@ -514,13 +496,7 @@ function Box (id, rows, cols, settings) {  // TODO: little privacy here
             currentCol = (row + 0.5) / d;
         }
         ranges[ranges.length - 1][colDiffIsPos ? 1 : 0] = this.positionFromCoordinates(endRow, endCol);
-        
-        this.loadRanges(charToPut, ranges, Math.abs(endCol - startCol) + 1);
-        log(ranges);
-        this.bs.assignCurrByRange(charToPut, ranges, colDiff, this.settings);
-        this.bd.setArea();
-        this.bs.pushUndo();
-        this.setCaretToPos(document.getElementById(this.id), ++position);   // TODO: setArea already does a cursor shift. this is inefficient.
+        return ranges;
     };
 
     // Create the range set for a block and load it
@@ -703,7 +679,7 @@ function Box (id, rows, cols, settings) {  // TODO: little privacy here
         this.setCurr(newStr);
         this.bd.setArea();
         this.bs.pushUndo();
-        this.setCaretToPos(document.getElementById(this.id), ++position);   // TODO: setArea already does a cursor shift. this is inefficient.
+        this.setCaretToPos(++position);   // TODO: setArea already does a cursor shift. this is inefficient.
     }
 }
 
@@ -776,7 +752,7 @@ function BoxDisplay (outerBox) {
         boxObj.on('mousedown', function() {
             setMouseDown();
             box.setFooterCoords(); 
-            box.setCaretToPos(boxObj, 0);
+            box.setCaretToPos(0);
         });
 
         boxObj.on('mousemove', function() {
