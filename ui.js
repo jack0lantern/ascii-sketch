@@ -112,8 +112,8 @@ function Box (id, rows, cols, settings) {  // TODO: little privacy here
         cols = Math.min(parseInt(cols), MAX_BOX_WIDTH);
         this.bs.changeCurrStrDims(rows, cols);
         this.bd.setArea();
-        r = rows;
-        c = cols;
+        this.r = rows;
+        this.c = cols;
         this.bd.adjustBox();
     };
     
@@ -136,7 +136,7 @@ function Box (id, rows, cols, settings) {  // TODO: little privacy here
 
         if (window.event) { // IE					
                 unicode = e.keyCode;
-        }else
+        } else
             if (e.which) { // Netscape/Firefox/Opera					
                 unicode = e.which;
              }
@@ -149,44 +149,51 @@ function Box (id, rows, cols, settings) {  // TODO: little privacy here
             this.bs.setCurr();
 
             var start = range[0], end = range[1];
-            if (d < this.c) { // d is the column index. index c is either the | or newline, depending on whether or not borders are on.
-                // TODO: SO much repetitive code! There must be a better design.
-                if (settings.mode === 'line') {
-                    e.preventDefault();
-                    this.traceLinear(String.fromCharCode(unicode), start, end);
-                }
-                else if (settings.mode === 'block') {
-                    e.preventDefault();
-                    
-                    this.traceBlock(String.fromCharCode(unicode), start, end);
-                }
-                else if (settings.mode === 'bucket') {
-                    e.preventDefault();
-                    this.bucket(String.fromCharCode(unicode), start);
-                }
-                else if (settings.mode === 'circle') {
-                    e.preventDefault();
-                    this.traceEllipse(String.fromCharCode(unicode), start, end);
-                }
-                else {
-                    // Here's where we actually change a character.
-                    this.bs.currStr = this.bs.currStr.substring(0, position) + this.bs.currStr.substring(position + 1);    
-                    this.bd.setArea();
-                }
+            
+            // TODO: SO much repetitive code! There must be a better design.
+            e.preventDefault();
+            var ranges = [];
+            var startRow = this.getRow(start), endRow = this.getRow(end);
+            var startCol = Math.min(this.getCol(start), this.getCol(end)), endCol = Math.max(this.getCol(start), this.getCol(end));
+
+            // Make sure we don't try to overwrite a border char or something
+            startCol = Math.min(startCol, this.c - 1);
+            endCol = Math.min(endCol, this.c - 1);
+
+            // note: rowDiff always >= 0, same CANNOT be said for colDiff
+            var rowDiff = endRow - startRow, colDiff = Math.abs(endCol - startCol);    
+            if (rowDiff === 0 || colDiff === 0) {
+                this.traceLinear(String.fromCharCode(unicode), start, end);
+                return;
             }
-            else {
-                // stop user from overwriting the | or newline
-                e.preventDefault();
-                if (settings.mode === 'line') {
-                    this.traceLinear(String.fromCharCode(unicode), start, end);
-                }
-                else if (settings.mode === 'block')
-                    this.traceBlock(String.fromCharCode(unicode), start, end);
+
+            switch (settings.mode) {
+                case 'line':
+                    ranges = this.traceLinear(String.fromCharCode(unicode), start, end);
+                    break;
+
+                case 'block':
+                    ranges = this.traceBlock(String.fromCharCode(unicode), start, end);
+                    break;
+
+                case 'bucket':
+                    ranges =                     this.bucket(String.fromCharCode(unicode), start);
+                    break;
+
+                case 'circle':                      
+                    ranges = this.traceEllipse(String.fromCharCode(unicode), start, end);
+                    break;
+
+                default:
+                    ranges = null;
+                    console.log('invalid mode');
             }
+            
             if (start != end)
                 this.setSelectionRange(document.getElementById('area'), start, end);
         }
-        else if (e.ctrlKey) {  // the key bind at the top of this file takes care of CUT/COPY/PASTE for now
+        else if (e.ctrlKey) {  
+            // event listeners do CUT/COPY/PASTE. Should have event listeners for this too?
             if (e.which === CHAR_Z) {
                 e.preventDefault();// this doesn't actually seem to prevent the default undo action for other textboxes
                 popUndo();
@@ -195,18 +202,6 @@ function Box (id, rows, cols, settings) {  // TODO: little privacy here
                 e.preventDefault();
                 popRedo();
             }
-    //        else if (e.which === CHAR_X) {
-    //            alert();
-    //            e.preventDefault();
-    //            copy(true);
-    //        }
-    //        else if (e.which === CHAR_C) {
-    //            copy(false);
-    //        }
-    //        else if (e.which === CHAR_P) {
-    //            e.preventDefault();
-    //            paste();
-    //        }
         }
         this.setFooterCoords();
     };
@@ -241,13 +236,13 @@ function Box (id, rows, cols, settings) {  // TODO: little privacy here
                     e.preventDefault();
                 else {
                     currStr = currStr.substring(0, position + 1) + CHAR_SPACE +  currStr.substring(position + 1);
-                    document.getElementById('area').value = currStr;
-                    setCaretToPos(document.getElementById('area'), position);
+                    document.getElementById(this.id).value = currStr;
+                    setCaretToPos(document.getElementById(this.id), position);
                 }
             }
             else if (unicode === ENTER) {
                 e.preventDefault();
-                setCaretToPos(document.getElementById('area'), positionFromCoordinates(getRow(position) + 1, 0));
+                setCaretToPos(document.getElementById(this.id), positionFromCoordinates(getRow(position) + 1, 0));
             }
             else if (unicode === SHIFT) {
                 if (mouseDown) {
@@ -450,7 +445,9 @@ function Box (id, rows, cols, settings) {  // TODO: little privacy here
             this.settings.fillMode = 'transparent';
     };
     
-    // 
+    // ranges is an array of ranges of indexes in which to fill with charToPut
+    // inside the box's canvas
+    // loadRanges takes ranges and displays them according to the settings
     this.loadRanges = function (charToPut, ranges, colDiff) {// TODO: split
 //        log(this.getCurr()); // undefined
         this.setCurr();
@@ -470,91 +467,60 @@ function Box (id, rows, cols, settings) {  // TODO: little privacy here
     // TODO: refactor for loadranges use
     this.traceLinear = function (charToPut, start, end) {// TODO: split
         var startRow = this.getRow(start), endRow = this.getRow(end);
-        var startCol = this.getCol(start), endCol = this.getCol(end);
+        var startCol = Math.min(this.getCol(start), this.c - 1), endCol = Math.min(this.getCol(end), this.c - 1);
         // note: rowDiff always >= 0, same CANNOT be said for colDiff
         var rowDiff = endRow - startRow, colDiff = endCol - startCol;
+        console.log(' rowDiff ' + rowDiff + ' coldiff ' + colDiff);
         var rowsMoreThanCols = rowDiff > Math.abs(colDiff);
-        var d = rowsMoreThanCols ? colDiff / rowDiff : Math.abs(rowDiff / colDiff);
+        var d = rowDiff / colDiff;
         d = d || 0; // in case d is NaN due to 0/0
+        
+        if (rowDiff === 0) { // TODO: factor out?
+            ranges = [[start, this.positionFromCoordinates(startRow, endCol)]];
+            this.bs.assignCurrByRange(charToPut, ranges, colDiff, this.settings);
+            this.bd.setArea();
+            this.bs.pushUndo();
+            this.setCaretToPos(document.getElementById(this.id), ++position);   // TODO: setArea already does a cursor shift. this is inefficient.
+            return;
+        }
+        log('d: ' + d);
         //document.getElementById('debug').innerHTML = d;
         var ri = startRow, ci = startCol;
-        var i = 0;
-        var count = 0;
-
-        this.setPos();
-        this.setCurr();
+        var ranges = [];
+        var currentCol = 0;
+        var finalCol = 0;
+        var colDiffIsPos = colDiff > 0;
+        var rounder = colDiffIsPos ? Math.ceil : Math.floor;
         
-        var r = this.r;
-        var c = this.c;
-
-        var newStr;
-        //alert(newStr);
-        if (rowsMoreThanCols) {
-            while(Math.round(ci) >= c) {
-                ri++;
-                if (colDiff < 0) {
-                    ci += d;
-                    continue;
+        for(var row = 0; row <= rowDiff; ++row) {
+            log('current col ' + currentCol);
+            finalCol = rounder(currentCol);
+            log('final col ' + finalCol);
+            var rangeToPush = [this.positionFromCoordinates(startRow + row, startCol + finalCol), this.positionFromCoordinates(startRow + row, Math.min(startCol + finalCol, this.c - 1))];
+            
+            if (ranges.length > 0) {
+                assert(ranges[ranges.length - 1][1] === ranges[ranges.length - 1][0], 'last elem of ranges not equal in first and last')
+                var colDiffFromPrevRange = this.getCol(rangeToPush[0]) - this.getCol(ranges[ranges.length - 1][1]);
+                if (colDiffFromPrevRange > 1) {
+                    ranges[ranges.length - 1][1] += colDiffFromPrevRange - 1;
                 }
-                else {
-                    newStr = currStr;
-                    break;
+                else if (colDiffFromPrevRange < -1) {
+                    ranges[ranges.length - 1][0] += colDiffFromPrevRange + 1;
                 }
             }
-            if (ci < c)
-                newStr = this.getCurr().substring(0, positionFromCoordinates(ri, Math.round(ci)));
-            while(ri <= endRow && Math.round(ci) < c) {
-                var oldri = ri;
-                var oldci = ci;
-                newStr += charToPut;
-                ri++;
-                ci += d;
-                newStr += this.bs.currStr.substring(this.positionFromCoordinates(oldri, Math.round(oldci)) + 1,  this.positionFromCoordinates(ri, Math.round(ci)));
-            }
-            var iterationLength = newStr.length;
-            newStr += this.bs.currStr.substring(iterationLength);
+            ranges.push(rangeToPush);
+            
+            // think, row + 1 - 0.5
+            currentCol = (row + 0.5) / d;
         }
-        else {
-            // if the selected column cannot be written to, skip those iterations
-            // until a valid one is computed.
-            while(ci >= c) {
-                ri += d;
-                if (colDiff < 0) {
-                    ci--;
-                    continue;
-                }
-                else {
-                    newStr = this.bs.currStr;
-                    break;
-                }
-            }
-            if (ci < c)
-                newStr = this.getCurr().substring(0, this.positionFromCoordinates(Math.round(ri), ci));
-            //alert(ci);
-            // Once we have a valid ci, compute the number of chars we write to one line.
-            while(inRange(ci, startCol, endCol) && ci < c && (colDiff > 0 || ci >= 0)) {
-                var oldri = Math.round(ri);
-                var oldci = ci;
-
-                var appendage = '';
-                do {
-                    appendage += charToPut;
-                    ri += d;
-                    colDiff > 0 ? ci++ : ci--;
-                } while(Math.round(ri) === oldri && inRange(ci, startCol, endCol) && ci < c && ci >= 0);
-                // chop off count many characters
-                if (colDiff < 0) {
-                    newStr = newStr.substring(0, this.positionFromCoordinates(oldri, oldci) - appendage.length + 1);
-                }
-                var newPos = this.positionFromCoordinates(Math.round(ri), ci);
-                newStr += appendage + this.getCurr().substring(this.positionFromCoordinates(oldri, (colDiff > 0) ? ci : oldci + 1), (inRange(ci, startCol, endCol) && ci < c && ci >= 0) ? newPos : this.getCurr().length);
-            }
-        }
-
-        this.setCurr(newStr);
+        ranges[ranges.length - 1][colDiffIsPos ? 1 : 0] = this.positionFromCoordinates(endRow, endCol);
+        
+        this.loadRanges(charToPut, ranges, Math.abs(endCol - startCol) + 1);
+        log(ranges);
+        this.bs.assignCurrByRange(charToPut, ranges, colDiff, this.settings);
         this.bd.setArea();
         this.bs.pushUndo();
-        setCaretToPos(document.getElementById(this.id), ++position);   // TODO: setArea already does a cursor shift. this is inefficient.
+        this.setCaretToPos(document.getElementById(this.id), ++position);   // TODO: setArea already does a cursor shift. this is inefficient.
     };
 
     // Create the range set for a block and load it
@@ -626,8 +592,8 @@ function Box (id, rows, cols, settings) {  // TODO: little privacy here
     this.traceEllipse = function (charToPut, start, end) {// TODO: put in model.js
         var startRow = getRow(start), endRow = getRow(end);
         var startCol = Math.min(getCol(start), getCol(end)), endCol = Math.max(getCol(start), getCol(end));
-        // NOTE: "cleaning" the start/end col is not the same kind of behavior tracelinear does, which handles
-        // the off-screen cursor as if it were really there
+        
+        // Make sure we don't try to overwrite a border char or something
         startCol = Math.min(startCol, c - 1);
         endCol = Math.min(endCol, c - 1);
 
@@ -650,6 +616,95 @@ function Box (id, rows, cols, settings) {  // TODO: little privacy here
         loadRanges(charToPut, ranges, 0);
         pushUndo();
     };
+    
+    this.oldTraceLinear = function (charToPut, start, end) {
+                var startRow = this.getRow(start), endRow = this.getRow(end);
+        var startCol = this.getCol(start), endCol = this.getCol(end);
+        // note: rowDiff always >= 0, same CANNOT be said for colDiff
+        var rowDiff = endRow - startRow, colDiff = endCol - startCol;
+        var rowsMoreThanCols = rowDiff > Math.abs(colDiff);
+        var d = rowsMoreThanCols ? colDiff / rowDiff : Math.abs(rowDiff / colDiff);
+        d = d || 0; // in case d is NaN due to 0/0
+        //document.getElementById('debug').innerHTML = d;
+        var ri = startRow, ci = startCol;
+        var i = 0;
+        var count = 0;
+
+        this.setPos();
+        this.setCurr();
+        
+        var r = this.r;
+        var c = this.c;
+
+        var newStr;
+        //alert(newStr);
+        if (rowsMoreThanCols) {
+            while(Math.round(ci) >= c) {
+                ri++;
+                if (colDiff < 0) {
+                    ci += d;
+                    continue;
+                }
+                else {
+                    newStr = currStr;
+                    break;
+                }
+            }
+            if (ci < c)
+                newStr = this.getCurr().substring(0, this.positionFromCoordinates(ri, Math.round(ci)));
+            while(ri <= endRow && Math.round(ci) < c) {
+                var oldri = ri;
+                var oldci = ci;
+                newStr += charToPut;
+                ri++;
+                ci += d;
+                newStr += this.getCurr().substring(this.positionFromCoordinates(oldri, Math.round(oldci)) + 1,  this.positionFromCoordinates(ri, Math.round(ci)));
+            }
+            var iterationLength = newStr.length;
+            newStr += this.getCurr().substring(iterationLength);
+        }
+        else {
+            // if the selected column cannot be written to, skip those iterations
+            // until a valid one is computed.
+            while(ci >= c) {
+                ri += d;
+                if (colDiff < 0) {
+                    ci--;
+                    continue;
+                }
+                else {
+                    newStr = this.bs.currStr;
+                    break;
+                }
+            }
+            if (ci < c)
+                newStr = this.getCurr().substring(0, this.positionFromCoordinates(Math.round(ri), ci));
+            //alert(ci);
+            // Once we have a valid ci, compute the number of chars we write to one line.
+            while(inRange(ci, startCol, endCol) && ci < c && (colDiff > 0 || ci >= 0)) {
+                var oldri = Math.round(ri);
+                var oldci = ci;
+
+                var appendage = '';
+                do {
+                    appendage += charToPut;
+                    ri += d;
+                    colDiff > 0 ? ci++ : ci--;
+                } while(Math.round(ri) === oldri && inRange(ci, startCol, endCol) && ci < c && ci >= 0);
+                // chop off count many characters
+                if (colDiff < 0) {
+                    newStr = newStr.substring(0, this.positionFromCoordinates(oldri, oldci) - appendage.length + 1);
+                }
+                var newPos = this.positionFromCoordinates(Math.round(ri), ci);
+                newStr += appendage + this.getCurr().substring(this.positionFromCoordinates(oldri, (colDiff > 0) ? ci : oldci + 1), (inRange(ci, startCol, endCol) && ci < c && ci >= 0) ? newPos : this.getCurr().length);
+            }
+        }
+
+        this.setCurr(newStr);
+        this.bd.setArea();
+        this.bs.pushUndo();
+        this.setCaretToPos(document.getElementById(this.id), ++position);   // TODO: setArea already does a cursor shift. this is inefficient.
+    }
 }
 
 function BoxDisplay (outerBox) {
