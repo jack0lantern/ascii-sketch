@@ -80,7 +80,7 @@ function Box (id, rows, cols, settings) {  // TODO: little privacy here
     };
     
     this.setSelectionRange = function (selectionStart, selectionEnd) {
-        var input = $(Id(this.id));  // alternatively, $(id)
+        var input = document.getElementById(this.id);
         if (input.setSelectionRange) {
             input.focus();
             input.setSelectionRange(selectionStart, selectionEnd);
@@ -449,6 +449,7 @@ function Box (id, rows, cols, settings) {  // TODO: little privacy here
         this.bs.assignCurrByRange(charToPut, ranges, colDiff, this.settings);
         this.bd.setArea();
         log('position in loadranges' + position);
+        console.log('position in loadranges ' + position);
         this.setCaretToPos(position);
         
         log(this.getPos());
@@ -752,7 +753,7 @@ function BoxDisplay (outerBox) {
         boxObj.on('mousedown', function() {
             setMouseDown();
             box.setFooterCoords(); 
-            box.setCaretToPos(0);
+//            box.setCaretToPos(0);
         });
 
         boxObj.on('mousemove', function() {
