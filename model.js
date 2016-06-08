@@ -6,11 +6,7 @@ var ENTER = 13;
 var SHIFT = 16;
 var CTRL = 17;
 var CAPS_LOCK = 20;
-var CHAR_C = 3;
-var CHAR_P = 15;    // TODO not sure, lol
-var CHAR_X = 24;
-var CHAR_Y = 25;
-var CHAR_Z = 26;
+
 //arrow keys are 37-40
 var DELETE = 46;    //keycodes, duh
 var WINDOWS = 91;
@@ -22,9 +18,12 @@ function log(message) {
 
 /*** CONSTRUCTORS ***/
 
-function Point(x, y) {
-    this.row = y;
-    this.col = x;
+// Object representing a position in the box.
+// r is a number (int) representing the row
+// c is a number (int) representing the col
+function Point(r, c) {
+    this.row = r;
+    this.col = c;
 }
 
 function PointRange(p1, p2) {
@@ -32,12 +31,18 @@ function PointRange(p1, p2) {
     this.end = p2;
     var colSpan = null;
     var rowSpan = null;
-    this.getColSpan = function() { return colSpan; };
+    this.getColSpan = function(getColFun) { 
+        this.setColSpan(getColFun);
+        return colSpan; 
+    };
     this.setColSpan = function(getColFun) {
         // TODO: ensure getColFun is a function
         this.colSpan = getColFun(p2) - getColFun(p1);
     };
-    this.getRowSpan = function() { return rowSpan; };
+    this.getRowSpan = function(getRowFun) { 
+        this.setRowSpan(getRowFun);
+        return rowSpan; 
+    };
     this.setRowSpan = function(getRowFun) {
         // TODO: ensure getColFun is a function
         this.rowSpan = getRowFun(p2) - getRowFun(p1);
@@ -227,10 +232,6 @@ function addToRanges(value, ranges) {// TODO: put in model.js
     return changedRange;
 }
 
-function shouldEnqueue(toReplace, pos, visited) {// TODO: put in model.js
-    return visited[pos] === undefined && pos >= 0 && getRow(pos) < r && getCol(pos) < c && currStr.charAt(pos) === toReplace;
-}
-
 // yes, I got this from stackoverflow. Use: getCursorPosition() to get the cursor position from any box
 (function ($) {
     $.fn.getCursorPosition = function() {
@@ -266,7 +267,7 @@ $.fn.selectRange = function(start, end) {
     });
 };
 
-// Modifier of a box's logical content.
+// A manager for its box's string
 function BoxStencil(outerBox) {
     var box = outerBox;
     var currStr = '';
@@ -280,7 +281,6 @@ function BoxStencil(outerBox) {
     };
     
     this.getCurr = function () {
-        log('getCurr called');
         return currStr;
     };
     
@@ -401,40 +401,6 @@ function BoxStencil(outerBox) {
                 newStr += currStr.substring(ranges[i][1] + 1);
         }
         currStr = newStr;
-    };
-    
-    // Determine a list of ranges in which to assign the new character (in ranges, 
-    // a array of two-element range arrays, which are inclusive endpoints)
-    // A dynamic approach
-    this.dynBucketHelper = function (ranges, toReplace, pos) {// put in model.js
-        var toCheckQ = new Queue();
-        var visited = [];
-
-        toCheckQ.enqueue(pos);
-        visited[pos] = true;
-
-        while(!toCheckQ.isEmpty()) {
-            var currentPos = toCheckQ.dequeue().item;
-
-            addToRanges(currentPos, ranges);
-
-            if (shouldEnqueue(toReplace, currentPos - 1, visited)) {
-                toCheckQ.enqueue(currentPos - 1);
-                visited[currentPos - 1] = true;
-            }
-            if (shouldEnqueue(toReplace, currentPos + 1, visited)) {
-                toCheckQ.enqueue(currentPos + 1);
-                visited[currentPos + 1] = true;
-            }
-            if (shouldEnqueue(toReplace, positionFromCoordinates(getRow(currentPos) - 1, getCol(currentPos)), visited)) {
-                toCheckQ.enqueue(positionFromCoordinates(getRow(currentPos) - 1, getCol(currentPos)));
-                visited[positionFromCoordinates(getRow(currentPos) - 1, getCol(currentPos))] = true;
-            }
-            if (shouldEnqueue(toReplace, positionFromCoordinates(getRow(currentPos) + 1, getCol(currentPos)), visited)) {
-                toCheckQ.enqueue(positionFromCoordinates(getRow(currentPos) + 1, getCol(currentPos)));
-                visited[positionFromCoordinates(getRow(currentPos) + 1, getCol(currentPos))] = true;
-            }
-        }
     };
     
     // Pushes a change to currStr to undo

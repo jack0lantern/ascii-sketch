@@ -437,8 +437,7 @@ function Box (id, rows, cols, settings) {  // TODO: little privacy here
     // ranges is an array of ranges of indexes in which to fill with charToPut
     // inside the box's canvas
     // loadRanges takes ranges and displays them according to the settings
-    this.loadRanges = function (charToPut, ranges, colDiff) {// TODO: split
-//        log(this.getCurr()); // undefined
+    this.loadRanges = function (charToPut, ranges, colDiff) {
         this.setCurr();
         this.setPos();
         this.setBlockRadioSettings();
@@ -501,7 +500,7 @@ function Box (id, rows, cols, settings) {  // TODO: little privacy here
     };
 
     // Create the range set for a block and load it
-    this.traceBlock = function (charToPut, start, end) {// TODO: split
+    this.getBlockRanges = function (start, end) {// TODO: split
         var startRow = this.getRow(start), endRow = this.getRow(end);
         var startCol = Math.min(this.getCol(start), this.getCol(end)), endCol = Math.max(this.getCol(start), this.getCol(end));
         // NOTE: "cleaning" the start/end col is not the same kind of behavior tracelinear does, which handles
@@ -522,15 +521,18 @@ function Box (id, rows, cols, settings) {  // TODO: little privacy here
             addToRanges(this.positionFromCoordinates(startRow + i, startCol), ranges);
             addToRanges(this.positionFromCoordinates(startRow + i, endCol), ranges);
         }
-
-        this.loadRanges(charToPut, ranges, Math.abs(endCol - startCol) + 1);
-        this.bs.assignCurrByRange(charToPut, ranges, colDiff, this.settings);
-        log('after traceblock: ' + this.getCurr());
-        this.bd.setArea();
+        return ranges;
     };
 
     // Put all the ranges of currStr that must be changes to user-input char into ranges
-    this.getEllipseRanges = function (start, xRad, yRad) {// TODO: put in model.js
+    this.getEllipseRanges = function (start, end) {// TODO: put in model.js
+        var startRow = this.getRow(start);
+        var startCol = this.getCol(start);
+        var endRow = this.getRow(end);
+        var endCol = this.getCol(end);
+        
+        var xRad = (endCol - startCol) / 2,
+            yRad = (endRow - startRow) / 2;
         var xLim = Math.ceil(xRad);
         var yLim = Math.ceil(yRad);
         var xDen = xRad * xRad;
@@ -541,147 +543,73 @@ function Box (id, rows, cols, settings) {  // TODO: little privacy here
 
         var ranges = [];
 
-        var startRow = getRow(start);
-        var startCol = getCol(start);
         var col;
         var row;
 
-        for (var y = yPivot; y < Math.min(2 * yLim - yPivot, r - 1 - startRow); y++) {
+        for (var y = yPivot; y < Math.min(2 * yLim - yPivot, this.r - 1 - startRow); y++) {
             col = startCol + Math.round(-Math.sqrt((1 - Math.pow(y - yRad, 2)/yDen)*xDen) + xRad);
-            addToRanges(positionFromCoordinates(startRow + y, col), ranges);
+            addToRanges(this.positionFromCoordinates(startRow + y, col), ranges);
 
             col = startCol + Math.round(Math.sqrt((1 - Math.pow(y - yRad, 2)/yDen)*xDen) + xRad);
-            addToRanges(positionFromCoordinates(startRow + y, col), ranges);
+            addToRanges(this.positionFromCoordinates(startRow + y, col), ranges);
         }
 
         // For the octant, xLim is the stopping point, but use 2*xLim-Pivot to mirror it across the y axis. Cuz math.
-        for (var x = xPivot; x <= Math.min(2 * xLim - xPivot, c - 1 - startCol); x++) {
+        for (var x = xPivot; x <= Math.min(2 * xLim - xPivot, this.c - 1 - startCol); x++) {
             row = startRow + Math.round(-Math.sqrt((1 - Math.pow(x - xRad, 2)/xDen)*yDen) + yRad);
-            addToRanges(positionFromCoordinates(row, startCol + x), ranges);
+            addToRanges(this.positionFromCoordinates(row, startCol + x), ranges);
 
             row = startRow + Math.round(Math.sqrt((1 - Math.pow(x - xRad, 2)/xDen)*yDen) + yRad);
-            addToRanges(positionFromCoordinates(row, startCol + x), ranges);
+            addToRanges(this.positionFromCoordinates(row, startCol + x), ranges);
         }
         //alert(ranges);
         return ranges;
     }
 
-    this.traceEllipse = function (charToPut, start, end) {// TODO: put in model.js
-        var startRow = getRow(start), endRow = getRow(end);
-        var startCol = Math.min(getCol(start), getCol(end)), endCol = Math.max(getCol(start), getCol(end));
-        
-        // Make sure we don't try to overwrite a border char or something
-        startCol = Math.min(startCol, c - 1);
-        endCol = Math.min(endCol, c - 1);
-
-        // note: rowDiff always >= 0, same CANNOT be said for colDiff
-        var rowDiff = endRow - startRow, colDiff = Math.abs(endCol - startCol);    
-        if (rowDiff === 0 || colDiff === 0) {
-            this.traceLinear(charToPut, start, end);
-            return;
-        }
-
-        var ranges = getEllipseRanges(positionFromCoordinates(startRow, startCol), (endCol - startCol)/2, (endRow - startRow)/2);
-        loadRanges(charToPut, ranges, colDiff);
+    this.shouldEnqueue = function (toReplace, pos, visited) {
+        return visited[pos] === undefined && pos >= 0 && this.getRow(pos) < this.r && this.getCol(pos) < this.c && this.getCurr().charAt(pos) === toReplace;
     };
     
-    this.bucket = function (charToPut, start) {// TODO: split
-        var charToFlood = currStr.charAt(start);
+    // Determine a list of ranges in which to assign the new character (in ranges, 
+    // a array of two-element range arrays, which are inclusive endpoints)
+    // A dynamic approach
+    this.dynBucketHelper = function (ranges, toReplace, pos) {// put in model.js
+        var toCheckQ = new Queue();
+        var visited = [];
+
+        toCheckQ.enqueue(pos);
+        visited[pos] = true;
+
+        while(!toCheckQ.isEmpty()) {
+            var currentPos = toCheckQ.dequeue().item;
+            addToRanges(currentPos, ranges);
+            if (this.shouldEnqueue(toReplace, currentPos - 1, visited)) {
+                toCheckQ.enqueue(currentPos - 1);
+                visited[currentPos - 1] = true;
+            }
+            if (this.shouldEnqueue(toReplace, currentPos + 1, visited)) {
+                toCheckQ.enqueue(currentPos + 1);
+                visited[currentPos + 1] = true;
+            }
+            if (this.shouldEnqueue(toReplace, this.positionFromCoordinates(this.getRow(currentPos) - 1, this.getCol(currentPos)), visited)) {
+                toCheckQ.enqueue(this.positionFromCoordinates(this.getRow(currentPos) - 1, this.getCol(currentPos)));
+                visited[this.positionFromCoordinates(this.getRow(currentPos) - 1, this.getCol(currentPos))] = true;
+            }
+            if (this.shouldEnqueue(toReplace, this.positionFromCoordinates(this.getRow(currentPos) + 1, this.getCol(currentPos)), visited)) {
+                toCheckQ.enqueue(this.positionFromCoordinates(this.getRow(currentPos) + 1, this.getCol(currentPos)));
+                visited[this.positionFromCoordinates(this.getRow(currentPos) + 1, this.getCol(currentPos))] = true;
+            }
+        }
+    };
+    
+    this.getBucketRanges = function (start) {// TODO: split
+        var charToFlood = this.getCurr().charAt(start);
         var ranges = [];
-        dynBucketHelper(ranges, charToFlood, start);
+        this.dynBucketHelper(ranges, charToFlood, start);
         //bucketHelper(ranges, charToFlood, [], start);
-        loadRanges(charToPut, ranges, 0);
-        pushUndo();
+        return ranges;
     };
     
-    this.oldTraceLinear = function (charToPut, start, end) {
-                var startRow = this.getRow(start), endRow = this.getRow(end);
-        var startCol = this.getCol(start), endCol = this.getCol(end);
-        // note: rowDiff always >= 0, same CANNOT be said for colDiff
-        var rowDiff = endRow - startRow, colDiff = endCol - startCol;
-        var rowsMoreThanCols = rowDiff > Math.abs(colDiff);
-        var d = rowsMoreThanCols ? colDiff / rowDiff : Math.abs(rowDiff / colDiff);
-        d = d || 0; // in case d is NaN due to 0/0
-        //document.getElementById('debug').innerHTML = d;
-        var ri = startRow, ci = startCol;
-        var i = 0;
-        var count = 0;
-
-        this.setPos();
-        this.setCurr();
-        
-        var r = this.r;
-        var c = this.c;
-
-        var newStr;
-        //alert(newStr);
-        if (rowsMoreThanCols) {
-            while(Math.round(ci) >= c) {
-                ri++;
-                if (colDiff < 0) {
-                    ci += d;
-                    continue;
-                }
-                else {
-                    newStr = currStr;
-                    break;
-                }
-            }
-            if (ci < c)
-                newStr = this.getCurr().substring(0, this.positionFromCoordinates(ri, Math.round(ci)));
-            while(ri <= endRow && Math.round(ci) < c) {
-                var oldri = ri;
-                var oldci = ci;
-                newStr += charToPut;
-                ri++;
-                ci += d;
-                newStr += this.getCurr().substring(this.positionFromCoordinates(oldri, Math.round(oldci)) + 1,  this.positionFromCoordinates(ri, Math.round(ci)));
-            }
-            var iterationLength = newStr.length;
-            newStr += this.getCurr().substring(iterationLength);
-        }
-        else {
-            // if the selected column cannot be written to, skip those iterations
-            // until a valid one is computed.
-            while(ci >= c) {
-                ri += d;
-                if (colDiff < 0) {
-                    ci--;
-                    continue;
-                }
-                else {
-                    newStr = this.bs.currStr;
-                    break;
-                }
-            }
-            if (ci < c)
-                newStr = this.getCurr().substring(0, this.positionFromCoordinates(Math.round(ri), ci));
-            //alert(ci);
-            // Once we have a valid ci, compute the number of chars we write to one line.
-            while(inRange(ci, startCol, endCol) && ci < c && (colDiff > 0 || ci >= 0)) {
-                var oldri = Math.round(ri);
-                var oldci = ci;
-
-                var appendage = '';
-                do {
-                    appendage += charToPut;
-                    ri += d;
-                    colDiff > 0 ? ci++ : ci--;
-                } while(Math.round(ri) === oldri && inRange(ci, startCol, endCol) && ci < c && ci >= 0);
-                // chop off count many characters
-                if (colDiff < 0) {
-                    newStr = newStr.substring(0, this.positionFromCoordinates(oldri, oldci) - appendage.length + 1);
-                }
-                var newPos = this.positionFromCoordinates(Math.round(ri), ci);
-                newStr += appendage + this.getCurr().substring(this.positionFromCoordinates(oldri, (colDiff > 0) ? ci : oldci + 1), (inRange(ci, startCol, endCol) && ci < c && ci >= 0) ? newPos : this.getCurr().length);
-            }
-        }
-
-        this.setCurr(newStr);
-        this.bd.setArea();
-        this.bs.pushUndo();
-        this.setCaretToPos(++position);   // TODO: setArea already does a cursor shift. this is inefficient.
-    }
 }
 
 function BoxDisplay (outerBox) {
@@ -781,6 +709,7 @@ function BoxDisplay (outerBox) {
         this.mouseDown = false;
     }
     
+    // TODO
     this.displayFooterCoords = function (x1, y1, x2, y2) {
         
     };
