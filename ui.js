@@ -503,15 +503,13 @@ function Box (id, rows, cols, settings) {  // TODO: little privacy here
     this.getBlockRanges = function (start, end) {// TODO: split
         var startRow = this.getRow(start), endRow = this.getRow(end);
         var startCol = Math.min(this.getCol(start), this.getCol(end)), endCol = Math.max(this.getCol(start), this.getCol(end));
-        // NOTE: "cleaning" the start/end col is not the same kind of behavior tracelinear does, which handles
-        // the off-screen cursor as if it were really there
         startCol = Math.min(startCol, this.c - 1);
         endCol = Math.min(endCol, this.c - 1);
         // note: rowDiff always >= 0, same CANNOT be said for colDiff
-        var rowDiff = endRow - startRow, colDiff = endCol - startCol;    
+        var rowDiff = endRow - startRow, colDiff = endCol - startCol; 
+        
         if (rowDiff === 0 || colDiff === 0) {
-            this.traceLinear(charToPut, start, end);
-            return;
+            return this.getLineRanges(start, end);
         }
 
         var trueStart = this.positionFromCoordinates(startRow, startCol);
@@ -527,9 +525,11 @@ function Box (id, rows, cols, settings) {  // TODO: little privacy here
     // Put all the ranges of currStr that must be changes to user-input char into ranges
     this.getEllipseRanges = function (start, end) {// TODO: put in model.js
         var startRow = this.getRow(start);
-        var startCol = this.getCol(start);
         var endRow = this.getRow(end);
-        var endCol = this.getCol(end);
+        
+        var startCol = Math.min(this.getCol(start), this.getCol(end)), endCol = Math.max(this.getCol(start), this.getCol(end));
+        startCol = Math.min(startCol, this.c - 1);
+        endCol = Math.min(endCol, this.c - 1);
         
         var xRad = (endCol - startCol) / 2,
             yRad = (endRow - startRow) / 2;
