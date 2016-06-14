@@ -757,8 +757,43 @@ function Frame (settings_, window_) {
 
         $(Id(newTab.id) + TAB_CONTENT_SUFFIX).css('display', 'block');
         $(Id(newTab.id)).addClass('active_tab');
+        log('newtab ' + newTab);
         this.settings.currentTab = newTab.id;
     };
+    
+    // Attaches an event listener for each element of a class. Handlers should expect to take in an element
+    // @param className: name of class in which to attach a listener for handle
+    // @param handler: function to attach to each element
+    this.attachListenersByClass = function(className, eventName, handler) {
+        var elems = this.window.getElementsByClassName(className);
+log('attach hander ' + handler);
+        // TIL for loops don't have their own scope
+        // Attach the event listeners for each tab
+        // TODO: check handler is a fn
+        for (var j = 0; j < elems.length; ++j) {
+            (function(j) {
+            $(elems[j]).on(eventName, function() {
+                log('this in attach ' + this);
+                handler(elems[j]);
+            });
+            })(j);
+        }
+    };
+    
+    // Attach all listeners for this frame
+    this.attachFrameListeners = function() {
+        this.attachListenersByClass('tab', 'click', (function(ctxt) {
+            return function(tab) {
+                ctxt.openTab(tab); 
+            }; 
+        }) (this));
+        
+        this.attachListenersByClass('tool', 'click', (function(ctxt) {
+            return function(mode) {
+                ctxt.setMode(mode); 
+            }; 
+        }) (this));
+    }
 }
 
 // User Interface module for handling user settings
