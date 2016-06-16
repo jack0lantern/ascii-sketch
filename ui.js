@@ -61,17 +61,17 @@ function Box (id, rows, cols, settings) {  // TODO: little privacy here
     
     // returns the row index from the cursor position.
     this.getRow = function(pos) {// put in ui.js  - done
-        return Math.floor(pos / (hasBorders ? (this.c + 2) : (this.c + 1)));
+        return Math.floor(pos / (this.hasBorders ? (this.c + 2) : (this.c + 1)));
     };
 
     // returns the col index from the cursor position.
     this.getCol = function(pos) {// put in ui.js - done
-        return pos % (hasBorders ? (this.c + 2) : (this.c + 1));
+        return pos % (this.hasBorders ? (this.c + 2) : (this.c + 1));
     };
     
     // return the textarea index of the character at a specified row and col
     this.positionFromCoordinates = function(ri, ci) {// put in ui.js - done
-       return ri * (hasBorders ? (this.c + 2) : (this.c + 1)) + ci; 
+       return ri * (this.hasBorders ? (this.c + 2) : (this.c + 1)) + ci; 
     };
     
     // display the borders, or don't display the borders.
@@ -81,14 +81,14 @@ function Box (id, rows, cols, settings) {  // TODO: little privacy here
 
         this.setPos();
         
-        this.bs.writeBorders(hasBorders);
-        hasBorders = !hasBorders;
+        this.bs.writeBorders(this.hasBorders);
+        this.hasBorders = !this.hasBorders;
 
         if (this.hasBorders)
             document.getElementById(this.id).cols = this.c + 1;
 
         this.bd.setArea();
-        offset = this.hasBorders ? Math.floor(position / (this.c + 1)): -Math.floor(position / (this.c + 2));   // adjust cursor for newly removed or inserted borders
+        offset = this.this.hasBorders ? Math.floor(position / (this.c + 1)): -Math.floor(position / (this.c + 2));   // adjust cursor for newly removed or inserted borders
         log('position new ' + (position));
         this.setCaretToPos(position + offset);
     }
@@ -332,7 +332,7 @@ function Box (id, rows, cols, settings) {  // TODO: little privacy here
             newStr += temp.substring(startIdx, endIdx);
             if (units < 0)
                 newStr += padSpaces;
-            newStr += hasBorders ? '|' : '';
+            newStr += this.hasBorders ? '|' : '';
             newStr += i < (r - 1) ? '\n' : '';
         }
 
@@ -358,7 +358,7 @@ function Box (id, rows, cols, settings) {  // TODO: little privacy here
 
         for (i = 0; i < c; i++)
             padLine += CHAR_SPACE;
-        padLine += hasBorders ? '|\n' : '\n';
+        padLine += this.hasBorders ? '|\n' : '\n';
 
         lineLen = padLine.length;
         if (units > 0) {
@@ -401,7 +401,7 @@ function Box (id, rows, cols, settings) {  // TODO: little privacy here
 
         setPos();
         setCurr();
-        if (hasBorders)
+        if (this.hasBorders)
             re = /[^\s][^\n]/gi; // /( [^\s][^\n])|([^\s][^\n]( |\|\n))/gi;
         else
             re = /[^\s]/gi; // /( [^\s])|(([^\s] )|[^\s]\|\n)/gi;
@@ -442,7 +442,7 @@ function Box (id, rows, cols, settings) {  // TODO: little privacy here
             currLine = getLine(line, false);
 
             newStr += currLine.substring(minCol, maxCol + 1);
-            if (hasBorders)
+            if (this.hasBorders)
                 newStr += '|';
             if (line < stop)
                 newStr += '\n';
@@ -682,7 +682,6 @@ function BoxDisplay (outerBox) {
     };
 
     this.makeBox = function (rows, cols) {
-
         var boxCode = '<textarea id="' + box.id + '" spellcheck="false"></textarea>';
         document.getElementById(box.container).innerHTML = '<div id="box0">' + boxCode + '</div>';
         
@@ -841,20 +840,30 @@ log('attach hander ' + handler);
             }; 
         }) (this));
         
-        $(Id('fill')).on('click', (function() {
-            return function() { };
-        }) (this));
-//        this.settings.fillMode = 
+        $(Id('fill')).on('click', (function(ctxt) {
+            return function() { 
+                ctxt.toggleFill();
+            };
+        }) (this.boxes[0]));
+
         $(Id('toggleBorders')).on('click', (function(ctxt) {
             return function() {
-                log('context toggleborders: ' + ctxt.boxes[0]);
-                ctxt.boxes[0].toggleBorders(); 
+                log('context toggleborders: ' + ctxt);
+                ctxt.toggleBorders(); 
             };
-        }) (this));
+        }) (this.boxes[0]));
         
         $(Id('pasteTrans')).on('click', (function(ctxt) {
-            return function() { };
-        }) (this));
+            return function() { 
+                ctxt.paste();
+            };
+        }) (this.boxes[0]));
+        
+        $(Id('resetButton')).on('click', (function(ctxt) {
+            return function() { 
+                ctxt.confirmReset();
+            };
+        }) (this.boxes[0]));
     }
 }
 

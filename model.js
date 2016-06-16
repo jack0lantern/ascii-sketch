@@ -307,6 +307,8 @@ function BoxStencil(outerBox) {
         var j;
         var border = box.hasBorders ? '|' : '';
         currStr = '';
+        spaces = '';
+        
         for (i = 0; i < box.c; i++) { 
             spaces += CHAR_SPACE;
         }
