@@ -81,8 +81,8 @@ function Box (id, rows, cols, settings) {  // TODO: little privacy here
 
         this.setPos();
         
-        this.bs.writeBorders(this.hasBorders);
-        this.hasBorders = !this.hasBorders;
+        this.bs.writeBorders(hasBorders);
+        hasBorders = !hasBorders;
 
         if (this.hasBorders)
             document.getElementById(this.id).cols = this.c + 1;
@@ -284,8 +284,9 @@ function Box (id, rows, cols, settings) {  // TODO: little privacy here
     this.setFooterCoords = function () { // put in ui.js
         this.setPos();
         var selection = this.getSelectionRange($(Id(this.id)));
-        if (DEBUG)
-            document.getElementById('debug').innerHTML = selection + " " + position;
+        if (DEBUG){
+            document.getElementById('debug').innerHTML = selection + " " + position + '\n' + this.getCol(position);
+        }
         document.getElementById('coords').innerHTML = '(' + this.getCol(position) + ', ' + this.getRow(position) + ')';
 
         if (selection[1] - selection[0]) {
