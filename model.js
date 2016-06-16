@@ -203,6 +203,7 @@ function inRange(value, a, b) {// put in model.js
 function addToRanges(value, ranges) {// TODO: put in model.js
     var changedRange = null;
     for (var i = 0; i < ranges.length && !changedRange; i++) {
+        // If number is one off previous and one off next, merge
         if (i < ranges.length - 1 && value - ranges[i][1] === 1 && ranges[i + 1][0] - value === 1) {
             ranges.splice(i, 2, [ranges[i][0], ranges[i + 1][1]]);
             changedRange = ranges[i];
@@ -219,7 +220,9 @@ function addToRanges(value, ranges) {// TODO: put in model.js
             changedRange = ranges[i];
         }
     }
-    if (!changedRange) {
+    
+    // If number is not within 1 of any existing ranges, add a new one in sorted order
+    if (changedRange === null) {
         var insert = 0;
         if (ranges.length) {
             while(insert < ranges.length && value >= ranges[insert][0]) {
@@ -286,8 +289,8 @@ function BoxStencil(outerBox) {
     
     // returns the line at a given row index. This cuts off the ending \n.
     // Mostly a helper.
-    var getLine = function(line, withNewLine) {    // lines are 0 indexed
-        if (line < r) {
+    this.getLine = function(line, withNewLine) {    // lines are 0 indexed
+        if (line < box.r) {
             var str = '';
             var newlineIndex = currStr.indexOf('\n');  // find first instance of \n
             var addNewline = withNewLine ? 0 : 1;
@@ -371,6 +374,21 @@ function BoxStencil(outerBox) {
         /*** /REFACTOR ***/
 
         currStr = newStr||currStr;
+    };
+    
+    this.writeBorders = function (bordersToSet) {
+        var newStr = '';
+        this.setCurr();
+        for (var i = 0; i < box.r; ++i) {
+            var temp = this.getLine(i, false);
+            if (bordersToSet) {
+                newStr += temp.substring(0, temp.length - 1) + (i < (box.r - 1) ? '\n' : '');
+            }
+            else {
+                newStr += temp + '|' + (i < (box.r - 1) ? '\n' : '');
+            }
+        }
+        this.setCurr(newStr);
     };
     
     this.assignCurrByRange = function (charToPut, ranges, colDiff, settings) {

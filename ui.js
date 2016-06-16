@@ -5,6 +5,25 @@
 var CHAR_SPACE = ' ';
 var TAB_CONTENT_SUFFIX = '_content';
 
+var drawModes = Object.freeze({
+    LINE: 'line', 
+    BLOCK: 'block', 
+    BUCKET: 'bucket'
+});
+
+var fillModes = Object.freeze({
+    FILL: 'fill',
+    TRANSPARENT: 'transparent',
+    CUSTOM: 'custom'
+});
+
+var tabs = Object.freeze({
+    DRAW: 'draw',
+    WINDOW: 'window',
+    EDIT: 'edit',
+    HELP: 'help'
+});
+
 // A box is a logical contrcut representing an individual textarea ("canvas") in which a user can draw on. It by itself should not have the ability to "draw" on itself, but a BoxStencil does that.
 // @param id: String stored with no #
 function Box (id, rows, cols, settings) {  // TODO: little privacy here
@@ -54,7 +73,25 @@ function Box (id, rows, cols, settings) {  // TODO: little privacy here
     this.positionFromCoordinates = function(ri, ci) {// put in ui.js - done
        return ri * (hasBorders ? (this.c + 2) : (this.c + 1)) + ci; 
     };
+    
+    // display the borders, or don't display the borders.
+    this.toggleBorders = function() {// TODO: split
+        var temp = '';
+        var offset;
 
+        this.setPos();
+        
+        this.bs.writeBorders(this.hasBorders);
+        this.hasBorders = !this.hasBorders;
+
+        if (this.hasBorders)
+            document.getElementById(this.id).cols = this.c + 1;
+
+        this.bd.setArea();
+        offset = this.hasBorders ? Math.floor(position / (this.c + 1)): -Math.floor(position / (this.c + 2));   // adjust cursor for newly removed or inserted borders
+        log('position new ' + (position));
+        this.setCaretToPos(position + offset);
+    }
     
     // http://stackoverflow.com/questions/275761/how-to-get-selected-text-from-textbox-control-with-javascript
     // returns a two-element array of the selection's start and end indices
@@ -133,6 +170,8 @@ function Box (id, rows, cols, settings) {  // TODO: little privacy here
         var unicode = null;
 
         log('this, yes closure: ' + this);
+        log('this r ' + this.r);
+        log('this c ' + this.c);
 
         var range = this.getSelectionRange(document.getElementById(this.id));
 
@@ -460,6 +499,12 @@ function Box (id, rows, cols, settings) {  // TODO: little privacy here
     this.getLineRanges = function (start, end) {// TODO: split
         var startRow = this.getRow(start), endRow = this.getRow(end);
         var startCol = Math.min(this.getCol(start), this.c - 1), endCol = Math.min(this.getCol(end), this.c - 1);
+        
+        log('startRow ' + startRow);
+        log('endRow ' + endRow);
+        log('startCol ' + startCol);
+        log('endCol ' + endCol);
+        
         // note: rowDiff always >= 0, same CANNOT be said for colDiff
         var rowDiff = endRow - startRow, colDiff = endCol - startCol;
         console.log(' rowDiff ' + rowDiff + ' coldiff ' + colDiff);
@@ -763,6 +808,7 @@ function Frame (settings_, window_) {
     
     // Attaches an event listener for each element of a class. Handlers should expect to take in an element
     // @param className: name of class in which to attach a listener for handle
+    // @param eventName: name of event to be triggered
     // @param handler: function to attach to each element
     this.attachListenersByClass = function(className, eventName, handler) {
         var elems = this.window.getElementsByClassName(className);
@@ -793,6 +839,21 @@ log('attach hander ' + handler);
                 ctxt.setMode(mode); 
             }; 
         }) (this));
+        
+        $(Id('fill')).on('click', (function() {
+            return function() { };
+        }) (this));
+//        this.settings.fillMode = 
+        $(Id('toggleBorders')).on('click', (function(ctxt) {
+            return function() {
+                log('context toggleborders: ' + ctxt.boxes[0]);
+                ctxt.boxes[0].toggleBorders(); 
+            };
+        }) (this));
+        
+        $(Id('pasteTrans')).on('click', (function(ctxt) {
+            return function() { };
+        }) (this));
     }
 }
 
@@ -800,11 +861,11 @@ log('attach hander ' + handler);
 var ui = (function () {
     var IS_MAC = navigator.platform.match(/Mac/i) ? true : false;
     var settings = {
-        mode: 'line',                   // 'line', 'block', 'bucket'
-        fillMode: 'transparent',        // 'fill', 'transparent', 'custom'
+        mode: drawModes.LINE, 
+        fillMode: fillModes.TRANSPARENT, 
         fillChar: CHAR_SPACE,
             //    activeChar: null,     // potentially for custom chars
-        currentTab: 'draw',
+        currentTab: tabs.DRAW,
         pasteTransparent: false
     };
     
