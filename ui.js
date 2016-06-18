@@ -88,7 +88,7 @@ function Box (id, rows, cols, settings) {  // TODO: little privacy here
             document.getElementById(this.id).cols = this.c + 1;
 
         this.bd.setArea();
-        offset = this.this.hasBorders ? Math.floor(position / (this.c + 1)): -Math.floor(position / (this.c + 2));   // adjust cursor for newly removed or inserted borders
+        offset = this.hasBorders ? Math.floor(position / (this.c + 1)): -Math.floor(position / (this.c + 2));   // adjust cursor for newly removed or inserted borders
         log('position new ' + (position));
         this.setCaretToPos(position + offset);
     }
@@ -139,11 +139,68 @@ function Box (id, rows, cols, settings) {  // TODO: little privacy here
     this.confirmReset = function () {// put in ui.js
         var reset = confirm('Are you sure you want to clear the image? All your work will be lost. Press OK to continue or Cancel to cancel.');
         if (reset) {
-            this.bd.makeBox(parseInt(document.getElementById('h').value), parseInt(document.getElementById('w').value));
+            this.makeBox(parseInt(document.getElementById('h').value), parseInt(document.getElementById('w').value));
             this.bs.clearStacks();
         }
     };
     
+    this.makeBox = function(rows, cols) {
+        this.bs.resetCurrStr();
+        this.bd.displayBox();
+        var boxObj = $(Id(this.id));
+        var that = this;
+                
+        // TODO: Figure out a better way to do this. Need || cuz makeBox is called with no args somewhere.
+        this.r = rows||this.r;
+        this.c = cols||this.c;
+        
+        log('box get curr in ui: ' + this.getCurr());
+
+//        boxObj.on('cut', function(event) {
+//            this.copy(true);
+//        });
+//        boxObj.on('copy', function(event) {
+//            this.copy(false);
+//        });
+//        boxObj.on('paste', function(event) {
+//            event.preventDefault();
+//            this.paste();
+//        });
+//        boxObj.on('click', function() {
+//            document.getElementById('dims').innerHTML = '';
+//        });
+
+        // TODO: keydown always happens when a keypress happens; 
+        // so then setCurr happens twice, which is a little expensive.
+        // Can we factor it out somehow? Maybe if we can guarantee that
+        // keydown always happens first.
+        boxObj.on('keydown', function(event) {
+            log('keydown');
+            that.nonKeyPress(event);
+        });
+        boxObj.on('keypress', function(event) {
+            log('keypress');
+            that.changeChar(event);
+        });
+        boxObj.on('keyup', function() {
+            that.setFooterCoords();
+        });
+        boxObj.on('mousedown', function() {
+            that.setMouseDown();
+            that.setFooterCoords(); 
+//            box.setCaretToPos(0);
+        });
+
+        boxObj.on('mousemove', function() {
+            that.setFooterCoords();
+        }); 
+        boxObj.on('mouseup', function() {
+            that.setFooterCoords(); 
+            that.setMouseUp();
+        });
+        boxObj.on('dragstart', function() {return false;});
+        boxObj.on('drop', function() {return false;});
+    }
     
     // Grow or shrink the textarea's dimensions while maintaining content as much as possible. Chops off content on shrink, adds spaces on grow.
     this.changeBox = function (rows, cols) {// TODO: put in ui.js
@@ -656,6 +713,13 @@ function Box (id, rows, cols, settings) {  // TODO: little privacy here
         return ranges;
     };
     
+    this.setMouseDown = function () {
+        log('NOT IMPLEMENTED');
+    };
+    
+    this.setMouseUp = function () {
+        log('NOT IMPLEMENTED');
+    };
 }
 
 function BoxDisplay (outerBox) {
@@ -681,65 +745,16 @@ function BoxDisplay (outerBox) {
         document.getElementById('w').value = box.c;
     };
 
-    this.makeBox = function (rows, cols) {
+    // boxObj is a jquery object representing the canvas box
+    this.displayBox = function () {
         var boxCode = '<textarea id="' + box.id + '" spellcheck="false"></textarea>';
         document.getElementById(box.container).innerHTML = '<div id="box0">' + boxCode + '</div>';
-        
+
         var boxObj = $(Id(box.id));
-        
-        box.bs.resetCurrStr();
         this.setArea();
         this.adjustBox();
-        log('box get curr in ui: ' + box.getCurr());
-
-        boxObj.on('cut', function(event) {
-            this.copy(true);
-        });
-        boxObj.on('copy', function(event) {
-            this.copy(false);
-        });
-        boxObj.on('paste', function(event) {
-            event.preventDefault();
-            this.paste();
-        });
-        boxObj.on('click', function() {
-            document.getElementById('dims').innerHTML = '';
-        });
-
-        // TODO: keydown always happens when a keypress happens; 
-        // so then setCurr happens twice, which is a little expensive.
-        // Can we factor it out somehow? Maybe if we can guarantee that
-        // keydown always happens first.
-        boxObj.on('keydown', function(event) {
-            log('keydown');
-            box.nonKeyPress(event);
-        });
-        boxObj.on('keypress', function(event) {
-            log('keypress');
-            box.changeChar(event);
-        });
-        boxObj.on('keyup', function() {
-//            for(prop in this.bs)
-        log('in keyup getcurr: ' + box.getCurr()); // undefined
-            box.setFooterCoords();
-        });
-        boxObj.on('mousedown', function() {
-            setMouseDown();
-            box.setFooterCoords(); 
-//            box.setCaretToPos(0);
-        });
-
-        boxObj.on('mousemove', function() {
-            box.setFooterCoords();
-        }); 
-        boxObj.on('mouseup', function() {
-            box.setFooterCoords(); 
-            setMouseUp();
-        });
-        boxObj.on('dragstart', function() {return false;});
-        boxObj.on('drop', function() {return false;});
+        
         boxObj.wrap = "off";
-
         boxObj.rows = box.r;
         boxObj.cols = box.c;
     };
@@ -812,7 +827,7 @@ function Frame (settings_, window_) {
     // @param handler: function to attach to each element
     this.attachListenersByClass = function(className, eventName, handler) {
         var elems = this.window.getElementsByClassName(className);
-log('attach hander ' + handler);
+
         // TIL for loops don't have their own scope
         // Attach the event listeners for each tab
         // TODO: check handler is a fn
@@ -828,42 +843,31 @@ log('attach hander ' + handler);
     
     // Attach all listeners for this frame
     this.attachFrameListeners = function() {
-        this.attachListenersByClass('tab', 'click', (function(ctxt) {
-            return function(tab) {
-                ctxt.openTab(tab); 
-            }; 
-        }) (this));
+        var that = this;
         
-        this.attachListenersByClass('tool', 'click', (function(ctxt) {
-            return function(mode) {
-                ctxt.setMode(mode); 
-            }; 
-        }) (this));
+        this.attachListenersByClass('tab', 'click', function(tab) {
+            that.openTab(tab); 
+        });
         
-        $(Id('fill')).on('click', (function(ctxt) {
-            return function() { 
-                ctxt.toggleFill();
-            };
-        }) (this.boxes[0]));
+        this.attachListenersByClass('tool', 'click', function(mode) {
+            that.setMode(mode); 
+        });
+        
+        $(Id('fill')).on('click', function() { 
+            that.boxes[0].toggleFill();
+        });
 
-        $(Id('toggleBorders')).on('click', (function(ctxt) {
-            return function() {
-                log('context toggleborders: ' + ctxt);
-                ctxt.toggleBorders(); 
-            };
-        }) (this.boxes[0]));
+        $(Id('toggleBorders')).on('click', function() {
+            that.boxes[0].toggleBorders(); 
+        });
         
-        $(Id('pasteTrans')).on('click', (function(ctxt) {
-            return function() { 
-                ctxt.paste();
-            };
-        }) (this.boxes[0]));
+        $(Id('pasteTrans')).on('click', function() { 
+            that.boxes[0].paste();
+        });
         
-        $(Id('resetButton')).on('click', (function(ctxt) {
-            return function() { 
-                ctxt.confirmReset();
-            };
-        }) (this.boxes[0]));
+        $(Id('resetButton')).on('click', function() { 
+            that.boxes[0].confirmReset();
+        });
     }
 }
 
@@ -893,7 +897,7 @@ function testCompiles(){
     var b = ui.f[0].boxes.main;
     b.setCurr(setStr);
     log(b.bd);
-    b.bd.makeBox();
+    b.makeBox();
 //    b.bd.setArea(
     b.setSelectionRange(10, 20);
 //    selectRange(20, 30);
