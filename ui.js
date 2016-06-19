@@ -146,8 +146,7 @@ function Box (id, rows, cols, settings) {  // TODO: little privacy here
     
     this.makeBox = function(rows, cols) {
         this.bs.resetCurrStr();
-        this.bd.displayBox();
-        var boxObj = $(Id(this.id));
+        var boxObj = this.bd.displayBox();
         var that = this;
                 
         // TODO: Figure out a better way to do this. Need || cuz makeBox is called with no args somewhere.
@@ -156,19 +155,19 @@ function Box (id, rows, cols, settings) {  // TODO: little privacy here
         
         log('box get curr in ui: ' + this.getCurr());
 
-//        boxObj.on('cut', function(event) {
-//            this.copy(true);
-//        });
-//        boxObj.on('copy', function(event) {
-//            this.copy(false);
-//        });
-//        boxObj.on('paste', function(event) {
-//            event.preventDefault();
-//            this.paste();
-//        });
-//        boxObj.on('click', function() {
-//            document.getElementById('dims').innerHTML = '';
-//        });
+        boxObj.on('cut', function(event) {
+            this.copy(true);
+        });
+        boxObj.on('copy', function(event) {
+            this.copy(false);
+        });
+        boxObj.on('paste', function(event) {
+            event.preventDefault();
+            this.paste();
+        });
+        boxObj.on('click', function() {
+            document.getElementById('dims').innerHTML = '';
+        });
 
         // TODO: keydown always happens when a keypress happens; 
         // so then setCurr happens twice, which is a little expensive.
@@ -714,11 +713,11 @@ function Box (id, rows, cols, settings) {  // TODO: little privacy here
     };
     
     this.setMouseDown = function () {
-        log('NOT IMPLEMENTED');
+        log('setMouseDown NOT IMPLEMENTED');
     };
     
     this.setMouseUp = function () {
-        log('NOT IMPLEMENTED');
+        log('setMouseUp NOT IMPLEMENTED');
     };
 }
 
@@ -757,6 +756,8 @@ function BoxDisplay (outerBox) {
         boxObj.wrap = "off";
         boxObj.rows = box.r;
         boxObj.cols = box.c;
+        
+        return boxObj;
     };
     
     // Clears the box dimensions area of the footer and sets mouseDown
@@ -776,14 +777,17 @@ function BoxDisplay (outerBox) {
     
     // changes the state of fillMode
     // TODO: refactor HTML injection
-    this.toggleFill = function () {// put in ui.js
+    this.toggleFill = function (settings) {// put in ui.js
         if (settings.fillMode === 'transparent') {
-            document.getElementById('fillOptions').innerHTML = '<label for="fillChar">with: </label> <br /> <input type="radio" id="fillSame" name="fillOptions" value="same" checked /> <label for="fillSame"> Same characters </label><br /> <input type="radio" id="fillDiff" name="fillOptions" value="diff" /> <label for="fillDiff">This character: </label><input type="text" class="text" id="fillChar" maxlength="1" value=" " onChange="setBlockRadioSettings()" />';
+            document.getElementById('fillOptions').innerHTML = '<label for="fillChar">with: </label> <br /> <input type="radio" id="fillSame" name="fillOptions" value="same" checked /> <label for="fillSame"> Same characters </label><br /> <input type="radio" id="fillDiff" name="fillOptions" value="diff" /> <label for="fillDiff">This character: </label><input type="text" class="text" id="fillChar" maxlength="1" value=" "  />';
+            $(Id('fillChar')).on('change', function() {
+               box.setBlockRadioSettings(); 
+            });
         }
         else {
             document.getElementById('fillOptions').innerHTML = '';
         }
-        this.setBlockRadioSettings();
+        box.setBlockRadioSettings();
     }
 }
 
@@ -854,7 +858,7 @@ function Frame (settings_, window_) {
         });
         
         $(Id('fill')).on('click', function() { 
-            that.boxes[0].toggleFill();
+            that.boxes[0].bd.toggleFill(that.settings);
         });
 
         $(Id('toggleBorders')).on('click', function() {

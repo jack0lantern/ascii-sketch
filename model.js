@@ -405,6 +405,7 @@ function BoxStencil(outerBox) {
             for (var i = 0; i < colDiff; i++) 
                 appendage += settings.fillChar;
         else
+            appendage = fillLine;
 
         newStr = currStr.substring(0, ranges[0][0]);
         
