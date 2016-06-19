@@ -330,46 +330,48 @@ function BoxStencil(outerBox) {
         var emptyRow = '';
         var newStr = '';
 
-        if (this.r === rows && this.c === cols)
+        if (box.r === rows && box.c === cols)
             return;
 
         this.setCurr();
         for (var i = 0; i < cols; i++)
             emptyRow += CHAR_SPACE;    // O(n^2)
-        emptyRow += (hasBorders ? '|' : '');
+        
+        // should make an accessor for hasborders? used in other places
+        emptyRow += (box.hasBorders ? '|' : '');
         spaces = emptyRow + '\n';   
 
-        var numSpacesToAdd = cols - c;
+        var numSpacesToAdd = cols - box.c;
         var spacesToAdd = '';
         for (var i = 0; i < numSpacesToAdd; i++)
             spacesToAdd += CHAR_SPACE;
         /*** REFACTOR ***/
-        if (cols < c) {
+        if (cols < box.c) {
             for (var currRow = 0; currRow < rows; currRow++) {
-                if (currRow >= r)
+                if (currRow >= box.r)
                     newStr += emptyRow;
                 else
-                    newStr += getLine(currRow, false).substring(0, cols) + (hasBorders ? '|': ''); 
+                    newStr += this.getLine(currRow, false).substring(0, cols) + (box.hasBorders ? '|': ''); 
                 if (currRow < rows - 1)
                     newStr += '\n';
             }
         }
         else {  // cols >= c
             for (var currRow = 0; currRow < rows; currRow++) {
-                if (currRow >= r)
+                if (currRow >= box.r)
                     newStr += emptyRow;
                 else
-                    newStr += getLine(currRow, false).substring(0, c) + spacesToAdd + (hasBorders ? '|' : '');
+                    newStr += this.getLine(currRow, false).substring(0, box.c) + spacesToAdd + (box.hasBorders ? '|' : '');
                 if (currRow < rows - 1)
                     newStr += '\n';
             }
         }
         /*** TO: ***/
 //        for (var currRow = 0; currRow < rows; currRow++) {
-//                if (currRow >= r)
+//                if (currRow >= box.r)
 //                    newStr += emptyRow;
 //                else
-//                    newStr += getLine(currRow, false).substring(0, (cols < c) ? cols : c) + spacesToAdd + (hasBorders ? '|' : '');
+//                    newStr += this.getLine(currRow, false).substring(0, (cols < box.c) ? cols : box.c) + spacesToAdd + (box.hasBorders ? '|' : '');
 //                if (currRow < rows - 1)
 //                    newStr += '\n';
 //        }

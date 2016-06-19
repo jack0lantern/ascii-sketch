@@ -545,7 +545,7 @@ function Box (id, rows, cols, settings) {  // TODO: little privacy here
         this.bd.setArea();
         log('position in loadranges' + position);
         console.log('position in loadranges ' + position);
-        this.setCaretToPos(position);
+        this.setCaretToPos(this.getPos());
         
         log(this.getPos());
         this.bs.pushUndo(); // TODO: reimplement
@@ -871,6 +871,10 @@ function Frame (settings_, window_) {
         
         $(Id('resetButton')).on('click', function() { 
             that.boxes[0].confirmReset();
+        });
+        
+        $(Id('changeButton')).on('click', function() {
+            that.boxes[0].changeBox(document.getElementById('h').value, document.getElementById('w').value);
         });
     }
 }
