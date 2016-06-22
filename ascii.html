@@ -77,7 +77,7 @@
                         <table id="shifts">
                             <tr>
                                 <td>
-                                    <button class="shiftVertButton" style="margin-top: 15px; margin-left: 10px;" >Shift image up (negative for down) this much: </button>
+                                    <button id="shiftVertButton" style="margin-top: 15px; margin-left: 10px;" >Shift image up (negative for down) this much: </button>
                                 </td>
                                 <td rowspan="2">
                                     <input type="text" class="text" id="shiftValue" value="1" style="margin-right: 10px" />
@@ -85,13 +85,13 @@
                             </tr>
                             <tr>
                                 <td>
-                                    <button class="shiftHorizButton" style="margin-top: 5px; margin-left: 10px;" >Shift image right (negative for left) this much: </button>
+                                    <button id="shiftHorizButton" style="margin-top: 5px; margin-left: 10px;" >Shift image right (negative for left) this much: </button>
                                 </td>
                             </tr>
                         </table>
                     </section>
                     <section class="left_bar">
-                        <button class="trimButton" style="margin-left: 10px; height: 50px; margin-top: 10px">
+                        <button id="trimButton" style="margin-left: 10px; height: 50px; margin-top: 10px">
                             Trim Edges
                         </button>
                     </section>
@@ -118,16 +118,16 @@
                 
                 <div class="tab_data" id="edit_content">
                     <section>
-                        <button class="cutButton">
+                        <button id="cutButton">
                             Cut<br />
                             <span>(<span class="cmd">Ctrl</span> + X)</span>
                         </button>
-                        <button class="copyButton">
+                        <button id="copyButton">
                             Copy<br />
                             <span>(<span class="cmd">Ctrl</span> + C)</span>
                         </button>
                         <div style="display: inline-block; margin-right: 10px; text-align: center">
-                            <button class="paste" style="float: none">
+                            <button id="pasteButton" style="float: none">
                                 Paste<br />
                                 <span>(<span class="cmd">Ctrl</span> + V)</span>
                             </button><br />
@@ -138,11 +138,11 @@
                         </div>
                     </section>
                     <section class="left_bar">
-                        <button class="undoButton">
+                        <button id="undoButton">
                             Undo<br />
                             <span>(<span class="cmd">Ctrl</span> + Z)</span>
                         </button>
-                        <button class="redoButton">
+                        <button id="redoButton">
                             Redo<br />
                             <span>(<span class="cmd">Ctrl</span> + Y)</span>
                         </button>

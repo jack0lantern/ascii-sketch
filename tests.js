@@ -20,3 +20,13 @@ QUnit.test( "Box getRow1", function( assert ) {
 QUnit.test( "Box getEllipseRanges0", function( assert ) {
     assert.ok(testBox.getEllipseRanges(0, 0) === [[0, 0]], "Passed!" );
 });
+
+/* Things left to test:
+ * shiftVert
+ * shiftHoriz
+ * trim
+ * cut
+ * copy
+ * paste
+ *
+ */

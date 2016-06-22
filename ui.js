@@ -879,6 +879,30 @@ function Frame (settings_, window_) {
         $(Id('changeButton')).on('click', function() {
             that.boxes[0].changeBox(document.getElementById('h').value, document.getElementById('w').value);
         });
+        
+        $(Id('shiftVertButton')).on('click', function() {
+            this.shiftVert(document.getElementById('shiftValue').value);
+        });
+        
+        $(Id('shiftHorizButton')).on('click', function() {
+            this.shiftHoriz(document.getElementById('shiftValue').value);
+        });
+        
+        $(Id('trimButton')).on('click', function () {
+            this.trimArea();
+        });
+        
+        $(Id('cutButton')).on('click', function() {
+            this.copy(true);
+        });
+        
+        $(Id('copyButton')).on('click', function() {
+            this.copy(false);
+        });
+        
+        $(Id('pasteButton')).on('click', function () {
+            this.paste();
+        });
     }
 }
 
