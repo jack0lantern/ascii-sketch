@@ -881,27 +881,27 @@ function Frame (settings_, window_) {
         });
         
         $(Id('shiftVertButton')).on('click', function() {
-            this.shiftVert(document.getElementById('shiftValue').value);
+            that.boxes[0].shiftVert(document.getElementById('shiftValue').value);
         });
         
         $(Id('shiftHorizButton')).on('click', function() {
-            this.shiftHoriz(document.getElementById('shiftValue').value);
+            that.boxes[0].shiftHoriz(document.getElementById('shiftValue').value);
         });
         
         $(Id('trimButton')).on('click', function () {
-            this.trimArea();
+            that.boxes[0].trimArea();
         });
         
         $(Id('cutButton')).on('click', function() {
-            this.copy(true);
+            that.boxes[0].copy(true);
         });
         
         $(Id('copyButton')).on('click', function() {
-            this.copy(false);
+            that.boxes[0].copy(false);
         });
         
         $(Id('pasteButton')).on('click', function () {
-            this.paste();
+            that.boxes[0].paste();
         });
     }
 }
