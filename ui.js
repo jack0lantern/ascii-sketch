@@ -545,7 +545,7 @@ function Box (id, rows, cols, settings) {  // TODO: little privacy here
         this.bd.setArea();
         log('position in loadranges' + position);
         console.log('position in loadranges ' + position);
-        this.setCaretToPos(this.getPos());
+        this.setCaretToPos(this.getPos() + 1);
         
         log(this.getPos());
         this.bs.pushUndo(); // TODO: reimplement
@@ -635,20 +635,23 @@ function Box (id, rows, cols, settings) {  // TODO: little privacy here
         
         var xRad = (endCol - startCol) / 2,
             yRad = (endRow - startRow) / 2;
+        
+        // Corner case
+        if (yRad === 0) {
+            return [[start, end]];
+        }
+        
         var xLim = Math.ceil(xRad);
         var yLim = Math.ceil(yRad);
         var xDen = xRad * xRad;
         var yDen = yRad * yRad;
-        var dydx = 1;       // NOT NECESSARY, but keeping just cuz math
-        var xPivot = 0;//Math.floor(xRad-Math.sqrt(xDen*yDen/(yDen + yDen*yDen/xDen/dydx/dydx))); 
-        var yPivot = 0;//Math.floor(yRad - Math.sqrt(yDen*(1 - (xPivot*xPivot/xDen)))); 
 
         var ranges = [];
 
         var col;
         var row;
 
-        for (var y = yPivot; y < Math.min(2 * yLim - yPivot, this.r - 1 - startRow); y++) {
+        for (var y = 0; y < Math.min(2 * yLim, this.r - 1 - startRow); y++) {
             col = startCol + Math.round(-Math.sqrt((1 - Math.pow(y - yRad, 2)/yDen)*xDen) + xRad);
             addToRanges(this.positionFromCoordinates(startRow + y, col), ranges);
 
@@ -657,7 +660,7 @@ function Box (id, rows, cols, settings) {  // TODO: little privacy here
         }
 
         // For the octant, xLim is the stopping point, but use 2*xLim-Pivot to mirror it across the y axis. Cuz math.
-        for (var x = xPivot; x <= Math.min(2 * xLim - xPivot, this.c - 1 - startCol); x++) {
+        for (var x = 0; x <= Math.min(2 * xLim, this.c - 1 - startCol); x++) {
             row = startRow + Math.round(-Math.sqrt((1 - Math.pow(x - xRad, 2)/xDen)*yDen) + yRad);
             addToRanges(this.positionFromCoordinates(row, startCol + x), ranges);
 
