@@ -399,51 +399,12 @@ function Box (id, rows, cols, settings) {  // TODO: little privacy here
     };
 
     // Macro to shift all written text in the box up if units > 0, down otherwise.
-    this.shiftVert = function (units) {// TODO: split
-        var newStr = '';
-        var temp = '';
-        var padLine = '';
-        var i;
-        var lineLen;
-
-        setPos();
-        setCurr();
-        var startIdx = 0;
-        var endIdx = currStr.length;
-        units = parseInt(units);
-
-        for (i = 0; i < c; i++)
-            padLine += CHAR_SPACE;
-        padLine += this.hasBorders ? '|\n' : '\n';
-
-        lineLen = padLine.length;
-        if (units > 0) {
-            units = Math.min(r, units); // in case the user puts a number > rows
-            startIdx += units*lineLen;
-        }
-        else if (units < 0) {
-            units = Math.max(-r, units);
-            endIdx += units*lineLen;
-        }
-        else
-            return;
-
-        if (units < 0) {
-            for (i = 0; i < Math.abs(units); i++)
-                newStr += padLine;
-        }
-        newStr += currStr.substring(startIdx, endIdx);
-        if (units > 0) {
-            newStr += '\n';
-            for (i = 0; i < Math.abs(units); i++)
-                newStr += padLine;
-            newStr = newStr.substring(0, newStr.length - 1); // take off the last \n
-        }
-
-        currStr = newStr;
-        setArea();
-        setCaretToPos(position);
-        pushUndo();
+    this.shiftVert = function (units) {
+        this.bs.shiftCurrVert(units);
+        
+        this.setPos();
+        this.bd.setArea();
+        this.setCaretToPos(position);
     };
     
     // Clears out all whitespace surrounding the image and resizes to close on

@@ -321,6 +321,42 @@ function BoxStencil(outerBox) {
         }
     };
     
+    this.shiftCurrVert = function (units) {
+        var newStr = '';
+        var i;
+        var lineLen;
+        var startIdx = 0;
+        var endIdx = this.getCurr().length;
+        units = parseInt(units);
+
+        lineLen = spaces.length;
+        if (units > 0) {
+            units = Math.min(box.r, units); // in case the user puts a number > rows
+            startIdx += units*lineLen;
+        }
+        else if (units < 0) {
+            units = Math.max(-box.r, units);
+            endIdx += units*lineLen;
+        }
+        else
+            return;
+
+        if (units < 0) {
+            for (i = 0; i < Math.abs(units); i++)
+                newStr += spaces;
+        }
+        newStr += this.getCurr().substring(startIdx, endIdx);
+        if (units > 0) {
+            newStr += '\n';
+            for (i = 0; i < Math.abs(units); i++)
+                newStr += spaces;
+            newStr = newStr.substring(0, newStr.length - 1); // take off the last \n
+        }
+
+        this.setCurr(newStr);
+        this.pushUndo();
+    }
+    
     this.clearStacks = function () {// put in model.js - done
         undo = new Stack();
         redo = new Stack();
