@@ -357,45 +357,11 @@ function Box (id, rows, cols, settings) {  // TODO: little privacy here
     
     // Macro to shift all written text in the box right if units > 0, left otherwise.
     this.shiftHoriz = function (units) {// TODO: split
-        var newStr = '';
-        var temp = '';
-        var padSpaces = '';
-        var i;
-        var startIdx = 0;
-        var endIdx = c;
-
-        setPos();
-        setCurr();
-        units = parseInt(units);
-        if (units > 0) {
-            units = Math.min(c, units); // in case the user puts a number > cols
-            endIdx -= units;
-        }
-        else if (units < 0) {
-            units = Math.max(-c, units);
-            startIdx -= units;
-        }
-        else
-            return;
-
-        for (i = 0; i < Math.abs(units); i++)
-            padSpaces += ' ';
-
-        for (i = 0; i < r; i++) {
-            temp = getLine(i, false);
-            if (units > 0)
-                newStr += padSpaces;
-            newStr += temp.substring(startIdx, endIdx);
-            if (units < 0)
-                newStr += padSpaces;
-            newStr += this.hasBorders ? '|' : '';
-            newStr += i < (r - 1) ? '\n' : '';
-        }
-
-        currStr = newStr;
-        setArea();
+        this.bs.shiftCurrHoriz(units);
+        
+        this.setPos();
+        this.bd.setArea();
         this.setCaretToPos(position);
-        pushUndo();
     };
 
     // Macro to shift all written text in the box up if units > 0, down otherwise.

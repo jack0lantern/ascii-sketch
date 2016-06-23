@@ -321,6 +321,40 @@ function BoxStencil(outerBox) {
         }
     };
     
+    this.shiftCurrHoriz = function (units) {
+        var newStr = '';
+        var padSpaces = spaces.substring(0, units);
+        var i;
+        var startIdx = 0;
+        var endIdx = box.c;
+        
+        this.setCurr();
+        units = parseInt(units);
+        if (units > 0) {
+            units = Math.min(box.c, units); // in case the user puts a number > cols
+            endIdx -= units;
+        }
+        else if (units < 0) {
+            units = Math.max(-box.c, units);
+            startIdx -= units;
+        }
+        else
+            return;
+
+        for (i = 0; i < box.r; i++) {
+            temp = this.getLine(i, false);
+            if (units > 0)
+                newStr += padSpaces;
+            newStr += temp.substring(startIdx, endIdx);
+            if (units < 0)
+                newStr += padSpaces;
+            newStr += this.hasBorders ? '|' : '';
+            newStr += i < (box.r - 1) ? '\n' : '';
+        }
+        this.setCurr(newStr);
+        this.pushUndo();
+    };
+    
     this.shiftCurrVert = function (units) {
         var newStr = '';
         var i;
@@ -355,7 +389,7 @@ function BoxStencil(outerBox) {
 
         this.setCurr(newStr);
         this.pushUndo();
-    }
+    };
     
     this.clearStacks = function () {// put in model.js - done
         undo = new Stack();
