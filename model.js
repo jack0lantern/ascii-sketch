@@ -391,6 +391,69 @@ function BoxStencil(outerBox) {
         this.pushUndo();
     };
     
+    this.processTrimArea = function () {
+        var matches = [];
+        var beginIndex = -1;
+        var endIndex = -1;
+        var minCol = box.c - 1, maxCol = 0;
+        var re = '';
+        this.setCurr();
+        if (box.hasBorders)
+            re = /[^\s][^\n]/gi; // /( [^\s][^\n])|([^\s][^\n]( |\|\n))/gi;
+        else
+            re = /[^\s]/gi; // /( [^\s])|(([^\s] )|[^\s]\|\n)/gi;
+        matches = this.getCurr().match(re);
+
+        if (matches.length) {
+            beginIndex = this.getCurr().indexOf(matches[0]);
+            endIndex = this.getCurr().lastIndexOf(matches[matches.length - 1]);
+        }
+
+        // rows have been cut down; trim extra col space now.
+        var trimmed = this.getCurr().substring(beginIndex, endIndex + 1);
+
+        if (DEBUG)
+            document.getElementById('debug').innerHTML = beginIndex + " " + endIndex;
+
+        var line = box.getRow(beginIndex);
+        var stop = box.getRow(endIndex);
+        var currLine;
+
+        // find the min and max col values
+        for (; line <= stop; line++) {
+            currLine = this.getLine(line, false);
+            matches = currLine.match(re);
+
+            if (currLine.indexOf(matches[0]) < minCol)
+                minCol = currLine.indexOf(matches[0]);
+            if (currLine.lastIndexOf(matches[matches.length - 1]) > maxCol)
+                maxCol = currLine.lastIndexOf(matches[matches.length - 1]);
+        }
+
+        if (DEBUG)
+            document.getElementById('debug').innerHTML = "min/max col values: " + minCol + " " + maxCol;
+
+        // Create the new canvas string
+        var newStr = '';
+        for (line = box.getRow(beginIndex); line <= stop; line++) {
+            currLine = this.getLine(line, false);
+
+            newStr += currLine.substring(minCol, maxCol + 1);
+            if (this.hasBorders)
+                newStr += '|';
+            if (line < stop)
+                newStr += '\n';
+        }
+
+        //document.getElementById('debug').innerHTML = newStr;
+        this.setCurr(newStr);
+        this.pushUndo();
+        return {
+            r: stop - box.getRow(beginIndex) + 1,
+            c: maxCol - minCol + 1
+        };
+    }
+    
     this.clearStacks = function () {// put in model.js - done
         undo = new Stack();
         redo = new Stack();

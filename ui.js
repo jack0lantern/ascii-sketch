@@ -376,70 +376,15 @@ function Box (id, rows, cols, settings) {  // TODO: little privacy here
     // Clears out all whitespace surrounding the image and resizes to close on
     // the image as tightly as possible.
     this.trimArea = function () {// TODO: split
-        var matches = [];
-        var beginIndex = -1;
-        var endIndex = -1;
-        var minCol = c - 1, maxCol = 0;
-        var re = '';
+        var newDims = this.bs.processTrimArea();
 
-        setPos();
-        setCurr();
-        if (this.hasBorders)
-            re = /[^\s][^\n]/gi; // /( [^\s][^\n])|([^\s][^\n]( |\|\n))/gi;
-        else
-            re = /[^\s]/gi; // /( [^\s])|(([^\s] )|[^\s]\|\n)/gi;
-        matches = document.getElementById('area').value.match(re);
+        this.setPos();
+        this.bd.setArea();
 
-        if (matches.length) {
-            beginIndex = document.getElementById('area').value.indexOf(matches[0]);
-            endIndex = document.getElementById('area').value.lastIndexOf(matches[matches.length - 1]);
-        }
+        r = newDims.r; // stop - getRow(beginIndex) + 1;
+        c = newDims.c; // maxCol - minCol + 1;
 
-        // rows have been cut down; trim extra col space now.
-        var trimmed = document.getElementById('area').value.substring(beginIndex, endIndex + 1);
-
-        if (DEBUG)
-            document.getElementById('debug').innerHTML = beginIndex + " " + endIndex;
-
-        var line = getRow(beginIndex);
-        var stop = getRow(endIndex);
-        var currLine;
-
-        // find the min and max col values
-        for (; line <= stop; line++) {
-            currLine = getLine(line, false);
-            matches = currLine.match(re);
-
-            if (currLine.indexOf(matches[0]) < minCol)
-                minCol = currLine.indexOf(matches[0]);
-            if (currLine.lastIndexOf(matches[matches.length - 1]) > maxCol)
-                maxCol = currLine.lastIndexOf(matches[matches.length - 1]);
-        }
-
-        if (DEBUG)
-            document.getElementById('debug').innerHTML = "min/max col values: " + minCol + " " + maxCol;
-
-        // Create the new canvas string
-        var newStr = '';
-        for (line = getRow(beginIndex); line <= stop; line++) {
-            currLine = getLine(line, false);
-
-            newStr += currLine.substring(minCol, maxCol + 1);
-            if (this.hasBorders)
-                newStr += '|';
-            if (line < stop)
-                newStr += '\n';
-        }
-
-        //document.getElementById('debug').innerHTML = newStr;
-        currStr = newStr;
-        setArea();
-
-        r = stop - getRow(beginIndex) + 1;
-        c = maxCol - minCol + 1;
-
-        adjustBox();
-        pushUndo();
+        this.bd.adjustBox();
     };
     
     // Assigns correct user choices to settings global object
