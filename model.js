@@ -200,8 +200,11 @@ function inRange(value, a, b) {// put in model.js
 
 // loop through ranges list, if it is within 1 outside of a range, absorb it, otherwise add new range
 // return the changed range
+// @param value: a number we are adding to the range
+// @param ranges: the ranges array we are adding to
 function addToRanges(value, ranges) {// TODO: put in model.js
     var changedRange = null;
+    assert(ranges, 'ranges is ' + ranges);
     for (var i = 0; i < ranges.length && !changedRange; i++) {
         // If number is one off previous and one off next, merge
         if (i < ranges.length - 1 && value - ranges[i][1] === 1 && ranges[i + 1][0] - value === 1) {

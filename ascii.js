@@ -33,8 +33,8 @@ var DELETE = 46;    //keycodes, duh
 var WINDOWS = 91;
 var MENU = 93;
 var CHAR_SPACE = ' '; // put in ui.js
-var DEFAULT_ROWS = 40; // put in ui.js
-var DEFAULT_COLS = 80; // put in ui.js
+var DEFAULT_ROWS = 20; // put in ui.js
+var DEFAULT_COLS = 40; // put in ui.js
 var MAX_BOX_WIDTH = 1000; // put in ui.js
 var MAX_BOX_HEIGHT = 1000; // put in ui.js
 var TAB_CONTENT_SUFFIX = '_content';
@@ -1213,10 +1213,11 @@ function traceLinear(charToPut, start, end) {// TODO: split
     var i = 0;
     var count = 0;
 
-    setPos();
-    setCurr();
+//    setPos();
+//    setCurr();
     
     var newStr;
+    var consoleStr = ''; 
     //alert(newStr);
     if (rowsMoreThanCols) {
         while(Math.round(ci) >= c) {
@@ -1232,14 +1233,17 @@ function traceLinear(charToPut, start, end) {// TODO: split
         }
         if (ci < c)
             newStr = currStr.substring(0, positionFromCoordinates(ri, Math.round(ci)));
+        consoleStr += ('[');
         while(ri <= endRow && Math.round(ci) < c) {
             var oldri = ri;
             var oldci = ci;
             newStr += charToPut;
+            consoleStr += ('[' + (newStr.length - 1) + ', ' + (newStr.length - 1) + '], ');
             ri++;
             ci += d;
             newStr += currStr.substring(positionFromCoordinates(oldri, Math.round(oldci)) + 1,  positionFromCoordinates(ri, Math.round(ci)));
         }
+        consoleStr += (']');
         var iterationLength = newStr.length;
         newStr += currStr.substring(iterationLength);
     }
@@ -1261,25 +1265,32 @@ function traceLinear(charToPut, start, end) {// TODO: split
             newStr = currStr.substring(0, positionFromCoordinates(Math.round(ri), ci));
         //alert(ci);
         // Once we have a valid ci, compute the number of chars we write to one line.
+        consoleStr += ('[');
+
         while(inRange(ci, startCol, endCol) && ci < c && (colDiff > 0 || ci >= 0)) {
             var oldri = Math.round(ri);
             var oldci = ci;
-            
             var appendage = '';
             do {
                 appendage += charToPut;
                 ri += d;
                 colDiff > 0 ? ci++ : ci--;
             } while(Math.round(ri) === oldri && inRange(ci, startCol, endCol) && ci < c && ci >= 0);
-            // chop off count many characters
+            
+            // chop off as many characters as we're replacing
             if (colDiff < 0) {
                 newStr = newStr.substring(0, positionFromCoordinates(oldri, oldci) - appendage.length + 1);
             }
+            consoleStr += ('[' + (newStr.length) + ', ');
+            consoleStr += ((newStr.length + appendage.length - 1) + '], ');
             var newPos = positionFromCoordinates(Math.round(ri), ci);
             newStr += appendage + currStr.substring(positionFromCoordinates(oldri, (colDiff > 0) ? ci : oldci + 1), (inRange(ci, startCol, endCol) && ci < c && ci >= 0) ? newPos : currStr.length);
         }
+        
+        consoleStr += (']');
     }
     
+    console.log(consoleStr);
     currStr = newStr;
     setArea();
     pushUndo();

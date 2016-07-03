@@ -302,20 +302,20 @@ function Box (id, rows, cols, settings) {  // TODO: little privacy here
 
             this.setPos();
             this.setCurr();
-            var d = this.getCol(position);
+            var d = this.getCol(this.position);
 
             // the below should be in model.js TODOs
             if (unicode === BACKSPACE) {
-                if (d > c || d == 0) {
+                if (d > this.c || d == 0) {
                     e.preventDefault();
                 }
                 else {
-                    this.setCaretToPos(position - 1);
-                    this.bs.currStr = this.bs.currStr.substring(0, position) + ' ' +  this.bs.currStr.substring(position);
+                    this.setCaretToPos(this.getPos() - 1);
+                    this.setCurr(this.getCurr().substring(0, this.getPos()) + ' ' +  this.getCurr().substring(this.getPos()));
                     this.bd.setArea();
                 }
             }
-            else if (unicode === DELETE) {
+            else if (unicode === DELETE) { // TODO: make it work again
                 if (d >= c)
                     e.preventDefault();
                 else {
@@ -324,7 +324,7 @@ function Box (id, rows, cols, settings) {  // TODO: little privacy here
                     this.setCaretToPos(position);
                 }
             }
-            else if (unicode === ENTER) {
+            else if (unicode === ENTER) { // TODO: make it work again
                 e.preventDefault();
                 this.setCaretToPos(positionFromCoordinates(getRow(position) + 1, 0));
             }
@@ -440,36 +440,29 @@ function Box (id, rows, cols, settings) {  // TODO: little privacy here
         var rowsMoreThanCols = rowDiff > Math.abs(colDiff);
         var d = rowDiff / colDiff;
         d = d || 0; // in case d is NaN due to 0/0
+        var colSgn = Math.sign(colDiff);
+        log('col sign' + colSgn);
         
         log('d: ' + d);
         var ranges = [];
-        var currentCol = 0;
-        var finalCol = 0;
-        var colDiffIsPos = colDiff > 0;
-        var rounder = colDiffIsPos ? Math.ceil : Math.floor;
+        var rounder = Math.round;
+        log('rowsmorethancols ' + rowsMoreThanCols);
         
-        for(var row = 0; row <= rowDiff; ++row) {
-            log('current col ' + currentCol);
-            finalCol = rounder(currentCol);
-            log('final col ' + finalCol);
-            var rangeToPush = [this.positionFromCoordinates(startRow + row, startCol + finalCol), this.positionFromCoordinates(startRow + row, Math.min(startCol + finalCol, this.c - 1))];
-            
-            if (ranges.length > 0) {
-                assert(ranges[ranges.length - 1][1] === ranges[ranges.length - 1][0], 'last elem of ranges not equal in first and last')
-                var colDiffFromPrevRange = this.getCol(rangeToPush[0]) - this.getCol(ranges[ranges.length - 1][1]);
-                if (colDiffFromPrevRange > 1) {
-                    ranges[ranges.length - 1][1] += colDiffFromPrevRange - 1;
-                }
-                else if (colDiffFromPrevRange < -1) {
-                    ranges[ranges.length - 1][0] += colDiffFromPrevRange + 1;
-                }
+        if (rowsMoreThanCols) {
+            for(var row = 0; row <= rowDiff; ++row) {
+                var currentCol = rounder(row / d);
+                var point = this.positionFromCoordinates(startRow + row, Math.min(startCol + currentCol, this.c - 1));
+                addToRanges(point, ranges);
             }
-            ranges.push(rangeToPush);
-            
-            // think, row + 1 - 0.5
-            currentCol = (row + 0.5) / d;
         }
-        ranges[ranges.length - 1][colDiffIsPos ? 1 : 0] = this.positionFromCoordinates(endRow, endCol);
+        else {
+            for(var col = 0; col <= Math.abs(colDiff); col += 1) {
+                var currentRow = rounder(Math.abs(col * d));
+                log('current row ' + currentRow);
+                var point = this.positionFromCoordinates(startRow + currentRow, Math.min(startCol + colSgn*col, this.c - 1));
+                addToRanges(point, ranges);
+            }
+        }
         return ranges;
     };
 
