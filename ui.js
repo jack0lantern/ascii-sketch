@@ -310,23 +310,23 @@ function Box (id, rows, cols, settings) {  // TODO: little privacy here
                     e.preventDefault();
                 }
                 else {
-                    this.setCaretToPos(this.getPos() - 1);
                     this.setCurr(this.getCurr().substring(0, this.getPos()) + ' ' +  this.getCurr().substring(this.getPos()));
                     this.bd.setArea();
+                    this.setCaretToPos(this.getPos());
                 }
             }
-            else if (unicode === DELETE) { // TODO: make it work again
-                if (d >= c)
+            else if (unicode === DELETE) { 
+                if (d >= this.c)
                     e.preventDefault();
                 else {
-                    currStr = currStr.substring(0, position + 1) + CHAR_SPACE +  currStr.substring(position + 1);
-                    document.getElementById(this.id).value = currStr;
-                    this.setCaretToPos(position);
+                    this.setCurr(this.getCurr().substring(0, this.getPos() + 1) + CHAR_SPACE + this.getCurr().substring(this.getPos() + 1));
+                    this.bd.setArea();
+                    this.setCaretToPos(this.getPos());
                 }
             }
-            else if (unicode === ENTER) { // TODO: make it work again
+            else if (unicode === ENTER) { // TODO: remember where user started typing
                 e.preventDefault();
-                this.setCaretToPos(positionFromCoordinates(getRow(position) + 1, 0));
+                this.setCaretToPos(this.positionFromCoordinates(this.getRow(this.getPos()) + 1, this.getCol(this.getPos())));
             }
             else if (unicode === SHIFT) {
                 if (mouseDown) {
