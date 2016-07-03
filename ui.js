@@ -381,8 +381,8 @@ function Box (id, rows, cols, settings) {  // TODO: little privacy here
         this.setPos();
         this.bd.setArea();
 
-        r = newDims.r; // stop - getRow(beginIndex) + 1;
-        c = newDims.c; // maxCol - minCol + 1;
+        this.r = newDims.r; // stop - getRow(beginIndex) + 1;
+        this.c = newDims.c; // maxCol - minCol + 1;
 
         this.bd.adjustBox();
     };
@@ -606,10 +606,12 @@ function BoxDisplay (outerBox) {
     this.adjustBox = function () {
         document.getElementById(box.id).rows = box.r + 1;
         document.getElementById(box.id).cols = box.c + 1;
+        log('mid of adjustobox: ' + box.r + ' ' + box.c);
 
         // The below has not been adjusted to respond to boxes of differing size.
         document.getElementById('h').value = box.r;
         document.getElementById('w').value = box.c;
+        log('end of adjustobox: ' + box.r + ' ' + box.c);
     };
 
     // boxObj is a jquery object representing the canvas box
@@ -622,8 +624,6 @@ function BoxDisplay (outerBox) {
         this.adjustBox();
         
         boxObj.wrap = "off";
-        boxObj.rows = box.r;
-        boxObj.cols = box.c;
         
         return boxObj;
     };
