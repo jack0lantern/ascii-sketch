@@ -3,6 +3,8 @@
 // TODO: Replace all two-element arrays representing points with Point objs, and ranges with PointRange objs 
 
 var CHAR_SPACE = ' ';
+var CHAR_Y = 25;
+var CHAR_Z = 26;
 var TAB_CONTENT_SUFFIX = '_content';
 
 var drawModes = Object.freeze({
@@ -165,6 +167,7 @@ function Box (id, rows, cols, settings) {  // TODO: little privacy here
             event.preventDefault();
             this.paste();
         });
+        
         boxObj.on('click', function() {
             document.getElementById('dims').innerHTML = '';
         });
@@ -277,14 +280,14 @@ function Box (id, rows, cols, settings) {  // TODO: little privacy here
             this.loadRanges(String.fromCharCode(unicode), ranges, Math.abs(this.getCol(end) - this.getCol(start)) + 1);
         }
         else if (e.ctrlKey) {  
-            // event listeners do CUT/COPY/PASTE. Should have event listeners for this too?
+            // event listeners do CUT/COPY/PASTE. Should have event listeners for undo/redo too? Would have to build from scratch, as there is no built-in event for them
             if (e.which === CHAR_Z) {
                 e.preventDefault();// this doesn't actually seem to prevent the default undo action for other textboxes
-                popUndo();
+                this.bs.popUndo();
             }
             else if (e.which === CHAR_Y) {
                 e.preventDefault();
-                popRedo();
+                this.bs.popRedo();
             }
         }
         this.setFooterCoords();
@@ -416,11 +419,7 @@ function Box (id, rows, cols, settings) {  // TODO: little privacy here
         this.bs.assignCurrByRange(charToPut, ranges, colDiff, this.settings);
         this.bd.setArea();
         log('position in loadranges' + position);
-        console.log('position in loadranges ' + position);
         this.setCaretToPos(this.getPos() + 1);
-        
-        log(this.getPos());
-        this.bs.pushUndo(); // TODO: reimplement
     };
 
     // Draws a line of copies of a character, repeated as frequently as possible over an interval specified by the user's selection
@@ -429,24 +428,14 @@ function Box (id, rows, cols, settings) {  // TODO: little privacy here
         var startRow = this.getRow(start), endRow = this.getRow(end);
         var startCol = Math.min(this.getCol(start), this.c - 1), endCol = Math.min(this.getCol(end), this.c - 1);
         
-        log('startRow ' + startRow);
-        log('endRow ' + endRow);
-        log('startCol ' + startCol);
-        log('endCol ' + endCol);
-        
         // note: rowDiff always >= 0, same CANNOT be said for colDiff
         var rowDiff = endRow - startRow, colDiff = endCol - startCol;
-        console.log(' rowDiff ' + rowDiff + ' coldiff ' + colDiff);
         var rowsMoreThanCols = rowDiff > Math.abs(colDiff);
         var d = rowDiff / colDiff;
         d = d || 0; // in case d is NaN due to 0/0
         var colSgn = Math.sign(colDiff);
-        log('col sign' + colSgn);
-        
-        log('d: ' + d);
         var ranges = [];
         var rounder = Math.round;
-        log('rowsmorethancols ' + rowsMoreThanCols);
         
         if (rowsMoreThanCols) {
             for(var row = 0; row <= rowDiff; ++row) {
@@ -458,7 +447,6 @@ function Box (id, rows, cols, settings) {  // TODO: little privacy here
         else {
             for(var col = 0; col <= Math.abs(colDiff); col += 1) {
                 var currentRow = rounder(Math.abs(col * d));
-                log('current row ' + currentRow);
                 var point = this.positionFromCoordinates(startRow + currentRow, Math.min(startCol + colSgn*col, this.c - 1));
                 addToRanges(point, ranges);
             }
