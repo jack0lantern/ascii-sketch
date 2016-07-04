@@ -50,13 +50,13 @@ function PointRange(p1, p2) {
 }
     
 // Container for a string representing the canvas
-function Image(box) {// TODO: put in model.js
-    this.s = box.s;
-    this.pos = box.position;
-    this.ir = box.r;
-    this.ic = box.c;
-    this.sp = box.bs.spaces;
-    this.hb = box.hasBorders;
+function Image(currStr, position, r, c, spaces, hasBorders) {// TODO: put in model.js
+    this.currStr = currStr;
+    this.pos = position;
+    this.ir = r;
+    this.ic = c;
+    this.sp = spaces;
+    this.hb = hasBorders;
 }
 
 function Node(item, nextNode) {// TODO: put in model.js
@@ -75,9 +75,10 @@ function Stack() {// put in model.js - done
         }
         return temp;
     };
-    this.push = function(img) {
-        if (img) {
-            this.top = new Node(img, this.top);
+    this.push = function(node) {
+        if (node) {
+            node.next = this.top;
+            this.top = node;
         }
     };
 }
@@ -481,37 +482,15 @@ function BoxStencil(outerBox) {
         var spacesToAdd = '';
         for (var i = 0; i < numSpacesToAdd; i++)
             spacesToAdd += CHAR_SPACE;
-        /*** REFACTOR ***/
-        if (cols < box.c) {
-            for (var currRow = 0; currRow < rows; currRow++) {
+
+        for (var currRow = 0; currRow < rows; currRow++) {
                 if (currRow >= box.r)
                     newStr += emptyRow;
                 else
-                    newStr += this.getLine(currRow, false).substring(0, cols) + (box.hasBorders ? '|': ''); 
+                    newStr += this.getLine(currRow, false).substring(0, (cols < box.c) ? cols : box.c) + spacesToAdd + (box.hasBorders ? '|' : '');
                 if (currRow < rows - 1)
                     newStr += '\n';
-            }
         }
-        else {  // cols >= c
-            for (var currRow = 0; currRow < rows; currRow++) {
-                if (currRow >= box.r)
-                    newStr += emptyRow;
-                else
-                    newStr += this.getLine(currRow, false).substring(0, box.c) + spacesToAdd + (box.hasBorders ? '|' : '');
-                if (currRow < rows - 1)
-                    newStr += '\n';
-            }
-        }
-        /*** TO: ***/
-//        for (var currRow = 0; currRow < rows; currRow++) {
-//                if (currRow >= box.r)
-//                    newStr += emptyRow;
-//                else
-//                    newStr += this.getLine(currRow, false).substring(0, (cols < box.c) ? cols : box.c) + spacesToAdd + (box.hasBorders ? '|' : '');
-//                if (currRow < rows - 1)
-//                    newStr += '\n';
-//        }
-        /*** /REFACTOR ***/
 
         currStr = newStr||currStr;
     };
@@ -560,53 +539,63 @@ function BoxStencil(outerBox) {
                 newStr += currStr.substring(ranges[i][1] + 1);
         }
         currStr = newStr;
+        this.pushUndo(); 
+    };
+    
+    // Creates a new Image object containing only the things we need.
+    this.ImageFactory = function () {
+        return new Image(this.getCurr(), box.getPos(), box.r, box.c, spaces, box.hasBorders);
     };
     
     // Pushes a change to currStr to undo
     this.pushUndo = function () {// put in model.js
-        undo.push(new Image(box));
+        console.log(currStr);
+
+        undo.push(new Node(this.ImageFactory()));
         redo = new Stack();
     };
 
     // Pops from the undo stack and sets the stack top to the image
     this.popUndo = function () {// TODO: put in ui.js and split to model.js
         var ret;
-        redo.push(ret = undo.pop(), position);
-        if (undo.top) {
-            box.r = undo.top.ir;
-            box.c = undo.top.ic;
-            spaces = undo.top.sp;
-            currStr = undo.top.s;
+        redo.push(ret = undo.pop());
+        if (undo.top && undo.top.item) {
+            box.r = undo.top.item.ir;
+            box.c = undo.top.item.ic;
+            spaces = undo.top.item.sp;
+            currStr = undo.top.item.currStr;
             box.bd.setArea();
             if (box.hasBorders != undo.top.hb) {
                 box.hasBorders = undo.top.hb;
                 box.toggleBorders();
             }
         }
-        else {
-            box.bd.makeBox(r, c);
+        else { 
+            // TODO: Inefficient?
+            box.setPos();
+            box.makeBox(box.r, box.c);        box.setCaretToPos(document.getElementById(box.id), box.getPos());
+            return ret;
         }
-        // TODO: change area to this.id
-        setCaretToPos(document.getElementById('area'), undo.top.pos);
+        box.setCaretToPos(document.getElementById(box.id), undo.top.item.pos);
         box.bd.adjustBox();
         return ret;
     };
 
     // Pops from the redo stack and sets the stack top to the image
     this.popRedo = function () {// TODO: put in ui.js and split to model.js
-        var undid = redo.top;
+        var undid = redo.top.item;
         undo.push(redo.pop());
         if (undid) {
             box.r = undid.ir;
             box.c = undid.ic;
             spaces = undid.sp;
-            currStr = undid.s;
+            currStr = undid.currStr;
             box.bd.setArea();
             if (box.hasBorders != undid.hb) {
                 box.hasBorders = undid.hb;
                 box.toggleBorders();
             }
-            box.setCaretToPos(document.getElementById('area'), undid.pos);
+            box.setCaretToPos(document.getElementById(box.id), undid.pos);
             box.bd.adjustBox();
         }
         return undid.s;
