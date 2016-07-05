@@ -21,9 +21,10 @@ function log(message) {
 // Object representing a position in the box.
 // r is a number (int) representing the row
 // c is a number (int) representing the col
-function Point(r, c) {
+function Point(r, c, pos) {
     this.row = r;
     this.col = c;
+    this.pos = pos;
 }
 
 function PointRange(p1, p2) {
@@ -50,7 +51,7 @@ function PointRange(p1, p2) {
 }
     
 // Container for a string representing the canvas
-function Image(currStr, position, r, c, spaces, hasBorders) {// TODO: put in model.js
+function Image(currStr, position, r, c, spaces, hasBorders) {
     this.currStr = currStr;
     this.pos = position;
     this.ir = r;
@@ -66,7 +67,7 @@ function Node(item, nextNode) {// TODO: put in model.js
 
 // TODO: test
 // Stack that takes an element with a prev property, hopefully Images
-function Stack() {// put in model.js - done
+function Stack() {
     this.top = null;
     this.pop = function() {
         var temp = this.top;
@@ -83,7 +84,7 @@ function Stack() {// put in model.js - done
     };
 }
 
-function Queue() {// TODO: put in model.js
+function Queue() {
     this.front = null;
     this.back = null;
     
@@ -275,7 +276,7 @@ $.fn.selectRange = function(start, end) {
 };
 
 // A manager for its box's string
-function BoxStencil(outerBox) {
+function BoxController(outerBox) {
     var box = outerBox;
     var currStr = '';
     var spaces = '';
@@ -548,7 +549,7 @@ function BoxStencil(outerBox) {
     };
     
     // Pushes a change to currStr to undo
-    this.pushUndo = function () {// put in model.js
+    this.pushUndo = function () {
         console.log(currStr);
 
         undo.push(new Node(this.ImageFactory()));
@@ -598,7 +599,7 @@ function BoxStencil(outerBox) {
             box.setCaretToPos(document.getElementById(box.id), undid.pos);
             box.bd.adjustBox();
         }
-        return undid.s;
+        return undid.currStr;
     };
 }
 

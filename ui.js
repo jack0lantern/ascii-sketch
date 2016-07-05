@@ -32,7 +32,7 @@ function Box (id, rows, cols, settings) {  // TODO: little privacy here
     this.r = rows;
     this.c = cols;
     this.id = id;
-    this.bs = new BoxStencil(this);
+    this.bs = new BoxController(this);
     this.bd = new BoxDisplay(this);
     // id of the containing div
     this.container = 'boxes';
@@ -47,12 +47,17 @@ function Box (id, rows, cols, settings) {  // TODO: little privacy here
     var MAX_BOX_WIDTH = 1000;
     
     this.setPos = function () { // put in ui.js
-        return position = $(Id(this.id)).getCursorPosition(); //position is the OLD location of the cursor before typing
+        var tempPos = $(Id(this.id)).getCursorPosition();
+        return position = new Point(this.getRow(tempPos), this.getCol(tempPos), tempPos); //position is the OLD location of the cursor before typing
     };
+    
+    this.getPosPoint = function () {
+        return position;
+    }
     
     /*** DEBUG ***/
     this.getPos = function () {
-        return position;
+        return position.pos;
     };
     
     // functions, mind you
@@ -90,9 +95,9 @@ function Box (id, rows, cols, settings) {  // TODO: little privacy here
             document.getElementById(this.id).cols = this.c + 1;
 
         this.bd.setArea();
-        offset = this.hasBorders ? Math.floor(position / (this.c + 1)): -Math.floor(position / (this.c + 2));   // adjust cursor for newly removed or inserted borders
-        log('position new ' + (position));
-        this.setCaretToPos(position + offset);
+        offset = this.hasBorders ? Math.floor(this.getPos() / (this.c + 1)): -Math.floor(this.getPos() / (this.c + 2));   // adjust cursor for newly removed or inserted borders
+        log('this.getPos() new ' + (this.getPos()));
+        this.setCaretToPos(this.getPos() + offset);
     }
     
     // http://stackoverflow.com/questions/275761/how-to-get-selected-text-from-textbox-control-with-javascript
@@ -228,7 +233,6 @@ function Box (id, rows, cols, settings) {  // TODO: little privacy here
     this.changeChar = function (e) {// TODO: split
         var unicode = null;
 
-        log('this, yes closure: ' + this);
         log('this r ' + this.r);
         log('this c ' + this.c);
 
@@ -242,32 +246,38 @@ function Box (id, rows, cols, settings) {  // TODO: little privacy here
              }
 
         if (!(e.altKey || e.ctrlKey) && unicode) {
-            var row = this.getRow(position);
-            var d = this.getCol(position);
+            e.preventDefault();
+            
+            var row = this.getPosPoint().row;
+            var d = this.getPosPoint().col;
+            if (d >= this.c) { 
+                this.setCaretToPos(this.positionFromCoordinates(this.getPosPoint().row + 1, 0));
+                return;
+            }
 
             this.setPos();
             this.bs.setCurr();
 
-            var start = range[0], end = range[1];
+            var startPoint = new Point(this.getRow(range[0]), this.getCol(range[0]), range[0]), 
+                endPoint   = new Point(this.getRow(range[1]), this.getCol(range[1]), range[1]);
             
-            e.preventDefault();
 
             // TODO: SO much repetitive code! There must be a better design.
             switch (settings.mode) {
                 case 'line':
-                    ranges = this.getLineRanges(start, end);
+                    ranges = this.getLineRanges(startPoint, endPoint);
                     break;
 
                 case 'block':
-                    ranges = this.getBlockRanges(start, end);
+                    ranges = this.getBlockRanges(startPoint, endPoint);
                     break;
 
                 case 'bucket':
-                    ranges = this.getBucketRanges(start);
+                    ranges = this.getBucketRanges(startPoint);
                     break;
 
                 case 'circle':                      
-                    ranges = this.getEllipseRanges(start, end);
+                    ranges = this.getEllipseRanges(startPoint, endPoint);
                     break;
 
                 default:
@@ -277,7 +287,7 @@ function Box (id, rows, cols, settings) {  // TODO: little privacy here
                                 
             log(ranges);
             // TODO: by using PointRange, get rid of colDiff arg/param
-            this.loadRanges(String.fromCharCode(unicode), ranges, Math.abs(this.getCol(end) - this.getCol(start)) + 1);
+            this.loadRanges(String.fromCharCode(unicode), ranges, Math.abs(endPoint.col - startPoint.col) + 1);
         }
         else if (e.ctrlKey) {  
             // event listeners do CUT/COPY/PASTE. Should have event listeners for undo/redo too? Would have to build from scratch, as there is no built-in event for them
@@ -305,7 +315,7 @@ function Box (id, rows, cols, settings) {  // TODO: little privacy here
 
             this.setPos();
             this.setCurr();
-            var d = this.getCol(this.position);
+            var d = this.getPosPoint().col;
 
             // the below should be in model.js TODOs
             if (unicode === BACKSPACE) {
@@ -329,7 +339,7 @@ function Box (id, rows, cols, settings) {  // TODO: little privacy here
             }
             else if (unicode === ENTER) { // TODO: remember where user started typing
                 e.preventDefault();
-                this.setCaretToPos(this.positionFromCoordinates(this.getRow(this.getPos()) + 1, this.getCol(this.getPos())));
+                this.setCaretToPos(this.positionFromCoordinates(this.getPosPoint().row + 1, this.getPosPoint().col));
             }
             else if (unicode === SHIFT) {
                 if (mouseDown) {
@@ -344,9 +354,9 @@ function Box (id, rows, cols, settings) {  // TODO: little privacy here
         this.setPos();
         var selection = this.getSelectionRange($(Id(this.id)));
         if (DEBUG){
-            document.getElementById('debug').innerHTML = selection + " " + position + '\n' + this.getCol(position);
+            document.getElementById('debug').innerHTML = selection + " " + this.getPos() + '\n' + this.getPosPoint().col;
         }
-        document.getElementById('coords').innerHTML = '(' + this.getCol(position) + ', ' + this.getRow(position) + ')';
+        document.getElementById('coords').innerHTML = '(' + this.getPosPoint().col + ', ' + this.getPosPoint().row + ')';
 
         if (selection[1] - selection[0]) {
             var x1 = this.getCol(selection[0]), x2 = this.getCol(selection[1]);
@@ -364,7 +374,7 @@ function Box (id, rows, cols, settings) {  // TODO: little privacy here
         
         this.setPos();
         this.bd.setArea();
-        this.setCaretToPos(position);
+        this.setCaretToPos(this.getPos());
     };
 
     // Macro to shift all written text in the box up if units > 0, down otherwise.
@@ -373,7 +383,7 @@ function Box (id, rows, cols, settings) {  // TODO: little privacy here
         
         this.setPos();
         this.bd.setArea();
-        this.setCaretToPos(position);
+        this.setCaretToPos(this.getPos());
     };
     
     // Clears out all whitespace surrounding the image and resizes to close on
@@ -418,15 +428,15 @@ function Box (id, rows, cols, settings) {  // TODO: little privacy here
             return;
         this.bs.assignCurrByRange(charToPut, ranges, colDiff, this.settings);
         this.bd.setArea();
-        log('position in loadranges' + position);
+        log('this.getPos() in loadranges' + this.getPos());
         this.setCaretToPos(this.getPos() + 1);
     };
 
     // Draws a line of copies of a character, repeated as frequently as possible over an interval specified by the user's selection
     // TODO: refactor for loadranges use
     this.getLineRanges = function (start, end) {// TODO: split
-        var startRow = this.getRow(start), endRow = this.getRow(end);
-        var startCol = Math.min(this.getCol(start), this.c - 1), endCol = Math.min(this.getCol(end), this.c - 1);
+        var startRow = start.row, endRow = end.row;
+        var startCol = Math.min(start.col, this.c - 1), endCol = Math.min(end.col, this.c - 1);
         
         // note: rowDiff always >= 0, same CANNOT be said for colDiff
         var rowDiff = endRow - startRow, colDiff = endCol - startCol;
@@ -456,8 +466,8 @@ function Box (id, rows, cols, settings) {  // TODO: little privacy here
 
     // Create the range set for a block and load it
     this.getBlockRanges = function (start, end) {// TODO: split
-        var startRow = this.getRow(start), endRow = this.getRow(end);
-        var startCol = Math.min(this.getCol(start), this.getCol(end)), endCol = Math.max(this.getCol(start), this.getCol(end));
+        var startRow = start.row, endRow = end.row;
+        var startCol = Math.min(start.col, this.c - 1), endCol = Math.min(end.col, this.c - 1);
         startCol = Math.min(startCol, this.c - 1);
         endCol = Math.min(endCol, this.c - 1);
         // note: rowDiff always >= 0, same CANNOT be said for colDiff
@@ -479,19 +489,19 @@ function Box (id, rows, cols, settings) {  // TODO: little privacy here
 
     // Put all the ranges of currStr that must be changes to user-input char into ranges
     this.getEllipseRanges = function (start, end) {// TODO: put in model.js
-        var startRow = this.getRow(start);
-        var endRow = this.getRow(end);
+        var startRow = start.row;
+        var endRow = end.row;
         
-        var startCol = Math.min(this.getCol(start), this.getCol(end)), endCol = Math.max(this.getCol(start), this.getCol(end));
+        var startCol = Math.min(start.col, end.col), endCol = Math.max(start.col, end.col);
         startCol = Math.min(startCol, this.c - 1);
         endCol = Math.min(endCol, this.c - 1);
         
         var xRad = (endCol - startCol) / 2,
             yRad = (endRow - startRow) / 2;
-        
+
         // Corner case
         if (yRad === 0) {
-            return [[start, end]];
+            return [[start.pos, end.pos]];
         }
         
         var xLim = Math.ceil(xRad);
@@ -531,37 +541,40 @@ function Box (id, rows, cols, settings) {  // TODO: little privacy here
     // Determine a list of ranges in which to assign the new character (in ranges, 
     // a array of two-element range arrays, which are inclusive endpoints)
     // A dynamic approach
-    this.dynBucketHelper = function (ranges, toReplace, pos) {// put in model.js
+    this.dynBucketHelper = function (ranges, toReplace, posPt) {// put in model.js
         var toCheckQ = new Queue();
         var visited = [];
 
-        toCheckQ.enqueue(pos);
-        visited[pos] = true;
+        toCheckQ.enqueue(posPt);
+        visited[posPt.pos] = true;
 
         while(!toCheckQ.isEmpty()) {
-            var currentPos = toCheckQ.dequeue().item;
+            var currentPosPt = toCheckQ.dequeue().item;
+            var currentPos = currentPosPt.pos;
             addToRanges(currentPos, ranges);
-            if (this.shouldEnqueue(toReplace, currentPos - 1, visited)) {
-                toCheckQ.enqueue(currentPos - 1);
-                visited[currentPos - 1] = true;
+            
+            var posToCheck = currentPos - 1;
+            if (this.shouldEnqueue(toReplace, posToCheck, visited)) {
+                toCheckQ.enqueue(new Point(currentPosPt.row, currentPosPt.col - 1, posToCheck));
+                visited[posToCheck] = true;
             }
-            if (this.shouldEnqueue(toReplace, currentPos + 1, visited)) {
-                toCheckQ.enqueue(currentPos + 1);
-                visited[currentPos + 1] = true;
+            if (this.shouldEnqueue(toReplace, posToCheck = currentPos + 1, visited)) {
+                toCheckQ.enqueue(new Point(currentPosPt.row, currentPosPt.col + 1, posToCheck));
+                visited[posToCheck] = true;
             }
-            if (this.shouldEnqueue(toReplace, this.positionFromCoordinates(this.getRow(currentPos) - 1, this.getCol(currentPos)), visited)) {
-                toCheckQ.enqueue(this.positionFromCoordinates(this.getRow(currentPos) - 1, this.getCol(currentPos)));
-                visited[this.positionFromCoordinates(this.getRow(currentPos) - 1, this.getCol(currentPos))] = true;
+            if (this.shouldEnqueue(toReplace, posToCheck = this.positionFromCoordinates(currentPosPt.row - 1, currentPosPt.col), visited)) {
+                toCheckQ.enqueue(new Point(currentPosPt.row - 1, currentPosPt.col, posToCheck));
+                visited[posToCheck] = true;
             }
-            if (this.shouldEnqueue(toReplace, this.positionFromCoordinates(this.getRow(currentPos) + 1, this.getCol(currentPos)), visited)) {
-                toCheckQ.enqueue(this.positionFromCoordinates(this.getRow(currentPos) + 1, this.getCol(currentPos)));
-                visited[this.positionFromCoordinates(this.getRow(currentPos) + 1, this.getCol(currentPos))] = true;
+            if (this.shouldEnqueue(toReplace, posToCheck = this.positionFromCoordinates(currentPosPt.row + 1, currentPosPt.col), visited)) {
+                toCheckQ.enqueue(new Point(currentPosPt.row + 1, currentPosPt.col, posToCheck));
+                visited[posToCheck] = true;
             }
         }
     };
     
     this.getBucketRanges = function (start) {// TODO: split
-        var charToFlood = this.getCurr().charAt(start);
+        var charToFlood = this.getCurr().charAt(start.pos);
         var ranges = [];
         this.dynBucketHelper(ranges, charToFlood, start);
         //bucketHelper(ranges, charToFlood, [], start);
