@@ -752,7 +752,7 @@ function toggleBorders() {// TODO: split
     setCaretToPos(document.getElementById('area'), position + offset);
 }
 
-function togglePaste() {// TODO: put in ui.js
+function togglePaste() {
     settings.pasteTransparent = !settings.pasteTransparent;
 }
 

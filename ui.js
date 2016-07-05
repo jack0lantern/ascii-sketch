@@ -98,7 +98,11 @@ function Box (id, rows, cols, settings) {  // TODO: little privacy here
         offset = this.hasBorders ? Math.floor(this.getPos() / (this.c + 1)): -Math.floor(this.getPos() / (this.c + 2));   // adjust cursor for newly removed or inserted borders
         log('this.getPos() new ' + (this.getPos()));
         this.setCaretToPos(this.getPos() + offset);
-    }
+    };
+    
+    this.togglePaste = function() {
+        this.settings.pasteTransparent = !this.settings.pasteTransparent;
+    };
     
     // http://stackoverflow.com/questions/275761/how-to-get-selected-text-from-textbox-control-with-javascript
     // returns a two-element array of the selection's start and end indices
@@ -816,6 +820,10 @@ function Frame (settings_, window_) {
         
         $(Id('redoButton')).on('click', function () {
             that.boxes[0].bs.popRedo();
+        });
+        
+        $(Id('pasteTrans')).on('click', function () {
+            that.boxes[0].togglePaste();
         });
     }
 }
