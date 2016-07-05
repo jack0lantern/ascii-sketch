@@ -640,6 +640,7 @@ function BoxController(outerBox) {
 
     // Pops from the redo stack and sets the stack top to the image
     this.popRedo = function () {// TODO: put in ui.js and split to model.js
+        if (redo.top === null) return;
         var undid = redo.top.item;
         undo.push(redo.pop());
         if (undid) {

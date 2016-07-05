@@ -809,6 +809,14 @@ function Frame (settings_, window_) {
         $(Id('pasteButton')).on('click', function () {
             that.boxes[0].paste();
         });
+        
+        $(Id('undoButton')).on('click', function () {
+            that.boxes[0].bs.popUndo();
+        });
+        
+        $(Id('redoButton')).on('click', function () {
+            that.boxes[0].bs.popRedo();
+        });
     }
 }
 
