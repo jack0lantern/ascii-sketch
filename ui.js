@@ -82,7 +82,7 @@ function Box (id, rows, cols, settings) {  // TODO: little privacy here
     };
     
     // display the borders, or don't display the borders.
-    this.toggleBorders = function() {// TODO: split
+    this.toggleBorders = function() {
         var temp = '';
         var offset;
 
@@ -163,14 +163,14 @@ function Box (id, rows, cols, settings) {  // TODO: little privacy here
         log('box get curr in ui: ' + this.getCurr());
 
         boxObj.on('cut', function(event) {
-            this.copy(true);
+            that.copy(true);
         });
         boxObj.on('copy', function(event) {
-            this.copy(false);
+            that.copy(false);
         });
         boxObj.on('paste', function(event) {
             event.preventDefault();
-            this.paste();
+            that.paste();
         });
         
         boxObj.on('click', function() {
@@ -178,7 +178,7 @@ function Box (id, rows, cols, settings) {  // TODO: little privacy here
         });
 
         // TODO: keydown always happens when a keypress happens; 
-        // so then setCurr happens twice, which is a little expensive.
+        // so then setCurr happens twice, which is not necessary but not a big deal.
         // Can we factor it out somehow? Maybe if we can guarantee that
         // keydown always happens first.
         boxObj.on('keydown', function(event) {
@@ -368,6 +368,46 @@ function Box (id, rows, cols, settings) {  // TODO: little privacy here
         }
     };
     
+    // Puts a block selection in the clipboard.
+    // If cut is set, we white-space out the block selection in addition.
+    this.copy = function (cut) {// TODO: split
+        var range = this.getSelectionRange();
+        var start = range[0], end = range[1];
+        var startRow = this.getRow(start), endRow = this.getRow(end);
+        var startCol = Math.min(this.getCol(start), this.getCol(end)), endCol = Math.max(this.getCol(start), this.getCol(end));
+        startCol = Math.min(startCol, this.c - 1);
+        endCol = Math.min(endCol, this.c - 1);
+        
+        // Note: coldiff is recomputed needlessly in replacewithwithspace.
+        var colDiff = endCol - startCol;    
+        if (colDiff === 0) {
+            return;
+        }
+        var pointRange = [new Point(startRow, startCol, start), new Point(startCol, endCol, end)];
+
+        if (DEBUG)
+            document.getElementById('debug').innerHTML = "SR: " + startRow + " ER: " + endRow + " SC: " + startCol + " EC: " + endCol;
+
+        this.bs.processCopy(pointRange);
+        
+        if (cut) {
+            this.bs.replaceWithWhitespace(pointRange);
+            this.bd.setArea();
+        }
+        
+        this.bs.pushUndo();
+    };
+
+    // Places the contents of clipboard at user cursor to the best of our ability
+    this.paste = function () {// TODO: split
+        this.setPos();
+        var pasted = this.bs.processPaste();
+        
+        if (pasted) {
+            this.bd.setArea();
+        }
+    };
+    
     // Macro to shift all written text in the box right if units > 0, left otherwise.
     this.shiftHoriz = function (units) {// TODO: split
         this.bs.shiftCurrHoriz(units);
@@ -488,7 +528,7 @@ function Box (id, rows, cols, settings) {  // TODO: little privacy here
     };
 
     // Put all the ranges of currStr that must be changes to user-input char into ranges
-    this.getEllipseRanges = function (start, end) {// TODO: put in model.js
+    this.getEllipseRanges = function (start, end) {
         var startRow = start.row;
         var endRow = end.row;
         
@@ -553,27 +593,27 @@ function Box (id, rows, cols, settings) {  // TODO: little privacy here
             var currentPos = currentPosPt.pos;
             addToRanges(currentPos, ranges);
             
-            var posToCheck = currentPos - 1;
-            if (this.shouldEnqueue(toReplace, posToCheck, visited)) {
-                toCheckQ.enqueue(new Point(currentPosPt.row, currentPosPt.col - 1, posToCheck));
+            var posToCheck;
+            if (this.shouldEnqueue(toReplace, posToCheck = this.positionFromCoordinates(currentPosPt.row + 1, currentPosPt.col), visited)) {
+                toCheckQ.enqueue(new Point(currentPosPt.row + 1, currentPosPt.col, posToCheck));
                 visited[posToCheck] = true;
             }
             if (this.shouldEnqueue(toReplace, posToCheck = currentPos + 1, visited)) {
                 toCheckQ.enqueue(new Point(currentPosPt.row, currentPosPt.col + 1, posToCheck));
                 visited[posToCheck] = true;
             }
-            if (this.shouldEnqueue(toReplace, posToCheck = this.positionFromCoordinates(currentPosPt.row - 1, currentPosPt.col), visited)) {
-                toCheckQ.enqueue(new Point(currentPosPt.row - 1, currentPosPt.col, posToCheck));
+            if (this.shouldEnqueue(toReplace, posToCheck = currentPos - 1, visited)) {
+                toCheckQ.enqueue(new Point(currentPosPt.row, currentPosPt.col - 1, posToCheck));
                 visited[posToCheck] = true;
             }
-            if (this.shouldEnqueue(toReplace, posToCheck = this.positionFromCoordinates(currentPosPt.row + 1, currentPosPt.col), visited)) {
-                toCheckQ.enqueue(new Point(currentPosPt.row + 1, currentPosPt.col, posToCheck));
+            if (this.shouldEnqueue(toReplace, posToCheck = this.positionFromCoordinates(currentPosPt.row - 1, currentPosPt.col), visited)) {
+                toCheckQ.enqueue(new Point(currentPosPt.row - 1, currentPosPt.col, posToCheck));
                 visited[posToCheck] = true;
             }
         }
     };
     
-    this.getBucketRanges = function (start) {// TODO: split
+    this.getBucketRanges = function (start) {
         var charToFlood = this.getCurr().charAt(start.pos);
         var ranges = [];
         this.dynBucketHelper(ranges, charToFlood, start);
@@ -630,12 +670,12 @@ function BoxDisplay (outerBox) {
     };
     
     // Clears the box dimensions area of the footer and sets mouseDown
-    var setMouseDown = function () {// TODO: put in ui.js
+    var setMouseDown = function () {
         this.mouseDown = true;
     };
     
     // Sets mouseDown false.
-    var setMouseUp = function() {// TODO: put in ui.js
+    var setMouseUp = function() {
         this.mouseDown = false;
     }
     
@@ -673,7 +713,7 @@ function Frame (settings_, window_) {
     
     // Sets the selection mode to user specified mode
     // @param newMode: HTML element to set the mode of
-    this.setMode = function(newMode) {// TODO: put in ui.js
+    this.setMode = function(newMode) {
         var oldSetting = $(Id(this.settings.mode));
         if (this.settings.mode === 'custom')
             oldSetting = $(Id('block'));
@@ -684,7 +724,7 @@ function Frame (settings_, window_) {
     };
 
     // @param newTab: HTML element (a tab, presumably) to activate
-    this.openTab = function(newTab) {// TODO: put in ui.js
+    this.openTab = function(newTab) {
         $(Id(this.settings.currentTab)).removeClass('active_tab');
         $(Id(this.settings.currentTab) + TAB_CONTENT_SUFFIX).css('display', 'none');
 

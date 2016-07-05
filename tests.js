@@ -55,6 +55,12 @@ QUnit.test( "Box getLineRanges4 shallow negative", function (assert) {
     assert.ok(res.equals(trueLine), "Actual result: " + res);
 })
 
+QUnit.test( "getBucketRanges performance0", function (assert) {
+    for (var i = 0; i < 10; ++i)
+        defaultBox.getBucketRanges(new Point(0, 0, 0));
+    assert.ok(true, "Num runs: " + 10);
+})
+
 /* Things left to test:
  * shiftVert
  * shiftHoriz

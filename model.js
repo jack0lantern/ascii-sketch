@@ -200,10 +200,16 @@ function inRange(value, a, b) {// put in model.js
     return (a <= value && value <= b) || (b <= value && value <= a);
 }
 
+// return the index of the range and if its a begin or end value if we found it, otherwise return the index of the range nearest to the searchItem on the higher end
+function rangesBinarySearch (ranges, searchItem) {
+    
+}
+
 // loop through ranges list, if it is within 1 outside of a range, absorb it, otherwise add new range
 // return the changed range
 // @param value: a number we are adding to the range
 // @param ranges: the ranges array we are adding to
+// NOTE: this is a HUUUGE bottle neck for certain functions like bucket. optimize it
 function addToRanges(value, ranges) {// TODO: put in model.js
     var changedRange = null;
     assert(ranges, 'ranges is ' + ranges);
@@ -457,7 +463,57 @@ function BoxController(outerBox) {
             r: stop - box.getRow(beginIndex) + 1,
             c: maxCol - minCol + 1
         };
-    }
+    };
+    
+    this.processCopy = function (range) {
+        clipboard = [];
+        for (var row = range[0].row; row <= range[1].row; row++) {
+            clipboard.push(this.getCurr().substring(box.positionFromCoordinates(row, range[0].col), box.positionFromCoordinates(row, range[1].col + 1)));
+        }
+    };
+    
+    this.replaceWithWhitespace = function (range) {
+        var startPoint = range[0];
+        var startRow = startPoint.row;
+        var startCol = startPoint.col;
+        var endPoint = range[1];
+        var endRow = endPoint.row;
+        var endCol = endPoint.col;
+        var newStr = this.getCurr().substring(0, startPoint.pos);
+            for (var row = startRow; row <= endRow; row++) {
+                newStr += spaces.substring(0, endCol - startCol + 1);
+                newStr += this.getCurr().substring(box.positionFromCoordinates(row, endCol + 1), box.positionFromCoordinates(row + 1, startCol));
+            }
+            newStr += this.getCurr().substring(box.positionFromCoordinates(row, startCol));
+        this.setCurr(newStr);
+    };
+    
+    this.processPaste = function () {
+        var pasted = false;
+        if (clipboard.length) {
+            var newStr = this.getCurr().substring(0, box.getPos());
+            var posRow = box.getPosPoint().row;
+            var posCol = box.getPosPoint().col;
+            if (posCol < box.c) {
+                // index in a row string to cut off, in case of overflow
+                var cutoff = Math.min(clipboard[0].length, box.c - posCol);
+                var endOfRowIndex = Math.min(box.c, posCol + clipboard[0].length);
+                for (var row = 0; (row < clipboard.length) && ((posRow + row) < box.r); row++) {
+                    if (box.settings.pasteTransparent)
+                        newStr += mergeOverSpace(clipboard[row].substring(0, cutoff), this.getCurr().substring(box.positionFromCoordinates(posRow + row, posCol), box.positionFromCoordinates(posRow + row, posCol + cutoff)));
+                    else
+                        newStr += clipboard[row].substring(0, cutoff);
+                    newStr += this.getCurr().substring(box.positionFromCoordinates(posRow + row, endOfRowIndex), box.positionFromCoordinates(posRow + row + 1, posCol));
+                }
+
+                newStr += this.getCurr().substring(box.positionFromCoordinates(posRow + row, posCol));
+                this.setCurr(newStr);
+                this.pushUndo();
+                pasted = true;
+            }
+        }
+        return pasted;
+    };
     
     this.clearStacks = function () {// put in model.js - done
         undo = new Stack();
