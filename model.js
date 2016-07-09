@@ -82,6 +82,9 @@ function Stack() {
             this.top = node;
         }
     };
+    this.isEmpty = function() {
+        return this.top == null || this.top.item == null;
+    };
 }
 
 function Queue() {
@@ -289,12 +292,12 @@ function BoxController(outerBox) {
     var undo = new Stack();
     var redo = new Stack();
         
-    this.setCurr = function (s) {
+    this.setCurr = function(s) {
         currStr = s || document.getElementById(box.id).value;
         log('setCurr called with ' + currStr);
     };
     
-    this.getCurr = function () {
+    this.getCurr = function() {
         return currStr;
     };
     
@@ -312,7 +315,7 @@ function BoxController(outerBox) {
     };
     
     // Sets currStr to an empty box string
-    this.resetCurrStr = function () {
+    this.resetCurrStr = function() {
         log('resetCurrStr called');
         var i;
         var j;
@@ -332,7 +335,7 @@ function BoxController(outerBox) {
         }
     };
     
-    this.shiftCurrHoriz = function (units) {
+    this.shiftCurrHoriz = function(units) {
         var newStr = '';
         var padSpaces = spaces.substring(0, units);
         var i;
@@ -366,7 +369,7 @@ function BoxController(outerBox) {
         this.pushUndo();
     };
     
-    this.shiftCurrVert = function (units) {
+    this.shiftCurrVert = function(units) {
         var newStr = '';
         var i;
         var lineLen;
@@ -402,7 +405,7 @@ function BoxController(outerBox) {
         this.pushUndo();
     };
     
-    this.processTrimArea = function () {
+    this.processTrimArea = function() {
         var matches = [];
         var beginIndex = -1;
         var endIndex = -1;
@@ -465,14 +468,14 @@ function BoxController(outerBox) {
         };
     };
     
-    this.processCopy = function (range) {
+    this.processCopy = function(range) {
         clipboard = [];
         for (var row = range[0].row; row <= range[1].row; row++) {
             clipboard.push(this.getCurr().substring(box.positionFromCoordinates(row, range[0].col), box.positionFromCoordinates(row, range[1].col + 1)));
         }
     };
     
-    this.replaceWithWhitespace = function (range) {
+    this.replaceWithWhitespace = function(range) {
         var startPoint = range[0];
         var startRow = startPoint.row;
         var startCol = startPoint.col;
@@ -488,7 +491,7 @@ function BoxController(outerBox) {
         this.setCurr(newStr);
     };
     
-    this.processPaste = function () {
+    this.processPaste = function() {
         var pasted = false;
         if (clipboard.length) {
             var newStr = this.getCurr().substring(0, box.getPos());
@@ -515,7 +518,7 @@ function BoxController(outerBox) {
         return pasted;
     };
     
-    this.clearStacks = function () {// put in model.js - done
+    this.clearStacks = function() {// put in model.js - done
         undo = new Stack();
         redo = new Stack();
     };
@@ -552,7 +555,7 @@ function BoxController(outerBox) {
         currStr = newStr||currStr;
     };
     
-    this.writeBorders = function (bordersToSet) {
+    this.writeBorders = function(bordersToSet) {
         var newStr = '';
         this.setCurr();
         for (var i = 0; i < box.r; ++i) {
@@ -567,10 +570,12 @@ function BoxController(outerBox) {
         this.setCurr(newStr);
     };
     
-    this.assignCurrByRange = function (charToPut, ranges, colDiff, settings) {
+    this.assignCurrByRange = function(charToPut, ranges, colDiff, settings) {
         var fillLine = '';
         var newStr = '';
         var appendage = '';
+        
+        this.setCurr();
         
         for (var i = 0; i < box.c; i++)
             fillLine += charToPut;
@@ -600,12 +605,12 @@ function BoxController(outerBox) {
     };
     
     // Creates a new Image object containing only the things we need.
-    this.ImageFactory = function () {
+    this.ImageFactory = function() {
         return new Image(this.getCurr(), box.getPos(), box.r, box.c, spaces, box.hasBorders);
     };
     
     // Pushes a change to currStr to undo
-    this.pushUndo = function () {
+    this.pushUndo = function() {
         console.log(currStr);
 
         undo.push(new Node(this.ImageFactory()));
@@ -613,34 +618,31 @@ function BoxController(outerBox) {
     };
 
     // Pops from the undo stack and sets the stack top to the image
-    this.popUndo = function () {// TODO: put in ui.js and split to model.js
-        var ret;
-        redo.push(ret = undo.pop());
-        if (undo.top && undo.top.item) {
+    this.processPopUndo = function() {// TODO: put in ui.js and split to model.js
+        var pos;
+        redo.push(undo.pop());
+        if (undo.isEmpty()) {
+            // TODO: Inefficient?
+            box.makeBox(box.r, box.c);        box.setCaretToPos(document.getElementById(box.id), box.getPos());
+        }
+        else { 
             box.r = undo.top.item.ir;
             box.c = undo.top.item.ic;
             spaces = undo.top.item.sp;
             currStr = undo.top.item.currStr;
+            box.bd.adjustBox();
             box.bd.setArea();
             if (box.hasBorders != undo.top.hb) {
                 box.hasBorders = undo.top.hb;
                 box.toggleBorders();
             }
+            box.setCaretToPos(undo.top.item.pos);
         }
-        else { 
-            // TODO: Inefficient?
-            box.setPos();
-            box.makeBox(box.r, box.c);        box.setCaretToPos(document.getElementById(box.id), box.getPos());
-            return ret;
-        }
-        box.setCaretToPos(document.getElementById(box.id), undo.top.item.pos);
-        box.bd.adjustBox();
-        return ret;
     };
 
     // Pops from the redo stack and sets the stack top to the image
-    this.popRedo = function () {// TODO: put in ui.js and split to model.js
-        if (redo.top === null) return;
+    this.processPopRedo = function() {// TODO: put in ui.js and split to model.js
+        if (redo.isEmpty()) return;
         var undid = redo.top.item;
         undo.push(redo.pop());
         if (undid) {
@@ -653,10 +655,10 @@ function BoxController(outerBox) {
                 box.hasBorders = undid.hb;
                 box.toggleBorders();
             }
-            box.setCaretToPos(document.getElementById(box.id), undid.pos);
+            box.setCaretToPos(undid.pos);
             box.bd.adjustBox();
         }
-        return undid.currStr;
+        return undid;
     };
 }
 
