@@ -28,7 +28,7 @@ var tabs = Object.freeze({
 
 // A box is a logical contrcut representing an individual textarea ("canvas") in which a user can draw on. It by itself should not have the ability to "draw" on itself, but a BoxStencil does that.
 // @param id: String stored with no #
-function Box (id, rows, cols, settings) {  // TODO: little privacy here
+function Box(id, rows, cols, settings) {  // TODO: little privacy here
     this.r = rows;
     this.c = cols;
     this.id = id;
@@ -38,6 +38,7 @@ function Box (id, rows, cols, settings) {  // TODO: little privacy here
     this.container = 'boxes';
     this.settings = settings;
 
+    var that = this;
     var hasBorders = false;
     var position = 0;
     var range = [0, 0];
@@ -46,17 +47,17 @@ function Box (id, rows, cols, settings) {  // TODO: little privacy here
     var MAX_BOX_HEIGHT = 1000;
     var MAX_BOX_WIDTH = 1000;
     
-    this.setPos = function () { // put in ui.js
+    this.setPos = function() { // put in ui.js
         var tempPos = $(Id(this.id)).getCursorPosition();
         return position = new Point(this.getRow(tempPos), this.getCol(tempPos), tempPos); //position is the OLD location of the cursor before typing
     };
     
-    this.getPosPoint = function () {
+    this.getPosPoint = function() {
         return position;
     }
     
     /*** DEBUG ***/
-    this.getPos = function () {
+    this.getPos = function() {
         return position.pos;
     };
     
@@ -106,7 +107,7 @@ function Box (id, rows, cols, settings) {  // TODO: little privacy here
     
     // http://stackoverflow.com/questions/275761/how-to-get-selected-text-from-textbox-control-with-javascript
     // returns a two-element array of the selection's start and end indices
-    this.getSelectionRange = function () {
+    this.getSelectionRange = function() {
         var textComponent = document.getElementById(this.id);
         var startPos;
         var endPos;
@@ -127,7 +128,7 @@ function Box (id, rows, cols, settings) {  // TODO: little privacy here
       return [startPos, endPos];
     };
     
-    this.setSelectionRange = function (selectionStart, selectionEnd) {
+    this.setSelectionRange = function(selectionStart, selectionEnd) {
         var input = document.getElementById(this.id);
         if (input.setSelectionRange) {
             input.focus();
@@ -142,12 +143,12 @@ function Box (id, rows, cols, settings) {  // TODO: little privacy here
         }
     };
     
-    this.setCaretToPos = function (pos) {
+    this.setCaretToPos = function(pos) {
         log('setCaretToPos Calledddddddd ' + pos);
         this.setSelectionRange(pos, pos);
     };
     
-    this.confirmReset = function () {// put in ui.js
+    this.confirmReset = function() {// put in ui.js
         var reset = confirm('Are you sure you want to clear the image? All your work will be lost. Press OK to continue or Cancel to cancel.');
         if (reset) {
             this.makeBox(parseInt(document.getElementById('h').value), parseInt(document.getElementById('w').value));
@@ -158,7 +159,6 @@ function Box (id, rows, cols, settings) {  // TODO: little privacy here
     this.makeBox = function(rows, cols) {
         this.bs.resetCurrStr();
         var boxObj = this.bd.displayBox();
-        var that = this;
                 
         // TODO: Figure out a better way to do this. Need || cuz makeBox is called with no args somewhere.
         this.r = rows||this.r;
@@ -214,7 +214,7 @@ function Box (id, rows, cols, settings) {  // TODO: little privacy here
     }
     
     // Grow or shrink the textarea's dimensions while maintaining content as much as possible. Chops off content on shrink, adds spaces on grow.
-    this.changeBox = function (rows, cols) {// TODO: put in ui.js
+    this.changeBox = function(rows, cols) {
         rows = Math.min(parseInt(rows), MAX_BOX_HEIGHT);
         cols = Math.min(parseInt(cols), MAX_BOX_WIDTH);
         this.bs.changeCurrStrDims(rows, cols);
@@ -234,7 +234,7 @@ function Box (id, rows, cols, settings) {  // TODO: little privacy here
     TODO should do nothing on (but no preventDefault()):
     esc, f1, f2, ... f12, prtsc, (ins?), home, end, pgUp, pgDown, tab, capslock, shift(unless its with a char), ctrl, alt, windows, command, apple, arrow keys, menu, scroll lock, num lock
     */
-    this.changeChar = function (e) {// TODO: split
+    this.changeChar = function(e) {// TODO: split
         var unicode = null;
 
         log('this r ' + this.r);
@@ -258,9 +258,6 @@ function Box (id, rows, cols, settings) {  // TODO: little privacy here
                 this.setCaretToPos(this.positionFromCoordinates(this.getPosPoint().row + 1, 0));
                 return;
             }
-
-            this.setPos();
-            this.bs.setCurr();
 
             var startPoint = new Point(this.getRow(range[0]), this.getCol(range[0]), range[0]), 
                 endPoint   = new Point(this.getRow(range[1]), this.getCol(range[1]), range[1]);
@@ -296,18 +293,18 @@ function Box (id, rows, cols, settings) {  // TODO: little privacy here
         else if (e.ctrlKey) {  
             // event listeners do CUT/COPY/PASTE. Should have event listeners for undo/redo too? Would have to build from scratch, as there is no built-in event for them
             if (e.which === CHAR_Z) {
-                e.preventDefault();// this doesn't actually seem to prevent the default undo action for other textboxes
-                this.bs.popUndo();
+                e.preventDefault(); // this doesn't actually seem to prevent the default undo action for other textboxes
+                popUndo();
             }
             else if (e.which === CHAR_Y) {
                 e.preventDefault();
-                this.bs.popRedo();
+                popRedo();
             }
         }
         this.setFooterCoords();
     };
 
-    this.nonKeyPress = function (e) {// TODO: split
+    this.nonKeyPress = function(e) {// TODO: split
         if (!(e.altKey || e.ctrlKey)) {
             var unicode = null;
             if (window.event) { // IE					
@@ -354,7 +351,7 @@ function Box (id, rows, cols, settings) {  // TODO: little privacy here
         this.setFooterCoords();
     };
     
-    this.setFooterCoords = function () { // put in ui.js
+    this.setFooterCoords = function() { // put in ui.js
         this.setPos();
         var selection = this.getSelectionRange($(Id(this.id)));
         if (DEBUG){
@@ -374,7 +371,7 @@ function Box (id, rows, cols, settings) {  // TODO: little privacy here
     
     // Puts a block selection in the clipboard.
     // If cut is set, we white-space out the block selection in addition.
-    this.copy = function (cut) {// TODO: split
+    this.copy = function(cut) {// TODO: split
         var range = this.getSelectionRange();
         var start = range[0], end = range[1];
         var startRow = this.getRow(start), endRow = this.getRow(end);
@@ -403,7 +400,7 @@ function Box (id, rows, cols, settings) {  // TODO: little privacy here
     };
 
     // Places the contents of clipboard at user cursor to the best of our ability
-    this.paste = function () {// TODO: split
+    this.paste = function() {// TODO: split
         this.setPos();
         var pasted = this.bs.processPaste();
         
@@ -413,7 +410,7 @@ function Box (id, rows, cols, settings) {  // TODO: little privacy here
     };
     
     // Macro to shift all written text in the box right if units > 0, left otherwise.
-    this.shiftHoriz = function (units) {// TODO: split
+    this.shiftHoriz = function(units) {// TODO: split
         this.bs.shiftCurrHoriz(units);
         
         this.setPos();
@@ -422,7 +419,7 @@ function Box (id, rows, cols, settings) {  // TODO: little privacy here
     };
 
     // Macro to shift all written text in the box up if units > 0, down otherwise.
-    this.shiftVert = function (units) {
+    this.shiftVert = function(units) {
         this.bs.shiftCurrVert(units);
         
         this.setPos();
@@ -432,7 +429,7 @@ function Box (id, rows, cols, settings) {  // TODO: little privacy here
     
     // Clears out all whitespace surrounding the image and resizes to close on
     // the image as tightly as possible.
-    this.trimArea = function () {// TODO: split
+    this.trimArea = function() {// TODO: split
         var newDims = this.bs.processTrimArea();
 
         this.setPos();
@@ -446,7 +443,7 @@ function Box (id, rows, cols, settings) {  // TODO: little privacy here
     
     // Assigns correct user choices to settings global object
     // TODO: reduce rigidity?
-    this.setBlockRadioSettings = function () {// put in ui.js
+    this.setBlockRadioSettings = function() {// put in ui.js
         if (document.getElementById('fill').checked) {
             if (document.getElementById('fillSame').checked)
                 this.settings.fillMode = 'fill';
@@ -462,8 +459,7 @@ function Box (id, rows, cols, settings) {  // TODO: little privacy here
     // ranges is an array of ranges of indexes in which to fill with charToPut
     // inside the box's canvas
     // loadRanges takes ranges and displays them according to the settings
-    this.loadRanges = function (charToPut, ranges, colDiff) {
-        this.setCurr();
+    this.loadRanges = function(charToPut, ranges, colDiff) {
         this.setPos();
         this.setBlockRadioSettings();
 
@@ -478,7 +474,7 @@ function Box (id, rows, cols, settings) {  // TODO: little privacy here
 
     // Draws a line of copies of a character, repeated as frequently as possible over an interval specified by the user's selection
     // TODO: refactor for loadranges use
-    this.getLineRanges = function (start, end) {// TODO: split
+    this.getLineRanges = function(start, end) {// TODO: split
         var startRow = start.row, endRow = end.row;
         var startCol = Math.min(start.col, this.c - 1), endCol = Math.min(end.col, this.c - 1);
         
@@ -509,7 +505,7 @@ function Box (id, rows, cols, settings) {  // TODO: little privacy here
     };
 
     // Create the range set for a block and load it
-    this.getBlockRanges = function (start, end) {// TODO: split
+    this.getBlockRanges = function(start, end) {// TODO: split
         var startRow = start.row, endRow = end.row;
         var startCol = Math.min(start.col, this.c - 1), endCol = Math.min(end.col, this.c - 1);
         startCol = Math.min(startCol, this.c - 1);
@@ -532,7 +528,7 @@ function Box (id, rows, cols, settings) {  // TODO: little privacy here
     };
 
     // Put all the ranges of currStr that must be changes to user-input char into ranges
-    this.getEllipseRanges = function (start, end) {
+    this.getEllipseRanges = function(start, end) {
         var startRow = start.row;
         var endRow = end.row;
         
@@ -578,14 +574,14 @@ function Box (id, rows, cols, settings) {  // TODO: little privacy here
         return ranges;
     }
 
-    this.shouldEnqueue = function (toReplace, pos, visited) {
+    this.shouldEnqueue = function(toReplace, pos, visited) {
         return visited[pos] === undefined && pos >= 0 && this.getRow(pos) < this.r && this.getCol(pos) < this.c && this.getCurr().charAt(pos) === toReplace;
     };
     
     // Determine a list of ranges in which to assign the new character (in ranges, 
     // a array of two-element range arrays, which are inclusive endpoints)
     // A dynamic approach
-    this.dynBucketHelper = function (ranges, toReplace, posPt) {// put in model.js
+    this.dynBucketHelper = function(ranges, toReplace, posPt) {// put in model.js
         var toCheckQ = new Queue();
         var visited = [];
 
@@ -617,7 +613,7 @@ function Box (id, rows, cols, settings) {  // TODO: little privacy here
         }
     };
     
-    this.getBucketRanges = function (start) {
+    this.getBucketRanges = function(start) {
         var charToFlood = this.getCurr().charAt(start.pos);
         var ranges = [];
         this.dynBucketHelper(ranges, charToFlood, start);
@@ -625,16 +621,24 @@ function Box (id, rows, cols, settings) {  // TODO: little privacy here
         return ranges;
     };
     
-    this.setMouseDown = function () {
+    this.setMouseDown = function() {
         log('setMouseDown NOT IMPLEMENTED');
     };
     
-    this.setMouseUp = function () {
+    this.setMouseUp = function() {
         log('setMouseUp NOT IMPLEMENTED');
+    };
+    
+    var popUndo = function() {
+        that.bs.processPopUndo();
+    };
+    
+    var popRedo = function() {
+        that.bs.processPopRedo();
     };
 }
 
-function BoxDisplay (outerBox) {
+function BoxDisplay(outerBox) {
     var box = outerBox;
     /* puts whatever is in currStr in the textarea.
      * An essential function to call before performing any kind of text area
@@ -644,23 +648,20 @@ function BoxDisplay (outerBox) {
         assert(document.getElementById(box.id), 'invalid box id');
         document.getElementById(box.id).value = box.getCurr();
         log('setarea getcurr: ' + box.getCurr());
-    //    b.setCaretToPos(b.getPos());
     };
 
     // Sets the box's dimensions to its logical values
-    this.adjustBox = function () {
+    this.adjustBox = function() {
         document.getElementById(box.id).rows = box.r + 1;
         document.getElementById(box.id).cols = box.c + 1;
-        log('mid of adjustobox: ' + box.r + ' ' + box.c);
 
         // The below has not been adjusted to respond to boxes of differing size.
         document.getElementById('h').value = box.r;
         document.getElementById('w').value = box.c;
-        log('end of adjustobox: ' + box.r + ' ' + box.c);
     };
 
     // boxObj is a jquery object representing the canvas box
-    this.displayBox = function () {
+    this.displayBox = function() {
         var boxCode = '<textarea id="' + box.id + '" spellcheck="false"></textarea>';
         document.getElementById(box.container).innerHTML = '<div id="box0">' + boxCode + '</div>';
 
@@ -674,23 +675,23 @@ function BoxDisplay (outerBox) {
     };
     
     // Clears the box dimensions area of the footer and sets mouseDown
-    var setMouseDown = function () {
+    var setMouseDown = function() {
         this.mouseDown = true;
     };
     
     // Sets mouseDown false.
     var setMouseUp = function() {
         this.mouseDown = false;
-    }
+    };
     
     // TODO
-    this.displayFooterCoords = function (x1, y1, x2, y2) {
+    this.displayFooterCoords = function(x1, y1, x2, y2) {
         
     };
     
     // changes the state of fillMode
     // TODO: refactor HTML injection
-    this.toggleFill = function (settings) {// put in ui.js
+    this.toggleFill = function(settings) {// put in ui.js
         if (settings.fillMode === 'transparent') {
             document.getElementById('fillOptions').innerHTML = '<label for="fillChar">with: </label> <br /> <input type="radio" id="fillSame" name="fillOptions" value="same" checked /> <label for="fillSame"> Same characters </label><br /> <input type="radio" id="fillDiff" name="fillOptions" value="diff" /> <label for="fillDiff">This character: </label><input type="text" class="text" id="fillChar" maxlength="1" value=" "  />';
             $(Id('fillChar')).on('change', function() {
