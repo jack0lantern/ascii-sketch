@@ -42,7 +42,8 @@ function Box(id, rows, cols, settings) {  // TODO: little privacy here
     var hasBorders = false;
     var position = 0;
     var range = [0, 0];
-    var wrap = true;
+    var wrap = true;    // TODO: this doesn't get used.
+    var mouseDown = false;
     
     var MAX_BOX_HEIGHT = 1000;
     var MAX_BOX_WIDTH = 1000;
@@ -198,8 +199,6 @@ function Box(id, rows, cols, settings) {  // TODO: little privacy here
         });
         boxObj.on('mousedown', function() {
             that.setMouseDown();
-            that.setFooterCoords(); 
-//            box.setCaretToPos(0);
         });
 
         boxObj.on('mousemove', function() {
@@ -621,12 +620,18 @@ function Box(id, rows, cols, settings) {  // TODO: little privacy here
         return ranges;
     };
     
+    // Clears the box dimensions area of the footer and sets mouseDown
     this.setMouseDown = function() {
-        log('setMouseDown NOT IMPLEMENTED');
+        mouseDown = true;
+        log('setMouseDown ' + mouseDown);
+        log('position of cursor ' + this.getPos());
     };
     
+    // Sets mouseDown false.
     this.setMouseUp = function() {
-        log('setMouseUp NOT IMPLEMENTED');
+        mouseDown = false;
+        log('setMouseUp ' + mouseDown);
+        log('position of cursor ' + this.getPos());
     };
     
     var popUndo = function() {
@@ -672,16 +677,6 @@ function BoxDisplay(outerBox) {
         boxObj.wrap = "off";
         
         return boxObj;
-    };
-    
-    // Clears the box dimensions area of the footer and sets mouseDown
-    var setMouseDown = function() {
-        this.mouseDown = true;
-    };
-    
-    // Sets mouseDown false.
-    var setMouseUp = function() {
-        this.mouseDown = false;
     };
     
     // TODO
