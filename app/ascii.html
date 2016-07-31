@@ -1,21 +1,32 @@
 <!DOCTYPE html>
 <html>
-
     <head>
-
         <title>
             ASCII-Sketch
         </title>
 
         <link rel="stylesheet" href="../../reset.css" />
-        <link rel="stylesheet" href="ascii.css" />
-        <script src="../jQuery1x10x2.js"></script>
-        <script src="model.js"></script>
-        <script src="ui.js"></script>
-        <script src="ascii2.js"></script>
+        <link rel="stylesheet" href="../ascii.css" />
+        <!-- need jquery anymore? -->
+        <script src="../../jQuery1x10x2.js"></script>
+        
+        <!-- angular libraries -->
+        <script src="../angular/angular-loader.js"></script>
+        <script src="../angular/angular.js"></script>
+        <script src="../angular/angular-mocks.js"></script>
+        
+        <!-- Application specific dependencies -->
+        <script src="js/debug.js"></script>
+        <script src="js/data-structures.js"></script>
+        <script src="js/ascii-app.js"></script>
+        <script src="js/directives/box.js"></script>
+        <script src="js/controllers/main-controller.js"></script>
+        <script src="../model.js"></script>
+        <script src="../ui.js"></script>
+        <script src="../ascii2.js"></script>
     </head>
 
-    <body>
+    <body ng-app="AsciiApp">
         <header>
             <div id="tabs">
                 <div class="tab active_tab" id="draw">
@@ -99,11 +110,11 @@
                 
                 <div class="tab_data" id="draw_content" style="display: block">
                     <section id="draw_buttons">
-                        <img src="app/img/line.png" class="tool active_tool" id="line" />
-                        <img src="app/img/square.png" class="tool" id="block" />
+                        <img src="img/line.png" class="tool active_tool" id="line" />
+                        <img src="img/square.png" class="tool" id="block" />
                         <br />
-                        <img src="app/img/bucket.png" class="tool" id="bucket" />
-                        <img src="app/img/circle.png" class="tool" id="circle" />
+                        <img src="img/bucket.png" class="tool" id="bucket" />
+                        <img src="img/circle.png" class="tool" id="circle" />
                     </section>
                     <section id="fill_options">
                         <label for="fill">Fill</label> <input type="checkbox" id="fill" name="Phil"><span id="fillOptions"></span>
@@ -192,7 +203,7 @@
                 </div>
             </div>
         </header>
-        <div id="content">
+        <div id="content" ng-controller="MainController">
             <!--
 
 
@@ -235,10 +246,10 @@
         ~~~~~~~~~~~~ ~~~~~~~~   ~~~~~~~~   ~~~~~~~~  ~~~~~~~~~~~~~~~
         ~~~~~~~~    ~~~~~~~~   ~~~~~~~~  ~~~~~~~~    ~~~~~~~~  ~~~~~
         -->
-            <span id="debug"></span>
+            <span id="debug">{{ hello }}</span>
             <div id="boxes"></div>
         </div>
-        <iframe src="tests.html" style="height: 1000px; width: 700px;position: relative; top: 170px"></iframe>
+        <iframe src="../tests.html" style="height: 1000px; width: 700px;position: relative; top: 170px"></iframe>
         <footer>
             <span id="coords">(0, 0)</span><span id="dims"></span>
         </footer>

@@ -498,3 +498,7 @@ function BoxController(outerBox) {
     };
 }
 */
+
+app.controller('MainController', ['$scope', function ($scope) {
+    
+}]);
