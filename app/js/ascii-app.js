@@ -1,1 +1,3 @@
-var app = angular.module('AsciiApp', []);
+(function(angular) {
+    angular.module('AsciiApp', []);
+}) (window.angular);

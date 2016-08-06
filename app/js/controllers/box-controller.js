@@ -4,11 +4,6 @@
 // TODO: Don't use upward references to the outer box in Boxstencil and Boxdisplay
 // TODO: Replace all two-element arrays representing points with Point objs, and ranges with PointRange objs 
 
-var CHAR_SPACE = ' ';
-var CHAR_Y = 25;
-var CHAR_Z = 26;
-var TAB_CONTENT_SUFFIX = '_content';
-
 var drawModes = Object.freeze({
     LINE: 'line', 
     BLOCK: 'block', 
@@ -31,24 +26,24 @@ var tabs = Object.freeze({
 // A box is a logical contrcut representing an individual textarea ("canvas") in which a user can draw on. It by itself should not have the ability to "draw" on itself, but a BoxStencil does that.
 // @param id: String stored with no #
 function Box(id, rows, cols, settings) {  // TODO: little privacy here
-    this.r = rows;
-    this.c = cols;
-    this.id = id;
-    this.bs = new BoxController(this);
-    this.bd = new BoxDisplay(this);
+    this.r = rows;//
+    this.c = cols;//
+    this.id = id;//
+    this.bs = new BoxController(this);//
+    this.bd = new BoxDisplay(this);//
     // id of the containing div
-    this.container = 'boxes';
-    this.settings = settings;
+    this.container = 'boxes';//
+    this.settings = settings;//
 
-    var that = this;
-    var hasBorders = false;
-    var position = 0;
-    var range = [0, 0];
+    var that = this;//
+    var hasBorders = false;//
+    var position = 0;//
+    var range = [0, 0];//
     var wrap = true;    // TODO: this doesn't get used.
-    var mouseDown = false;
+    var mouseDown = false;//
     
-    var MAX_BOX_HEIGHT = 1000;
-    var MAX_BOX_WIDTH = 1000;
+    var MAX_BOX_HEIGHT = 1000;//
+    var MAX_BOX_WIDTH = 1000;//
     
     this.setPos = function() { // put in ui.js
         var tempPos = $(Id(this.id)).getCursorPosition();
@@ -657,7 +652,7 @@ function BoxDisplay(outerBox) {
     };
 
     // Sets the box's dimensions to its logical values
-    this.adjustBox = function() {
+    this.adjustBox = function() {//
         document.getElementById(box.id).rows = box.r + 1;
         document.getElementById(box.id).cols = box.c + 1;
 
@@ -861,3 +856,61 @@ function testCompiles(){
 //$(document).ready();
 
 */
+
+(function(angular) {
+    angular.module('AsciiApp').controller('BoxController', ['$scope', 'SettingService', function ($scope, SettingService) {
+        var r = SettingService.height;
+        var c = SettingService.width;
+        var CHAR_SPACE = ' ';
+        var CHAR_Y = 25;
+        var CHAR_Z = 26;
+        var TAB_CONTENT_SUFFIX = '_content';
+        var self = this;
+        
+        var hasBorders = false;
+        var position = 0;
+        var range = new Range();
+        var mouseDown = false;
+
+        var MAX_BOX_HEIGHT = 1000;
+        var MAX_BOX_WIDTH = 1000;
+        
+        makeBox();
+        
+        // Internal functions
+        // Sets currStr to an empty box string
+        function resetCurrStr () {
+            console.log('resetCurrStr called');
+            var i;
+            var j;
+            var border = self.hasBorders ? '|' : '';
+            var border = '';
+            self.currStr = '';
+
+            for (i = 0; i < c; i++) { 
+                SettingService.spaces += CHAR_SPACE;
+            }
+            SettingService.spaces += border + '\n';
+            for (j = 0; j < r; j++) {
+                if (j < r - 1)
+                    self.currStr += SettingService.spaces;
+                else
+                    self.currStr += SettingService.spaces.substring(0, SettingService.spaces.length - 1);  // chop off last \n
+            }
+            console.log(self.currStr);
+        }
+        
+        function adjustBox () {
+            self.rows = r + 1;
+            self.cols = c + 1;
+//              TODO: have setting-controller $watch the value of the setting-service to dynamically update these values in te UI
+//            document.getElementById('h').value = box.r;
+//            document.getElementById('w').value = box.c;
+        }
+        
+        function makeBox () {
+            resetCurrStr();
+            adjustBox();
+        }
+    }]);
+}) (window.angular);

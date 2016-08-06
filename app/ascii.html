@@ -5,7 +5,7 @@
             ASCII-Sketch
         </title>
 
-        <link rel="stylesheet" href="../../reset.css" />
+        <link rel="stylesheet" href="../../../reset.css" />
         <link rel="stylesheet" href="../ascii.css" />
         <!-- need jquery anymore? -->
         <script src="../../jQuery1x10x2.js"></script>
@@ -18,16 +18,23 @@
         <!-- Application specific dependencies -->
         <script src="js/debug.js"></script>
         <script src="js/data-structures.js"></script>
+        <script src="js/util.js"></script>
         <script src="js/ascii-app.js"></script>
-        <script src="js/directives/box.js"></script>
+        <script src="js/directives/asc-box.js"></script>
         <script src="js/controllers/main-controller.js"></script>
+        <script src="js/controllers/setting-controller.js"></script>
+        <script src="js/controllers/box-controller.js"></script>
+        <script src="js/services/setting-service.js"></script>
+        
         <script src="../model.js"></script>
         <script src="../ui.js"></script>
         <script src="../ascii2.js"></script>
+        <!---->
     </head>
 
     <body ng-app="AsciiApp">
-        <header>
+        <!-- TODO: currently, the 'set' alias is not used -->
+        <header ng-controller="SettingController as set">
             <div id="tabs">
                 <div class="tab active_tab" id="draw">
                     <span class="tab_text">Draw</span>
@@ -61,11 +68,11 @@
                             </tr>
                             <tr>
                                 <td>Height: </td>
-                                <td><input type="text" class="text" id="h" /></td>
+                                <td><input type="text" class="text" id="h" ng-model="set.boxHeight" /></td>
                             </tr>
                             <tr>
                                 <td>Width: </td>
-                                <td><input type="text" class="text" id="w" /></td>
+                                <td><input type="text" class="text" id="w" ng-model="set.boxWidth" /></td>
                             </tr>
                         </table>
                         <table>
@@ -208,11 +215,11 @@
 
 
 
-                     /----------\               
-                    /            \              
-                   /              \             
-                  /    O     O     \            
-                 /                  \           
+                    /-----------\               
+                   /             \              
+                  /               \             
+                 /     O     O     \            
+                /                   \           
                 |                    |          
                 |         ^          |          
                 |                    |          
@@ -247,7 +254,7 @@
         ~~~~~~~~    ~~~~~~~~   ~~~~~~~~  ~~~~~~~~    ~~~~~~~~  ~~~~~
         -->
             <span id="debug">{{ hello }}</span>
-            <div id="boxes"></div>
+            <textarea asc-box rows="{{ box.rows }}" cols="{{ box.cols }}"></textarea>
         </div>
         <iframe src="../tests.html" style="height: 1000px; width: 700px;position: relative; top: 170px"></iframe>
         <footer>
