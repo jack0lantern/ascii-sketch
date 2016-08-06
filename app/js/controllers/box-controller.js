@@ -881,17 +881,14 @@ function testCompiles(){
         // Sets currStr to an empty box string
         function resetCurrStr () {
             console.log('resetCurrStr called');
-            var i;
-            var j;
             var border = self.hasBorders ? '|' : '';
-            var border = '';
             self.currStr = '';
 
-            for (i = 0; i < c; i++) { 
+            for (var i = 0; i < c; i++) { 
                 SettingService.spaces += CHAR_SPACE;
             }
             SettingService.spaces += border + '\n';
-            for (j = 0; j < r; j++) {
+            for (var j = 0; j < r; j++) {
                 if (j < r - 1)
                     self.currStr += SettingService.spaces;
                 else
