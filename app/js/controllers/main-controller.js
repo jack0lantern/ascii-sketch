@@ -461,9 +461,16 @@ function BoxController(outerBox) {
 }
 */
 
-// Currently, does nothing.
+// Manage the compnents of ascii-app
+// focused isn't showing up -.-
 (function(angular) {
-    angular.module('AsciiApp').controller('MainController', ['$scope', 'SettingService', function ($scope, SettingService) {
-        
+    angular.module('AsciiApp').controller('MainController', ['$scope', '$rootScope', 'SettingService', function ($scope, $rootScope, SettingService) {
+        var self = this;
+        this.resetOnConfirm = function () {
+            console.log('resetonconfirm called');
+            console.log(SettingService.focused);
+            console.log('main service h ' + SettingService.getHeight() + ' w ' + SettingService.getWidth());
+            SettingService.confirmReset();
+        };
     }]);
 }) (window.angular);

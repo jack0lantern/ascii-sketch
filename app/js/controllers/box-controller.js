@@ -662,7 +662,7 @@ function BoxDisplay(outerBox) {
     };
 
     // boxObj is a jquery object representing the canvas box
-    this.displayBox = function() {
+    this.displayBox = function() {//
         var boxCode = '<textarea id="' + box.id + '" spellcheck="false"></textarea>';
         document.getElementById(box.container).innerHTML = '<div id="box0">' + boxCode + '</div>';
 
@@ -673,11 +673,6 @@ function BoxDisplay(outerBox) {
         boxObj.wrap = "off";
         
         return boxObj;
-    };
-    
-    // TODO
-    this.displayFooterCoords = function(x1, y1, x2, y2) {
-        
     };
     
     // changes the state of fillMode
@@ -837,45 +832,40 @@ var ui = (function () {
     
     return {f: frames};
 })();
-
-// for testing
-function testCompiles(){
-    var setStr = '                                                                                \n                                                                                \n                                                                                \n                                                                                \n                                                                                \n                                                                                \n                                                                                \n                                                                                \n                                                                                \n                                                                                \n                                                                                \n                                                                                \n               d                                                                \n                                                                                \n                                                                                \n                                                                                \n                                                                                \n                                                                                \n                                                                                \n                                                                                \n                                                                                \n                                                                                \n                                                                                \n                                                                                \n                                                                                \n                                                                                \n                                                                                \n                                                                                \n                                                                                \n                                                                                \n                                                                                \n                                                                                \n                                                                                \n                                                                                \n                                                                                \n                                                                                \n                                                                                \n                                                                                \n                                                                                \n                                                                                ';
-//    alert(ui.boxes.main);
-    var b = ui.f[0].boxes.main;
-    b.setCurr(setStr);
-    log(b.bd);
-    b.makeBox();
-//    b.bd.setArea(
-    b.setSelectionRange(10, 20);
-//    selectRange(20, 30);
-    var sr = b.getSelectionRange();
-    log(b.getCurr());
-}
-
-//$(document).ready();
-
 */
 
 (function(angular) {
     angular.module('AsciiApp').controller('BoxController', ['$scope', 'SettingService', function ($scope, SettingService) {
-        var r = SettingService.height;
-        var c = SettingService.width;
+        var r = SettingService.getHeight();
+        var c = SettingService.getWidth();
+        var self = this;
+        // self.rows, self.cols, self.currStr;
         var CHAR_SPACE = ' ';
         var CHAR_Y = 25;
         var CHAR_Z = 26;
         var TAB_CONTENT_SUFFIX = '_content';
-        var self = this;
         
         var hasBorders = false;
         var position = 0;
-        var range = new Range();
+        var range = null;
         var mouseDown = false;
 
         var MAX_BOX_HEIGHT = 1000;
         var MAX_BOX_WIDTH = 1000;
         
-        makeBox();
+        // public functions
+        self.makeBox = function (h, w) {
+            console.log('h: ' + h + 'w: ' + w);
+            r = parseInt(h || r);
+            c = parseInt(w || c);
+            resetCurrStr();
+            adjustBox();
+            SettingService.focused = self;
+            console.log(SettingService.focused);
+        }
+        
+        // Init
+        self.makeBox();
         
         // Internal functions
         // Sets currStr to an empty box string
@@ -883,6 +873,8 @@ function testCompiles(){
             console.log('resetCurrStr called');
             var border = self.hasBorders ? '|' : '';
             self.currStr = '';
+            // TODO: make a more efficient way to reassign spaces, depending on whether or not the new value is more or less.
+            SettingService.spaces = '';
 
             for (var i = 0; i < c; i++) { 
                 SettingService.spaces += CHAR_SPACE;
@@ -898,16 +890,12 @@ function testCompiles(){
         }
         
         function adjustBox () {
+            console.log('adjustbox called');
             self.rows = r + 1;
             self.cols = c + 1;
 //              TODO: have setting-controller $watch the value of the setting-service to dynamically update these values in te UI
 //            document.getElementById('h').value = box.r;
 //            document.getElementById('w').value = box.c;
-        }
-        
-        function makeBox () {
-            resetCurrStr();
-            adjustBox();
         }
     }]);
 }) (window.angular);
