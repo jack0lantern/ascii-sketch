@@ -9,10 +9,6 @@
             console.log('setdims called ');
             SettingService.setHeight(this.boxHeight);
             SettingService.setWidth(this.boxWidth);
-            console.log('service h: ' + SettingService.getHeight());
-            console.log('service w: ' + SettingService.getWidth());
-            
-        }
-        
+        };
     }]);
 }) (window.angular);
