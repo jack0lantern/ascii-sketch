@@ -19,11 +19,17 @@
         <script defer src="js/debug.js"></script>
         <script defer src="js/data-structures.js"></script>
         <script defer src="js/util.js"></script>
+        
         <script defer src="js/ascii-app.js"></script>
+        
+        <script src="js/filters/point-range-filter.js"></script>
+        
         <script defer src="js/directives/asc-box.js"></script>
+        
         <script defer src="js/controllers/main-controller.js"></script>
         <script defer src="js/controllers/setting-controller.js"></script>
         <script defer src="js/controllers/box-controller.js"></script>
+        
         <script defer src="js/services/setting-service.js"></script>
         
         <script defer src="../model-old.js"></script>
@@ -80,7 +86,7 @@
                                     <button ng-click="set.setDims(); main.resetOnConfirm()">Reset </button>
                                 </td>
                                 <td>
-                                    <button ng-click="set.changeBox()">Change dimensions</button>
+                                    <button ng-click="set.setDims(); main.changeBox()">Change dimensions</button>
                                 </td>
                             </tr>
                             <tr>
@@ -253,7 +259,8 @@
         ~~~~~~~~    ~~~~~~~~   ~~~~~~~~  ~~~~~~~~    ~~~~~~~~  ~~~~~
         -->
             <span id="debug">{{ hello }}</span>
-            <textarea asc-box rows="{{ box.rows }}" cols="{{ box.cols }}"></textarea>
+            <textarea asc-box rows="{{ box.rows }}" cols="{{ box.cols }}" ng-model="box.currStr"></textarea>
+            <textarea>{{ box.currStr }}</textarea>
         </div>
         <iframe src="../tests.html" style="height: 1000px; width: 700px;position: relative; top: 170px"></iframe>
         <footer>

@@ -4,8 +4,8 @@
         return {
             restrict: 'A',
             controller: 'BoxController',
-            controllerAs: 'box',
-            templateUrl: 'js/directives/asc-box.html'
+            controllerAs: 'box'//,
+            //templateUrl: 'js/directives/asc-box.html'
         };
     });
 }) (window.angular);

@@ -7,6 +7,7 @@ function Point(r, c, pos) {
     this.pos = pos;
 }
 
+// Takes two Point objects.
 function PointRange(p1, p2) {
     this.start = p1;
     this.end = p2;
