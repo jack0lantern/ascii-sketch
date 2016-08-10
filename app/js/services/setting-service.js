@@ -11,10 +11,11 @@
         this.confirmReset = function () {
             var reset = confirm('Are you sure you want to clear the image? All your work will be lost. Press OK to continue or Cancel to cancel.');
             if (reset && this.focused) {
-                this.setHeight(this.getHeight());
-                this.setWidth(this.getWidth());
                 this.focused.makeBox(this.getHeight(), this.getWidth());
             }
+        };
+        this.changeBox = function () {
+            this.focused.crop();
         };
     }]);
 }) (window.angular);

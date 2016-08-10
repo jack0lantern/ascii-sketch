@@ -855,19 +855,43 @@ var ui = (function () {
         
         // public functions
         self.makeBox = function (h, w) {
-            console.log('h: ' + h + 'w: ' + w);
-            r = parseInt(h || r);
-            c = parseInt(w || c);
+            console.log('makebox h: ' + h + 'w: ' + w);
+            setDims(h, w);
             resetCurrStr();
             adjustBox();
             SettingService.focused = self;
             console.log(SettingService.focused);
-        }
+            console.log('post reset make box currstr ' + $scope.box.currStr);
+        };
+        
+        // Keeps the contents, changes the canvas dimensions. Previously, changeBox. 
+        self.crop = function () {
+            adjustCurrStr();
+            adjustBox();
+        };
         
         // Init
         self.makeBox();
         
         // Internal functions
+        function setDims (h, w) {
+            r = parseInt(h || r);
+            c = parseInt(w || c);
+        }
+        
+        // returns the line at a given row index. This cuts off the ending \n.
+        // Mostly a helper.
+        function getLine (line, withNewLine) {    // lines are 0 indexed
+            if (line < r) {
+                var str = '';
+                var newlineIndex = self.currStr.indexOf('\n');  // find first instance of \n
+                var addNewline = withNewLine ? 0 : 1;
+                str = self.currStr.substring(line * (newlineIndex + 1), (line + 1) * (newlineIndex + 1) - addNewline);
+                return str;
+            }
+            return '';
+        }
+        
         // Sets currStr to an empty box string
         function resetCurrStr () {
             console.log('resetCurrStr called');
@@ -889,13 +913,44 @@ var ui = (function () {
             console.log(self.currStr);
         }
         
+        function adjustCurrStr () {
+            var newHeight = SettingService.getHeight();
+            var newWidth = SettingService.getWidth();
+            if (r === newHeight && c === newWidth)
+                return;
+
+            var emptyRow = SettingService.spaces;
+            var newStr = '';
+            var spacesToAdd = '';
+            
+            while (emptyRow.length < newWidth) {
+                spacesToAdd += CHAR_SPACE;
+                emptyRow += CHAR_SPACE;
+            }
+            
+            // should make an accessor for hasborders? used in other places
+            var borderChar = hasBorders ? '|' : '';
+            emptyRow += borderChar;
+            SettingService.spaces = emptyRow + '\n';   
+
+            for (var currRow = 0; currRow < newHeight; currRow++) {
+                    if (currRow >= r)
+                        newStr += emptyRow;
+                    else
+                        newStr += getLine(currRow, false).substring(0, Math.max(newWidth, c)) + spacesToAdd + borderChar;
+                    if (currRow < newHeight - 1)
+                        newStr += '\n';
+            }
+
+            setDims(newHeight, newWidth);
+            self.currStr = newStr||currStr;
+        }
+        
         function adjustBox () {
-            console.log('adjustbox called');
+            console.log('adjustbox called r ' + r + ' c ' + c);
+            console.log(self);
             self.rows = r + 1;
             self.cols = c + 1;
-//              TODO: have setting-controller $watch the value of the setting-service to dynamically update these values in te UI
-//            document.getElementById('h').value = box.r;
-//            document.getElementById('w').value = box.c;
         }
     }]);
 }) (window.angular);

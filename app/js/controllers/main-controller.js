@@ -466,11 +466,16 @@ function BoxController(outerBox) {
 (function(angular) {
     angular.module('AsciiApp').controller('MainController', ['$scope', '$rootScope', 'SettingService', function ($scope, $rootScope, SettingService) {
         var self = this;
+//        console.log($filter);
+//        self.footerCoords = $filter('pointRange')(new Range(new Point(0, 0), null));
+        
         this.resetOnConfirm = function () {
             console.log('resetonconfirm called');
-            console.log(SettingService.focused);
-            console.log('main service h ' + SettingService.getHeight() + ' w ' + SettingService.getWidth());
             SettingService.confirmReset();
         };
+        
+        this.changeBoxDims = function () {
+            SettingService.changeBox();
+        }
     }]);
 }) (window.angular);
