@@ -476,6 +476,11 @@ function BoxController(outerBox) {
         
         this.changeBoxDims = function () {
             SettingService.changeBox();
-        }
+        };
+        
+        this.toggleBoxBorders = function () {
+            console.log('toggleboxborders called');
+            SettingService.toggleBorders();
+        };
     }]);
 }) (window.angular);

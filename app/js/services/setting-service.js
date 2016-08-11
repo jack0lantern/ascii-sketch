@@ -8,6 +8,7 @@
         this.setWidth = function (w) { return this.width = w; };
         this.spaces = '';
         this.focused = null;
+        
         this.confirmReset = function () {
             var reset = confirm('Are you sure you want to clear the image? All your work will be lost. Press OK to continue or Cancel to cancel.');
             if (reset && this.focused) {
@@ -16,6 +17,9 @@
         };
         this.changeBox = function () {
             this.focused.crop();
+        };
+        this.toggleBorders = function () {
+            this.focused.toggleBorders();
         };
     }]);
 }) (window.angular);

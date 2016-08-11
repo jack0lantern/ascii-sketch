@@ -869,6 +869,22 @@ var ui = (function () {
             adjustCurrStr();
             adjustBox();
         };
+
+        // 
+        self.toggleBorders = function () {
+            var temp = '';
+            var offset;
+            console.log('toggle borders called');
+            writeBorders();
+            hasBorders = !hasBorders;
+
+            if (hasBorders)
+                this.cols = c + 1;
+
+            offset = hasBorders ? Math.floor(position / (c + 1)): -Math.floor(position / (c + 2));   // adjust cursor for newly removed or inserted borders
+            log('position new ' + position);
+            setCaretToPos(position + offset);
+        };
         
         // Init
         self.makeBox();
@@ -952,5 +968,41 @@ var ui = (function () {
             self.rows = r + 1;
             self.cols = c + 1;
         }
+        
+        function writeBorders() {
+            console.log('writeborders called');
+            var newStr = '';
+            for (var i = 0; i < r; ++i) {
+                var temp = getLine(i, false);
+                if (hasBorders) {
+                    newStr += temp.substring(0, temp.length - 1) + (i < (r - 1) ? '\n' : '');
+                }
+                else {
+                    newStr += temp + '|' + (i < (r - 1) ? '\n' : '');
+                }
+            }
+            console.log('newstr ' + newStr);
+            self.currStr = newStr;
+        }
+        
+        function setCaretToPos (pos) {
+            log('setCaretToPos Calledddddddd ' + pos);
+            setSelectionRange(pos, pos);
+        };
+        
+        function setSelectionRange (selectionStart, selectionEnd) {
+            if (this.setSelectionRange) {
+                this.focus();
+                this.setSelectionRange(selectionStart, selectionEnd);
+            }
+            else if (this.createTextRange) {
+                var range = this.createTextRange();
+                range.collapse(true);
+                range.moveEnd('character', selectionEnd);
+                range.moveStart('character', selectionStart);
+                range.select();
+            }
+        };
+        
     }]);
 }) (window.angular);
