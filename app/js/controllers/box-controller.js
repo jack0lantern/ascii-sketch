@@ -908,7 +908,7 @@ var ui = (function () {
                 var newlineIndex = hasBorders ? c + 1 : c;
                 var addNewline = withNewLine ? 0 : -1;
                 str = self.currStr.substring(line * (newlineIndex + 1), (line + 1) * (newlineIndex + 1) + addNewline);
-                console.log('first index ' + (line * (newlineIndex + 1)) + ' end index ' + ((line + 1) * (newlineIndex + 1) - addNewline));
+//                console.log('first index ' + (line * (newlineIndex + 1)) + ' end index ' + ((line + 1) * (newlineIndex + 1) - addNewline));
                 return str;
             }
             return '';
@@ -960,10 +960,7 @@ var ui = (function () {
             // should make an accessor for hasborders? used in other places
             var borderChar = hasBorders ? '|' : '';
             emptyRow += borderChar;
-            SettingService.spaces = emptyRow + '\n';   
-            console.log('empty row' + emptyRow + emptyRow.length);
-            console.log('spaces length ' + SettingService.spaces.length);
-
+            SettingService.spaces = emptyRow + '\n';
             for (var currRow = 0; currRow < newHeight; currRow++) {
                     if (currRow >= r)
                         newStr += emptyRow;
@@ -990,7 +987,6 @@ var ui = (function () {
             var newStr = '';
             for (var i = 0; i < r; ++i) {
                 var temp = getLine(i, false);
-                console.log(temp + temp.length);
                 if (hasBorders) {
                     newStr += temp.substring(0, temp.length - 1) + (i < (r - 1) ? '\n' : '');
                 }
@@ -998,7 +994,6 @@ var ui = (function () {
                     newStr += temp + '|' + (i < (r - 1) ? '\n' : '');
                 }
             }
-            console.log('newstr ' + newStr);
             self.currStr = newStr;
         }
         
