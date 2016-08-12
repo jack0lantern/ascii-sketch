@@ -1,7 +1,7 @@
 (function (angular) {
     angular.module('AsciiApp').service('SettingService', ['$rootScope', function($rootScope) {
         this.height = 20;
-        this.width = 1;
+        this.width = 40;
         this.getHeight = function () { return this.height; };
         this.getWidth = function () { return this.width; };
         this.setHeight = function (h) { return this.height = h; };
