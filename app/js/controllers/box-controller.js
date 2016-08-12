@@ -1016,5 +1016,74 @@ var ui = (function () {
             }
         };
         
+        
+    this.shiftCurrHoriz = function(units) {
+        var newStr = '';
+        var padSpaces = spaces.substring(0, units);
+        var i;
+        var startIdx = 0;
+        var endIdx = c;
+        
+        units = parseInt(units);
+        if (units > 0) {
+            units = Math.min(c, units); // in case the user puts a number > cols
+            endIdx -= units;
+        }
+        else if (units < 0) {
+            units = Math.max(-c, units);
+            startIdx -= units;
+        }
+        else
+            return;
+
+        for (i = 0; i < r; i++) {
+            temp = this.getLine(i, false);
+            if (units > 0)
+                newStr += padSpaces;
+            newStr += temp.substring(startIdx, endIdx);
+            if (units < 0)
+                newStr += padSpaces;
+            newStr += this.hasBorders ? '|' : '';
+            newStr += i < (r - 1) ? '\n' : '';
+        }
+        self.currStr = newStr;
+//        this.pushUndo(); //TODO
+    };
+    
+    this.shiftCurrVert = function(units) {
+        var newStr = '';
+        var i;
+        var lineLen;
+        var startIdx = 0;
+        var endIdx = self.currStr.length;
+        units = parseInt(units);
+
+        lineLen = spaces.length;
+        if (units > 0) {
+            units = Math.min(r, units); // in case the user puts a number > rows
+            startIdx += units*lineLen;
+        }
+        else if (units < 0) {
+            units = Math.max(-r, units);
+            endIdx += units*lineLen;
+        }
+        else
+            return;
+
+        if (units < 0) {
+            for (i = 0; i < Math.abs(units); i++)
+                newStr += spaces;
+        }
+        newStr += self.currStr.substring(startIdx, endIdx);
+        if (units > 0) {
+            newStr += '\n';
+            for (i = 0; i < Math.abs(units); i++)
+                newStr += spaces;
+            newStr = newStr.substring(0, newStr.length - 1); // take off the last \n
+        }
+
+        self.currStr = newStr;
+//        this.pushUndo(); //TODO
+    };
     }]);
 }) (window.angular);

@@ -2,6 +2,7 @@
     angular.module('AsciiApp').service('SettingService', ['$rootScope', function($rootScope) {
         this.height = 20;
         this.width = 40;
+        this.shiftValue = 1;
         this.getHeight = function () { return this.height; };
         this.getWidth = function () { return this.width; };
         this.setHeight = function (h) { return this.height = h; };
@@ -20,6 +21,12 @@
         };
         this.toggleBorders = function () {
             this.focused.toggleBorders();
+        };
+        this.shiftVert = function (val) {
+            this.focused.shiftCurrVert(val);
+        };
+        this.shiftHoriz = function (val) {
+            this.focused.shiftCurrHoriz(val);
         };
     }]);
 }) (window.angular);
