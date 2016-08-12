@@ -873,17 +873,22 @@ var ui = (function () {
         // 
         self.toggleBorders = function () {
             var temp = '';
-            var offset;
+            var offset; // adjust cursor for newly removed or inserted borders
             console.log('toggle borders called');
-            writeBorders();
-            hasBorders = !hasBorders;
-
-            if (hasBorders)
+            if (hasBorders) {
                 this.cols = c + 1;
+                offset = -Math.floor(position / (c + 2));
+            }
+            else {
+                this.cols = c + 2;
+                offset = Math.floor(position / (c + 1));
+            }
+            writeBorders();
 
-            offset = hasBorders ? Math.floor(position / (c + 1)): -Math.floor(position / (c + 2));   // adjust cursor for newly removed or inserted borders
-            log('position new ' + position);
+            console.log('position new ' + position);
             setCaretToPos(position + offset);
+            
+            hasBorders = !hasBorders;
         };
         
         // Init
@@ -900,9 +905,10 @@ var ui = (function () {
         function getLine (line, withNewLine) {    // lines are 0 indexed
             if (line < r) {
                 var str = '';
-                var newlineIndex = self.currStr.indexOf('\n');  // find first instance of \n
-                var addNewline = withNewLine ? 0 : 1;
-                str = self.currStr.substring(line * (newlineIndex + 1), (line + 1) * (newlineIndex + 1) - addNewline);
+                var newlineIndex = hasBorders ? c + 1 : c;
+                var addNewline = withNewLine ? 0 : -1;
+                str = self.currStr.substring(line * (newlineIndex + 1), (line + 1) * (newlineIndex + 1) + addNewline);
+                console.log('first index ' + (line * (newlineIndex + 1)) + ' end index ' + ((line + 1) * (newlineIndex + 1) - addNewline));
                 return str;
             }
             return '';
@@ -911,7 +917,7 @@ var ui = (function () {
         // Sets currStr to an empty box string
         function resetCurrStr () {
             console.log('resetCurrStr called');
-            var border = self.hasBorders ? '|' : '';
+            var border = hasBorders ? '|' : '';
             self.currStr = '';
             // TODO: make a more efficient way to reassign spaces, depending on whether or not the new value is more or less.
             SettingService.spaces = '';
@@ -930,30 +936,39 @@ var ui = (function () {
         }
         
         function adjustCurrStr () {
+            console.log('adjustCurrStr called hasBorders: ' + hasBorders);
             var newHeight = SettingService.getHeight();
             var newWidth = SettingService.getWidth();
             if (r === newHeight && c === newWidth)
                 return;
 
-            var emptyRow = SettingService.spaces;
+            // TODO: change spaces implementation to not include borders or newline characters to avoid this substring use
+            var emptyRow = SettingService.spaces.substring(0, c);
             var newStr = '';
             var spacesToAdd = '';
+            var i = c;
             
-            while (emptyRow.length < newWidth) {
+            while (i++ < newWidth) {
                 spacesToAdd += CHAR_SPACE;
                 emptyRow += CHAR_SPACE;
+            }
+            
+            if (c > newWidth) {
+                emptyRow = emptyRow.substring(c - newWidth);
             }
             
             // should make an accessor for hasborders? used in other places
             var borderChar = hasBorders ? '|' : '';
             emptyRow += borderChar;
             SettingService.spaces = emptyRow + '\n';   
+            console.log('empty row' + emptyRow + emptyRow.length);
+            console.log('spaces length ' + SettingService.spaces.length);
 
             for (var currRow = 0; currRow < newHeight; currRow++) {
                     if (currRow >= r)
                         newStr += emptyRow;
                     else
-                        newStr += getLine(currRow, false).substring(0, Math.max(newWidth, c)) + spacesToAdd + borderChar;
+                        newStr += getLine(currRow, false).substring(0, Math.min(newWidth, c)) + spacesToAdd + borderChar;
                     if (currRow < newHeight - 1)
                         newStr += '\n';
             }
@@ -967,6 +982,7 @@ var ui = (function () {
             console.log(self);
             self.rows = r + 1;
             self.cols = c + 1;
+            console.log('rows ' + self.rows + ' cols ' + self.cols);
         }
         
         function writeBorders() {
@@ -974,6 +990,7 @@ var ui = (function () {
             var newStr = '';
             for (var i = 0; i < r; ++i) {
                 var temp = getLine(i, false);
+                console.log(temp + temp.length);
                 if (hasBorders) {
                     newStr += temp.substring(0, temp.length - 1) + (i < (r - 1) ? '\n' : '');
                 }
