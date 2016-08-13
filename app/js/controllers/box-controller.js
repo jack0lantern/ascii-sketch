@@ -1016,6 +1016,7 @@ var ui = (function () {
             }
         };
         
+        
     // TODO: correct    
     this.shiftCurrHoriz = function(units) {
         var newStr = '';
