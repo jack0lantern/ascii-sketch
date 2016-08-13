@@ -7,6 +7,7 @@
         this.getWidth = function () { return this.width; };
         this.setHeight = function (h) { return this.height = h; };
         this.setWidth = function (w) { return this.width = w; };
+        // Currently, a row of width spaces with a border (if toggled) and \n at the end 
         this.spaces = '';
         this.focused = null;
         

@@ -26,7 +26,7 @@ var tabs = Object.freeze({
     HELP: 'help'
 });
 
-// A box is a logical contrcut representing an individual textarea ("canvas") in which a user can draw on. It by itself should not have the ability to "draw" on itself, but a BoxStencil does that.
+// A box is a console.logical contrcut representing an individual textarea ("canvas") in which a user can draw on. It by itself should not have the ability to "draw" on itself, but a BoxStencil does that.
 // @param id: String stored with no #
 function Box(id, rows, cols, settings) {  // TODO: little privacy here
     this.r = rows;
@@ -98,7 +98,7 @@ function Box(id, rows, cols, settings) {  // TODO: little privacy here
 
         this.bd.setArea();
         offset = this.hasBorders ? Math.floor(this.getPos() / (this.c + 1)): -Math.floor(this.getPos() / (this.c + 2));   // adjust cursor for newly removed or inserted borders
-        log('this.getPos() new ' + (this.getPos()));
+        console.log('this.getPos() new ' + (this.getPos()));
         this.setCaretToPos(this.getPos() + offset);
     };
     
@@ -145,7 +145,7 @@ function Box(id, rows, cols, settings) {  // TODO: little privacy here
     };
     
     this.setCaretToPos = function(pos) {
-        log('setCaretToPos Calledddddddd ' + pos);
+        console.log('setCaretToPos Calledddddddd ' + pos);
         this.setSelectionRange(pos, pos);
     };
     
@@ -165,7 +165,7 @@ function Box(id, rows, cols, settings) {  // TODO: little privacy here
         this.r = rows||this.r;
         this.c = cols||this.c;
         
-        log('box get curr in ui: ' + this.getCurr());
+        console.log('box get curr in ui: ' + this.getCurr());
 
         boxObj.on('cut', function(event) {
             that.copy(true);
@@ -187,11 +187,11 @@ function Box(id, rows, cols, settings) {  // TODO: little privacy here
         // Can we factor it out somehow? Maybe if we can guarantee that
         // keydown always happens first.
         boxObj.on('keydown', function(event) {
-            log('keydown');
+            console.log('keydown');
             that.nonKeyPress(event);
         });
         boxObj.on('keypress', function(event) {
-            log('keypress');
+            console.log('keypress');
             that.changeChar(event);
         });
         boxObj.on('keyup', function() {
@@ -236,8 +236,8 @@ function Box(id, rows, cols, settings) {  // TODO: little privacy here
     this.changeChar = function(e) {// TODO: split
         var unicode = null;
 
-        log('this r ' + this.r);
-        log('this c ' + this.c);
+        console.log('this r ' + this.r);
+        console.log('this c ' + this.c);
 
         var range = this.getSelectionRange(document.getElementById(this.id));
 
@@ -285,7 +285,7 @@ function Box(id, rows, cols, settings) {  // TODO: little privacy here
                     console.log('invalid mode');
             }
                                 
-            log(ranges);
+            console.log(ranges);
             // TODO: by using PointRange, get rid of colDiff arg/param
             this.loadRanges(String.fromCharCode(unicode), ranges, Math.abs(endPoint.col - startPoint.col) + 1);
         }
@@ -467,7 +467,7 @@ function Box(id, rows, cols, settings) {  // TODO: little privacy here
             return;
         this.bs.assignCurrByRange(charToPut, ranges, colDiff, this.settings);
         this.bd.setArea();
-        log('this.getPos() in loadranges' + this.getPos());
+        console.log('this.getPos() in loadranges' + this.getPos());
         this.setCaretToPos(this.getPos() + 1);
     };
 
@@ -623,15 +623,15 @@ function Box(id, rows, cols, settings) {  // TODO: little privacy here
     // Clears the box dimensions area of the footer and sets mouseDown
     this.setMouseDown = function() {
         mouseDown = true;
-        log('setMouseDown ' + mouseDown);
-        log('position of cursor ' + this.getPos());
+        console.log('setMouseDown ' + mouseDown);
+        console.log('position of cursor ' + this.getPos());
     };
     
     // Sets mouseDown false.
     this.setMouseUp = function() {
         mouseDown = false;
-        log('setMouseUp ' + mouseDown);
-        log('position of cursor ' + this.getPos());
+        console.log('setMouseUp ' + mouseDown);
+        console.log('position of cursor ' + this.getPos());
     };
     
     var popUndo = function() {
@@ -652,7 +652,7 @@ function BoxDisplay(outerBox) {
     //    alert("ui.js: " + document.getElementById(box.id));
         assert(document.getElementById(box.id), 'invalid box id');
         document.getElementById(box.id).value = box.getCurr();
-        log('setarea getcurr: ' + box.getCurr());
+        console.log('setarea getcurr: ' + box.getCurr());
     };
 
     // Sets the box's dimensions to its logical values
@@ -730,7 +730,7 @@ function Frame (settings_, window_) {
 
         $(Id(newTab.id) + TAB_CONTENT_SUFFIX).css('display', 'block');
         $(Id(newTab.id)).addClass('active_tab');
-        log('newtab ' + newTab);
+        console.log('newtab ' + newTab);
         this.settings.currentTab = newTab.id;
     };
     
@@ -747,7 +747,7 @@ function Frame (settings_, window_) {
         for (var j = 0; j < elems.length; ++j) {
             (function(j) {
             $(elems[j]).on(eventName, function() {
-                log('this in attach ' + this);
+                console.log('this in attach ' + this);
                 handler(elems[j]);
             });
             })(j);
@@ -766,61 +766,61 @@ function Frame (settings_, window_) {
             that.setMode(mode); 
         });
         
-        $(Id('fill')).on('click', function() { 
-            that.boxes[0].bd.toggleFill(that.settings);
-        });
-
-        $(Id('toggleBorders')).on('click', function() {
-            that.boxes[0].toggleBorders(); 
-        });
-        
-        $(Id('pasteTrans')).on('click', function() { 
-            that.boxes[0].paste();
-        });
-        
-        $(Id('resetButton')).on('click', function() { 
-            that.boxes[0].confirmReset();
-        });
-        
-        $(Id('changeButton')).on('click', function() {
-            that.boxes[0].changeBox(document.getElementById('h').value, document.getElementById('w').value);
-        });
-        
-        $(Id('shiftVertButton')).on('click', function() {
-            that.boxes[0].shiftVert(document.getElementById('shiftValue').value);
-        });
-        
-        $(Id('shiftHorizButton')).on('click', function() {
-            that.boxes[0].shiftHoriz(document.getElementById('shiftValue').value);
-        });
-        
-        $(Id('trimButton')).on('click', function () {
-            that.boxes[0].trimArea();
-        });
-        
-        $(Id('cutButton')).on('click', function() {
-            that.boxes[0].copy(true);
-        });
-        
-        $(Id('copyButton')).on('click', function() {
-            that.boxes[0].copy(false);
-        });
-        
-        $(Id('pasteButton')).on('click', function () {
-            that.boxes[0].paste();
-        });
-        
-        $(Id('undoButton')).on('click', function () {
-            that.boxes[0].bs.popUndo();
-        });
-        
-        $(Id('redoButton')).on('click', function () {
-            that.boxes[0].bs.popRedo();
-        });
-        
-        $(Id('pasteTrans')).on('click', function () {
-            that.boxes[0].togglePaste();
-        });
+//        $(Id('fill')).on('click', function() { 
+//            that.boxes[0].bd.toggleFill(that.settings);
+//        });
+//
+//        $(Id('toggleBorders')).on('click', function() {
+//            that.boxes[0].toggleBorders(); 
+//        });
+//        
+//        $(Id('pasteTrans')).on('click', function() { 
+//            that.boxes[0].paste();
+//        });
+//        
+//        $(Id('resetButton')).on('click', function() { 
+//            that.boxes[0].confirmReset();
+//        });
+//        
+//        $(Id('changeButton')).on('click', function() {
+//            that.boxes[0].changeBox(document.getElementById('h').value, document.getElementById('w').value);
+//        });
+//        
+//        $(Id('shiftVertButton')).on('click', function() {
+//            that.boxes[0].shiftVert(document.getElementById('shiftValue').value);
+//        });
+//        
+//        $(Id('shiftHorizButton')).on('click', function() {
+//            that.boxes[0].shiftHoriz(document.getElementById('shiftValue').value);
+//        });
+//        
+//        $(Id('trimButton')).on('click', function () {
+//            that.boxes[0].trimArea();
+//        });
+//        
+//        $(Id('cutButton')).on('click', function() {
+//            that.boxes[0].copy(true);
+//        });
+//        
+//        $(Id('copyButton')).on('click', function() {
+//            that.boxes[0].copy(false);
+//        });
+//        
+//        $(Id('pasteButton')).on('click', function () {
+//            that.boxes[0].paste();
+//        });
+//        
+//        $(Id('undoButton')).on('click', function () {
+//            that.boxes[0].bs.popUndo();
+//        });
+//        
+//        $(Id('redoButton')).on('click', function () {
+//            that.boxes[0].bs.popRedo();
+//        });
+//        
+//        $(Id('pasteTrans')).on('click', function () {
+//            that.boxes[0].togglePaste();
+//        });
     }
 }
 
@@ -849,13 +849,13 @@ function testCompiles(){
 //    alert(ui.boxes.main);
     var b = ui.f[0].boxes.main;
     b.setCurr(setStr);
-    log(b.bd);
+    console.log(b.bd);
     b.makeBox();
 //    b.bd.setArea(
     b.setSelectionRange(10, 20);
 //    selectRange(20, 30);
     var sr = b.getSelectionRange();
-    log(b.getCurr());
+    console.log(b.getCurr());
 }
 
 //$(document).ready();

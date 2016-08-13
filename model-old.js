@@ -294,7 +294,7 @@ function BoxController(outerBox) {
         
     this.setCurr = function(s) {
         currStr = s || document.getElementById(box.id).value;
-        log('setCurr called with ' + currStr);
+        console.log('setCurr called with ' + currStr);
     };
     
     this.getCurr = function() {
@@ -316,7 +316,7 @@ function BoxController(outerBox) {
     
     // Sets currStr to an empty box string
     this.resetCurrStr = function() {
-        log('resetCurrStr called');
+        console.log('resetCurrStr called');
         var i;
         var j;
         var border = box.hasBorders ? '|' : '';

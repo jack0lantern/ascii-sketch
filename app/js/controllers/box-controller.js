@@ -1016,9 +1016,10 @@ var ui = (function () {
             }
         };
         
-        
+    // TODO: correct    
     this.shiftCurrHoriz = function(units) {
         var newStr = '';
+        var spaces = SettingService.spaces;
         var padSpaces = spaces.substring(0, units);
         var i;
         var startIdx = 0;
@@ -1037,7 +1038,7 @@ var ui = (function () {
             return;
 
         for (i = 0; i < r; i++) {
-            temp = this.getLine(i, false);
+            temp = getLine(i, false);
             if (units > 0)
                 newStr += padSpaces;
             newStr += temp.substring(startIdx, endIdx);
@@ -1050,15 +1051,19 @@ var ui = (function () {
 //        this.pushUndo(); //TODO
     };
     
+    // TODO: correct
     this.shiftCurrVert = function(units) {
         var newStr = '';
         var i;
         var lineLen;
         var startIdx = 0;
         var endIdx = self.currStr.length;
+        var spaces = SettingService.spaces;
         units = parseInt(units);
 
         lineLen = spaces.length;
+        console.log(spaces);
+        console.log('linelen' + lineLen);
         if (units > 0) {
             units = Math.min(r, units); // in case the user puts a number > rows
             startIdx += units*lineLen;

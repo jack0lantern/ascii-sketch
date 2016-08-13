@@ -9,7 +9,7 @@ $(document).ready(
             // Set up each box in the HTML
             for(b in ui.f[i].boxes) {
                 var currBox = ui.f[i].boxes[b];
-                currBox.makeBox();
+//                currBox.makeBox();
             }
         }
 
