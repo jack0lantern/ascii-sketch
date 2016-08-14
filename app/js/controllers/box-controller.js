@@ -58,45 +58,8 @@ function Box(id, rows, cols, settings) {  // TODO: little privacy here
         return position.pos;
     };
     
-    // functions, mind you
-    this.getCurr = this.bs.getCurr;
-    this.setCurr = this.bs.setCurr;
-
     this.resetCurrStr = this.bs.resetCurrStr;
-    
-    // returns the row index from the cursor position.
-    this.getRow = function(pos) {// put in ui.js  - done
-        return Math.floor(pos / (this.hasBorders ? (this.c + 2) : (this.c + 1)));
-    };
 
-    // returns the col index from the cursor position.
-    this.getCol = function(pos) {// put in ui.js - done
-        return pos % (this.hasBorders ? (this.c + 2) : (this.c + 1));
-    };
-    
-    // return the textarea index of the character at a specified row and col
-    this.positionFromCoordinates = function(ri, ci) {// put in ui.js - done
-       return ri * (this.hasBorders ? (this.c + 2) : (this.c + 1)) + ci; 
-    };
-    
-    // display the borders, or don't display the borders.
-    this.toggleBorders = function() {
-        var temp = '';
-        var offset;
-
-        this.setPos();
-        
-        this.bs.writeBorders(this.hasBorders);
-        this.hasBorders = !this.hasBorders;
-
-        if (this.hasBorders)
-            document.getElementById(this.id).cols = this.c + 1;
-
-        this.bd.setArea();
-        offset = this.hasBorders ? Math.floor(this.getPos() / (this.c + 1)): -Math.floor(this.getPos() / (this.c + 2));   // adjust cursor for newly removed or inserted borders
-        log('this.getPos() new ' + (this.getPos()));
-        this.setCaretToPos(this.getPos() + offset);
-    };
     
     this.togglePaste = function() {
         this.settings.pasteTransparent = !this.settings.pasteTransparent;
@@ -143,14 +106,6 @@ function Box(id, rows, cols, settings) {  // TODO: little privacy here
     this.setCaretToPos = function(pos) {
         log('setCaretToPos Calledddddddd ' + pos);
         this.setSelectionRange(pos, pos);
-    };
-    
-    this.confirmReset = function() {// put in ui.js
-        var reset = confirm('Are you sure you want to clear the image? All your work will be lost. Press OK to continue or Cancel to cancel.');
-        if (reset) {
-            this.makeBox(parseInt(document.getElementById('h').value), parseInt(document.getElementById('w').value));
-            this.bs.clearStacks();
-        }
     };
     
     this.makeBox = function(rows, cols) {
@@ -207,17 +162,6 @@ function Box(id, rows, cols, settings) {  // TODO: little privacy here
         boxObj.on('dragstart', function() {return false;});
         boxObj.on('drop', function() {return false;});
     }
-    
-    // Grow or shrink the textarea's dimensions while maintaining content as much as possible. Chops off content on shrink, adds spaces on grow.
-    this.changeBox = function(rows, cols) {
-        rows = Math.min(parseInt(rows), MAX_BOX_HEIGHT);
-        cols = Math.min(parseInt(cols), MAX_BOX_WIDTH);
-        this.bs.changeCurrStrDims(rows, cols);
-        this.bd.setArea();
-        this.r = rows;
-        this.c = cols;
-        this.bd.adjustBox();
-    };
     
     
 //    onkeydown:
@@ -878,10 +822,12 @@ var ui = (function () {
             if (hasBorders) {
                 this.cols = c + 1;
                 offset = -Math.floor(position / (c + 2));
+                SettingService.spaces = SettingService.spaces.substring(0, c) + '\n';
             }
             else {
                 this.cols = c + 2;
                 offset = Math.floor(position / (c + 1));
+                SettingService.spaces = SettingService.spaces.substring(0, c) + '|\n';
             }
             writeBorders();
 
@@ -902,6 +848,7 @@ var ui = (function () {
         
         // returns the line at a given row index. This cuts off the ending \n.
         // Mostly a helper.
+        // TODO: refactor so that withNewLine false also trims off border
         function getLine (line, withNewLine) {    // lines are 0 indexed
             if (line < r) {
                 var str = '';
@@ -935,6 +882,8 @@ var ui = (function () {
             console.log(self.currStr);
         }
         
+        
+        // Grow or shrink the textarea's dimensions while maintaining content as much as possible. Chops off content on shrink, adds spaces on grow.
         function adjustCurrStr () {
             console.log('adjustCurrStr called hasBorders: ' + hasBorders);
             var newHeight = SettingService.getHeight();
@@ -1000,92 +949,108 @@ var ui = (function () {
         function setCaretToPos (pos) {
             log('setCaretToPos Calledddddddd ' + pos);
             setSelectionRange(pos, pos);
-        };
+        }
         
         function setSelectionRange (selectionStart, selectionEnd) {
-            if (this.setSelectionRange) {
-                this.focus();
-                this.setSelectionRange(selectionStart, selectionEnd);
+            if (self.setSelectionRange) {
+                self.focus();
+                self.setSelectionRange(selectionStart, selectionEnd);
             }
-            else if (this.createTextRange) {
-                var range = this.createTextRange();
+            else if (self.createTextRange) {
+                var range = self.createTextRange();
                 range.collapse(true);
                 range.moveEnd('character', selectionEnd);
                 range.moveStart('character', selectionStart);
                 range.select();
             }
+        }
+        
+            
+        // returns the row index from the cursor position.
+        function getRow (pos) {// put in ui.js  - done
+            return Math.floor(pos / (hasBorders ? (c + 2) : (c + 1)));
+        }
+
+        // returns the col index from the cursor position.
+        function getCol (pos) {// put in ui.js - done
+            return pos % (hasBorders ? (c + 2) : (c + 1));
+        }
+            
+        // return the textarea index of the character at a specified row and col
+        function positionFromCoordinates (ri, ci) {// put in ui.js - done
+           return ri * (hasBorders ? (c + 2) : (c + 1)) + ci; 
         };
         
-        
-    // TODO: correct    
-    this.shiftCurrHoriz = function(units) {
-        var newStr = '';
-        var spaces = SettingService.spaces;
-        var padSpaces = spaces.substring(0, units);
-        var i;
-        var startIdx = 0;
-        var endIdx = c;
-        
-        units = parseInt(units);
-        if (units > 0) {
-            units = Math.min(c, units); // in case the user puts a number > cols
-            endIdx -= units;
-        }
-        else if (units < 0) {
-            units = Math.max(-c, units);
-            startIdx -= units;
-        }
-        else
-            return;
+        // 
+        this.shiftCurrHoriz = function(units) {
+            var newStr = '';
+            var spaces = SettingService.spaces;
+            var padSpaces = spaces.substring(0, Math.abs(units));
+            var i;
+            var startIdx = 0;
+            var endIdx = c;
 
-        for (i = 0; i < r; i++) {
-            temp = getLine(i, false);
-            if (units > 0)
-                newStr += padSpaces;
-            newStr += temp.substring(startIdx, endIdx);
-            if (units < 0)
-                newStr += padSpaces;
-            newStr += this.hasBorders ? '|' : '';
-            newStr += i < (r - 1) ? '\n' : '';
-        }
-        self.currStr = newStr;
-//        this.pushUndo(); //TODO
-    };
-    
-    // TODO: correct
-    this.shiftCurrVert = function(units) {
-        var newStr = '';
-        var i;
-        var lineLen;
-        var startIdx = 0;
-        var endIdx = self.currStr.length;
-        var spaces = SettingService.spaces;
-        units = parseInt(units);
+            units = parseInt(units);
+            if (units > 0) {
+                units = Math.min(c, units); // in case the user puts a number > cols
+                endIdx -= units;
+            }
+            else if (units < 0) {
+                units = Math.max(-c, units);
+                startIdx -= units;
+            }
+            else
+                return;
 
-        lineLen = spaces.length;
-        console.log(spaces);
-        console.log('linelen' + lineLen);
-        if (units > 0) {
-            units = Math.min(r, units); // in case the user puts a number > rows
-            startIdx += units*lineLen;
-        }
-        else if (units < 0) {
-            units = Math.max(-r, units);
-            endIdx += units*lineLen;
-        }
-        else
-            return;
+            for (i = 0; i < r; i++) {
+                temp = getLine(i, false);
+                if (units > 0)
+                    newStr += padSpaces;
+                newStr += temp.substring(startIdx, endIdx);
+                if (units < 0)
+                    newStr += padSpaces;
+                newStr += hasBorders ? '|' : '';
+                newStr += i < (r - 1) ? '\n' : '';
+            }
+            self.currStr = newStr;
+    //        this.pushUndo(); //TODO
+        };
 
-        if (units < 0) {
-            for (i = 0; i < Math.abs(units); i++)
-                newStr += spaces;
-        }
-        newStr += self.currStr.substring(startIdx, endIdx);
-        if (units > 0) {
-            newStr += '\n';
-            for (i = 0; i < Math.abs(units); i++)
-                newStr += spaces;
-            newStr = newStr.substring(0, newStr.length - 1); // take off the last \n
+        //
+        this.shiftCurrVert = function(units) {
+            console.log('currstr b4 shiftvert: \n' + self.currStr);
+            var newStr = '';
+            var i;
+            var lineLen;
+            var startIdx = 0;
+            var endIdx = self.currStr.length;
+            var spaces = SettingService.spaces;
+            units = parseInt(units);
+
+            lineLen = spaces.length;
+            console.log(spaces);
+            console.log('linelen' + lineLen);
+            if (units > 0) {
+                units = Math.min(r, units); // in case the user puts a number > rows
+                startIdx += units*lineLen;
+            }
+            else if (units < 0) {
+                units = Math.max(-r, units);
+                endIdx += units*lineLen;
+            }
+            else
+                return;
+
+            if (units < 0) {
+                for (i = 0; i < Math.abs(units); i++)
+                    newStr += spaces;
+            }
+            newStr += self.currStr.substring(startIdx, endIdx);
+            if (units > 0) {
+                newStr += '\n';
+                for (i = 0; i < Math.abs(units); i++)
+                    newStr += spaces;
+                newStr = newStr.substring(0, newStr.length - 1); // take off the last \n
         }
 
         self.currStr = newStr;

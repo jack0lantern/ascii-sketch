@@ -259,7 +259,8 @@
         ~~~~~~~~    ~~~~~~~~   ~~~~~~~~  ~~~~~~~~    ~~~~~~~~  ~~~~~
         -->
             <span id="debug">{{ hello }}</span>
-            <textarea asc-box rows="{{ box.rows }}" cols="{{ box.cols }}" ng-model="box.currStr"></textarea>
+            <!-- How odd, angular enables trimming in ngmodel by default. http://stackoverflow.com/questions/14958418/how-to-disable-trimming-of-inputs-in-angularjs -->
+            <textarea asc-box rows="{{ box.rows }}" cols="{{ box.cols }}" ng-model="box.currStr" ng-trim="false"></textarea>
             <textarea style="display: none">{{ box.currStr }}</textarea>
         </div>
         <iframe src="../tests.html" style="height: 1000px; width: 700px;position: relative; top: 170px"></iframe>
