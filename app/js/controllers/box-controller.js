@@ -978,7 +978,7 @@ var ui = (function () {
             console.log('adjustbox called r ' + r + ' c ' + c);
             console.log(self);
             self.rows = r + 1;
-            self.cols = c + 1;
+            self.cols = c + (hasBorders? 2 : 1);
             console.log('rows ' + self.rows + ' cols ' + self.cols);
         }
         
