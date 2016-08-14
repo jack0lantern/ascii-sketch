@@ -1018,7 +1018,6 @@ var ui = (function () {
 
         //
         this.shiftCurrVert = function(units) {
-            console.log('currstr b4 shiftvert: \n' + self.currStr);
             var newStr = '';
             var i;
             var lineLen;
@@ -1028,8 +1027,6 @@ var ui = (function () {
             units = parseInt(units);
 
             lineLen = spaces.length;
-            console.log(spaces);
-            console.log('linelen' + lineLen);
             if (units > 0) {
                 units = Math.min(r, units); // in case the user puts a number > rows
                 startIdx += units*lineLen;
