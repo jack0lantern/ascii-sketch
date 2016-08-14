@@ -58,9 +58,6 @@ function Box(id, rows, cols, settings) {  // TODO: little privacy here
         return position.pos;
     };
     
-    this.resetCurrStr = this.bs.resetCurrStr;
-
-    
     this.togglePaste = function() {
         this.settings.pasteTransparent = !this.settings.pasteTransparent;
     };
@@ -88,20 +85,7 @@ function Box(id, rows, cols, settings) {  // TODO: little privacy here
       return [startPos, endPos];
     };
     
-    this.setSelectionRange = function(selectionStart, selectionEnd) {
-        var input = document.getElementById(this.id);
-        if (input.setSelectionRange) {
-            input.focus();
-            input.setSelectionRange(selectionStart, selectionEnd);
-        }
-        else if (input.createTextRange) {
-            var range = input.createTextRange();
-            range.collapse(true);
-            range.moveEnd('character', selectionEnd);
-            range.moveStart('character', selectionStart);
-            range.select();
-        }
-    };
+    
     
     this.setCaretToPos = function(pos) {
         log('setCaretToPos Calledddddddd ' + pos);
@@ -837,6 +821,79 @@ var ui = (function () {
             hasBorders = !hasBorders;
         };
         
+        // 
+        this.shiftCurrHoriz = function(units) {
+            var newStr = '';
+            var spaces = SettingService.spaces;
+            var padSpaces = spaces.substring(0, Math.abs(units));
+            var i;
+            var startIdx = 0;
+            var endIdx = c;
+
+            units = parseInt(units);
+            if (units > 0) {
+                units = Math.min(c, units); // in case the user puts a number > cols
+                endIdx -= units;
+            }
+            else if (units < 0) {
+                units = Math.max(-c, units);
+                startIdx -= units;
+            }
+            else
+                return;
+
+            for (i = 0; i < r; i++) {
+                temp = getLine(i, false);
+                if (units > 0)
+                    newStr += padSpaces;
+                newStr += temp.substring(startIdx, endIdx);
+                if (units < 0)
+                    newStr += padSpaces;
+                newStr += hasBorders ? '|' : '';
+                newStr += i < (r - 1) ? '\n' : '';
+            }
+            self.currStr = newStr;
+    //        this.pushUndo(); //TODO
+        };
+
+        //
+        this.shiftCurrVert = function(units) {
+            var newStr = '';
+            var i;
+            var lineLen;
+            var startIdx = 0;
+            var endIdx = self.currStr.length;
+            var spaces = SettingService.spaces;
+            units = parseInt(units);
+
+            lineLen = spaces.length;
+            if (units > 0) {
+                units = Math.min(r, units); // in case the user puts a number > rows
+                startIdx += units*lineLen;
+            }
+            else if (units < 0) {
+                units = Math.max(-r, units);
+                endIdx += units*lineLen;
+            }
+            else
+                return;
+
+            if (units < 0) {
+                for (i = 0; i < Math.abs(units); i++)
+                    newStr += spaces;
+            }
+            newStr += self.currStr.substring(startIdx, endIdx);
+            if (units > 0) {
+                newStr += '\n';
+                for (i = 0; i < Math.abs(units); i++)
+                    newStr += spaces;
+                newStr = newStr.substring(0, newStr.length - 1); // take off the last \n
+            }
+
+            self.currStr = newStr;
+    //        this.pushUndo(); //TODO
+        };
+        
         // Init
         self.makeBox();
         
@@ -951,7 +1008,9 @@ var ui = (function () {
             setSelectionRange(pos, pos);
         }
         
+        // not working yet
         function setSelectionRange (selectionStart, selectionEnd) {
+            console.log('setselectionrange called');
             if (self.setSelectionRange) {
                 self.focus();
                 self.setSelectionRange(selectionStart, selectionEnd);
@@ -981,77 +1040,19 @@ var ui = (function () {
            return ri * (hasBorders ? (c + 2) : (c + 1)) + ci; 
         };
         
-        // 
-        this.shiftCurrHoriz = function(units) {
-            var newStr = '';
-            var spaces = SettingService.spaces;
-            var padSpaces = spaces.substring(0, Math.abs(units));
-            var i;
-            var startIdx = 0;
-            var endIdx = c;
-
-            units = parseInt(units);
-            if (units > 0) {
-                units = Math.min(c, units); // in case the user puts a number > cols
-                endIdx -= units;
+        function setSelectionRange (selectionStart, selectionEnd) {
+            var input = document.getElementById(this.id);
+            if (input.setSelectionRange) {
+                input.focus();
+                input.setSelectionRange(selectionStart, selectionEnd);
             }
-            else if (units < 0) {
-                units = Math.max(-c, units);
-                startIdx -= units;
+            else if (input.createTextRange) {
+                var range = input.createTextRange();
+                range.collapse(true);
+                range.moveEnd('character', selectionEnd);
+                range.moveStart('character', selectionStart);
+                range.select();
             }
-            else
-                return;
-
-            for (i = 0; i < r; i++) {
-                temp = getLine(i, false);
-                if (units > 0)
-                    newStr += padSpaces;
-                newStr += temp.substring(startIdx, endIdx);
-                if (units < 0)
-                    newStr += padSpaces;
-                newStr += hasBorders ? '|' : '';
-                newStr += i < (r - 1) ? '\n' : '';
-            }
-            self.currStr = newStr;
-    //        this.pushUndo(); //TODO
         };
-
-        //
-        this.shiftCurrVert = function(units) {
-            var newStr = '';
-            var i;
-            var lineLen;
-            var startIdx = 0;
-            var endIdx = self.currStr.length;
-            var spaces = SettingService.spaces;
-            units = parseInt(units);
-
-            lineLen = spaces.length;
-            if (units > 0) {
-                units = Math.min(r, units); // in case the user puts a number > rows
-                startIdx += units*lineLen;
-            }
-            else if (units < 0) {
-                units = Math.max(-r, units);
-                endIdx += units*lineLen;
-            }
-            else
-                return;
-
-            if (units < 0) {
-                for (i = 0; i < Math.abs(units); i++)
-                    newStr += spaces;
-            }
-            newStr += self.currStr.substring(startIdx, endIdx);
-            if (units > 0) {
-                newStr += '\n';
-                for (i = 0; i < Math.abs(units); i++)
-                    newStr += spaces;
-                newStr = newStr.substring(0, newStr.length - 1); // take off the last \n
-        }
-
-        self.currStr = newStr;
-//        this.pushUndo(); //TODO
-    };
     }]);
 }) (window.angular);
