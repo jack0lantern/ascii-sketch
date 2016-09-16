@@ -1,7 +1,6 @@
 // LEFT TO DO:
 /*
 // TODO: DELETE ALL DEBUG SECTIONS
-// TODO: Don't use upward references to the outer box in Boxstencil and Boxdisplay
 // TODO: Replace all two-element arrays representing points with Point objs, and ranges with PointRange objs 
 
 var drawModes = Object.freeze({
@@ -26,29 +25,6 @@ var tabs = Object.freeze({
 // A box is a logical contrcut representing an individual textarea ("canvas") in which a user can draw on. It by itself should not have the ability to "draw" on itself, but a BoxStencil does that.
 // @param id: String stored with no #
 function Box(id, rows, cols, settings) {  // TODO: little privacy here
-    this.r = rows;//
-    this.c = cols;//
-    this.id = id;//
-    this.bs = new BoxController(this);//
-    this.bd = new BoxDisplay(this);//
-    // id of the containing div
-    this.container = 'boxes';//
-    this.settings = settings;//
-
-    var that = this;//
-    var hasBorders = false;//
-    var position = 0;//
-    var range = [0, 0];//
-    var wrap = true;    // TODO: this doesn't get used.
-    var mouseDown = false;//
-    
-    var MAX_BOX_HEIGHT = 1000;//
-    var MAX_BOX_WIDTH = 1000;//
-    
-    this.setPos = function() { // put in ui.js
-        var tempPos = $(Id(this.id)).getCursorPosition();
-        return position = new Point(this.getRow(tempPos), this.getCol(tempPos), tempPos); //position is the OLD location of the cursor before typing
-    };
     
     this.getPosPoint = function() {
         return position;
@@ -61,32 +37,7 @@ function Box(id, rows, cols, settings) {  // TODO: little privacy here
     this.togglePaste = function() {
         this.settings.pasteTransparent = !this.settings.pasteTransparent;
     };
-    
-    // http://stackoverflow.com/questions/275761/how-to-get-selected-text-from-textbox-control-with-javascript
-    // returns a two-element array of the selection's start and end indices
-    this.getSelectionRange = function() {
-        var textComponent = document.getElementById(this.id);
-        var startPos;
-        var endPos;
-      // IE version
-      if (document.selection != undefined)
-      {
-        textComponent.focus();
-        var sel = document.selection.createRange();
-        startPos = sel.startOffset;
-        endPos = sel.endOffset;
-      }
-      // Mozilla version
-      else if (textComponent.selectionStart != undefined)
-      {
-        startPos = textComponent.selectionStart;
-        endPos = textComponent.selectionEnd;
-      }
-      return [startPos, endPos];
-    };
-    
-    
-    
+        
     this.setCaretToPos = function(pos) {
         log('setCaretToPos Calledddddddd ' + pos);
         this.setSelectionRange(pos, pos);
@@ -379,54 +330,6 @@ function Box(id, rows, cols, settings) {  // TODO: little privacy here
             this.settings.fillMode = 'transparent';
     };
     
-    // ranges is an array of ranges of indexes in which to fill with charToPut
-    // inside the box's canvas
-    // loadRanges takes ranges and displays them according to the settings
-    this.loadRanges = function(charToPut, ranges, colDiff) {
-        this.setPos();
-        this.setBlockRadioSettings();
-
-        // ASSERT ranges[0][0] is defined
-        if(ranges[0][0] === undefined)
-            return;
-        this.bs.assignCurrByRange(charToPut, ranges, colDiff, this.settings);
-        this.bd.setArea();
-        log('this.getPos() in loadranges' + this.getPos());
-        this.setCaretToPos(this.getPos() + 1);
-    };
-
-    // Draws a line of copies of a character, repeated as frequently as possible over an interval specified by the user's selection
-    // TODO: refactor for loadranges use
-    this.getLineRanges = function(start, end) {// TODO: split
-        var startRow = start.row, endRow = end.row;
-        var startCol = Math.min(start.col, this.c - 1), endCol = Math.min(end.col, this.c - 1);
-        
-        // note: rowDiff always >= 0, same CANNOT be said for colDiff
-        var rowDiff = endRow - startRow, colDiff = endCol - startCol;
-        var rowsMoreThanCols = rowDiff > Math.abs(colDiff);
-        var d = rowDiff / colDiff;
-        d = d || 0; // in case d is NaN due to 0/0
-        var colSgn = Math.sign(colDiff);
-        var ranges = [];
-        var rounder = Math.round;
-        
-        if (rowsMoreThanCols) {
-            for(var row = 0; row <= rowDiff; ++row) {
-                var currentCol = rounder(row / d);
-                var point = this.positionFromCoordinates(startRow + row, Math.min(startCol + currentCol, this.c - 1));
-                addToRanges(point, ranges);
-            }
-        }
-        else {
-            for(var col = 0; col <= Math.abs(colDiff); col += 1) {
-                var currentRow = rounder(Math.abs(col * d));
-                var point = this.positionFromCoordinates(startRow + currentRow, Math.min(startCol + colSgn*col, this.c - 1));
-                addToRanges(point, ranges);
-            }
-        }
-        return ranges;
-    };
-
     // Create the range set for a block and load it
     this.getBlockRanges = function(start, end) {// TODO: split
         var startRow = start.row, endRow = end.row;
@@ -775,7 +678,7 @@ var ui = (function () {
         
         var hasBorders = false;
         var position = 0;
-        var range = null;
+        var range = null; // TODO: need position if we have range?
         var mouseDown = false;
 
         var MAX_BOX_HEIGHT = 1000;
@@ -794,6 +697,10 @@ var ui = (function () {
             SettingService.focused = self;
             console.log(SettingService.focused);
             console.log('post reset make box currstr ' + $scope.box.currStr);
+        };
+        
+        self.setPosPoint = function (pointOfOrigin) {
+            position = new Point(getRow(pointOfOrigin), getCol(pointOfOrigin), pointOfOrigin);
         };
         
         // rangeArray: [beginIndex, endIndex]
@@ -831,7 +738,6 @@ var ui = (function () {
             writeBorders();
 
             console.log('position new ' + position);
-            setCaretToPos(position + offset);
             
             hasBorders = !hasBorders;
         };
@@ -924,8 +830,6 @@ var ui = (function () {
             log('this r ' + r);
             log('this c ' + c);
 
-            var range = this.getSelectionRange(document.getElementById(this.id));
-
             if (window.event) { // IE					
                     unicode = e.keyCode;
             } else
@@ -936,33 +840,32 @@ var ui = (function () {
             if (!(e.altKey || e.ctrlKey) && unicode) {
                 e.preventDefault();
 
-                var row = this.getPosPoint().row;
-                var d = this.getPosPoint().col;
+                var row = position.row;
+                var d = position.col;
                 if (d >= c) { 
-                    this.setCaretToPos(this.positionFromCoordinates(this.getPosPoint().row + 1, 0));
-                    return;
+                    return position.pos + 1;
                 }
 
-                var startPoint = new Point(this.getRow(range[0]), this.getCol(range[0]), range[0]), 
-                    endPoint   = new Point(this.getRow(range[1]), this.getCol(range[1]), range[1]);
+                var startPoint = new Point(getRow(range[0]), getCol(range[0]), range[0]), 
+                    endPoint   = new Point(getRow(range[1]), getCol(range[1]), range[1]);
 
-
+console.log(startPoint);
                 // TODO: SO much repetitive code! There must be a better design.
                 switch (SettingService.mode) {
                     case 'line':
-                        ranges = this.getLineRanges(startPoint, endPoint);
+                        ranges = getLineRanges(startPoint, endPoint);
                         break;
 
                     case 'block':
-                        ranges = this.getBlockRanges(startPoint, endPoint);
+                        ranges = getBlockRanges(startPoint, endPoint);
                         break;
 
                     case 'bucket':
-                        ranges = this.getBucketRanges(startPoint);
+                        ranges = getBucketRanges(startPoint);
                         break;
 
                     case 'circle':                      
-                        ranges = this.getEllipseRanges(startPoint, endPoint);
+                        ranges = getEllipseRanges(startPoint, endPoint);
                         break;
 
                     default:
@@ -970,9 +873,11 @@ var ui = (function () {
                         console.log('invalid mode');
                 }
 
-                log(ranges);
+                console.log(ranges);
                 // TODO: by using PointRange, get rid of colDiff arg/param
-                this.loadRanges(String.fromCharCode(unicode), ranges, Math.abs(endPoint.col - startPoint.col) + 1);
+                // return this info and run loadranges in directive
+                loadRanges(String.fromCharCode(unicode), ranges, Math.abs(endPoint.col - startPoint.col) + 1);
+                return position.pos + 1;
             }
             else if (e.ctrlKey) {  
                 // event listeners do CUT/COPY/PASTE. Should have event listeners for undo/redo too? Would have to build from scratch, as there is no built-in event for them
@@ -985,7 +890,6 @@ var ui = (function () {
 //                    popRedo(); // TODO
                 }
             }
-            this.setFooterCoords();
         };
 
         this.nonKeyPress = function(e) {// TODO: split
@@ -1058,6 +962,44 @@ var ui = (function () {
                 return str;
             }
             return '';
+        }
+        
+        // ranges is an array of ranges of indexes in which to fill with charToPut
+        // inside the box's canvas
+        // loadRanges takes ranges and displays them according to the settings
+        function loadRanges (charToPut, ranges, colDiff) {
+            // ASSERT ranges[0][0] is defined
+            if (ranges[0][0] === undefined)
+                return;
+            
+            var fillLine = '';
+            var newStr = '';
+            var appendage = '';
+
+            for (var i = 0; i < c; i++)
+                fillLine += charToPut;
+
+            if (SettingService.fillMode === 'custom') 
+                for (var i = 0; i < colDiff; i++) 
+                    appendage += SettingService.fillChar;
+            else
+                appendage = fillLine;
+
+            newStr = self.currStr.substring(0, ranges[0][0]);
+
+            for (var i = 0; i < ranges.length; i++) {
+                var endIndex = ranges[i][1] - ranges[i][0] + 1;
+                newStr += fillLine.substring(0, endIndex);
+                if (i < ranges.length - 1) {
+                    if (SettingService.mode === 'bucket' || SettingService.fillMode === 'transparent' || getRow(ranges[i][1]) != getRow(ranges[i + 1][0]))
+                        newStr += self.currStr.substring(ranges[i][1] + 1, ranges[i + 1][0]);
+                    else
+                        newStr += appendage.substring(0, ranges[i + 1][0] - ranges[i][1] - 1);                            
+                }
+                else
+                    newStr += self.currStr.substring(ranges[i][1] + 1);
+            }
+            self.currStr = newStr;
         }
         
         // Sets currStr to an empty box string
@@ -1144,11 +1086,6 @@ var ui = (function () {
             }
             self.currStr = newStr;
         }
-        
-        function setCaretToPos (pos) {
-            log('setCaretToPos Calledddddddd ' + pos);
-            setSelectionRange(pos, pos);
-        }
             
         // returns the row index from the cursor position.
         function getRow (pos) {// put in ui.js  - done
@@ -1163,6 +1100,43 @@ var ui = (function () {
         // return the textarea index of the character at a specified row and col
         function positionFromCoordinates (ri, ci) {// put in ui.js - done
            return ri * (hasBorders ? (c + 2) : (c + 1)) + ci; 
+        };
+        
+        // Draws a line of copies of a character, repeated as frequently as possible over an interval specified by the user's selection
+        // TODO: refactor for loadranges use
+        function getLineRanges (start, end) {// TODO: split
+            var startRow = start.row, endRow = end.row;
+            var startCol = Math.min(start.col, c - 1), endCol = Math.min(end.col, c - 1);
+
+            // note: rowDiff always >= 0, same CANNOT be said for colDiff
+            var rowDiff = endRow - startRow, colDiff = endCol - startCol;
+            console.log(colDiff);
+            var rowsMoreThanCols = rowDiff > Math.abs(colDiff);
+            var d = rowDiff / colDiff;
+            d = d || 0; // in case d is NaN due to 0/0
+            var colSgn = Math.sign(colDiff);
+            var ranges = [];
+            var rounder = Math.round;
+
+            if (rowsMoreThanCols) {
+                for(var row = 0; row <= rowDiff; ++row) {
+                    var currentCol = rounder(row / d);
+                    var point = positionFromCoordinates(startRow + row, Math.min(startCol + currentCol, c - 1));
+                    addToRanges(point, ranges);
+                }
+            }
+            else {
+                console.log('else');
+                for(var col = 0; col <= Math.abs(colDiff); ++col) {
+                    var currentRow = rounder(Math.abs(col * d));
+                    var point = positionFromCoordinates(startRow + currentRow, Math.min(startCol + colSgn*col, c - 1));
+                    console.log('for point ');
+                    console.log(point);
+                    addToRanges(point, ranges);
+                }
+            }
+            console.log('getlineranges ranges' + ranges);
+            return ranges;
         };
     }]);
 }) (window.angular);

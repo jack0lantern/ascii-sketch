@@ -29,7 +29,7 @@
                 }
             }
         }
-
+        
         return {
             restrict: 'A',
             controller: 'BoxController',
@@ -46,11 +46,16 @@
                     scope.caret.setGetPos();
                     mousedown = false;
                 };
-                element.on('keydown keyup click', function(event) {
-                    scope.$apply(function() {
-                        scope.caret.get = controller.coordsFromRange(getPos(element[0]));
-                    });
+                
+                element.on('keydown', function (event) {
+                    var drawOutputs = controller.changeChar(event);
+                    setPos(element[0], drawOutputs);
                 });
+//                element.on('keydown keyup click', function(event) {
+//                    scope.$apply(function() {
+//                        scope.caret.get = controller.coordsFromRange(getPos(element[0]));
+//                    });
+//                });
                 scope.$watch('caret.set', function(newVal) {
                     if (typeof newVal === 'undefined') return;
                     setPos(element[0], newVal);
