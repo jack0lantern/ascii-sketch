@@ -700,6 +700,7 @@ var ui = (function () {
         };
         
         self.setPosPoint = function (pointOfOrigin) {
+            console.log('pospoint ' + pointOfOrigin);
             position = new Point(getRow(pointOfOrigin), getCol(pointOfOrigin), pointOfOrigin);
         };
         
@@ -876,7 +877,9 @@ console.log(startPoint);
                 console.log(ranges);
                 // TODO: by using PointRange, get rid of colDiff arg/param
                 // return this info and run loadranges in directive
+                
                 loadRanges(String.fromCharCode(unicode), ranges, Math.abs(endPoint.col - startPoint.col) + 1);
+                console.log(position);
                 return position.pos + 1;
             }
             else if (e.ctrlKey) {  
@@ -1000,6 +1003,8 @@ console.log(startPoint);
                     newStr += self.currStr.substring(ranges[i][1] + 1);
             }
             self.currStr = newStr;
+            $scope.$apply();
+                
         }
         
         // Sets currStr to an empty box string
@@ -1126,16 +1131,12 @@ console.log(startPoint);
                 }
             }
             else {
-                console.log('else');
                 for(var col = 0; col <= Math.abs(colDiff); ++col) {
                     var currentRow = rounder(Math.abs(col * d));
                     var point = positionFromCoordinates(startRow + currentRow, Math.min(startCol + colSgn*col, c - 1));
-                    console.log('for point ');
-                    console.log(point);
                     addToRanges(point, ranges);
                 }
             }
-            console.log('getlineranges ranges' + ranges);
             return ranges;
         };
     }]);

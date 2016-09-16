@@ -41,25 +41,34 @@
                         scope.caret.get = controller.coordsFromRange(getPos(element[0]));
                     }
                 }
-                scope.caret.setMousedown = function() { mousedown = true; };
+                scope.caret.setMousedown = function() { 
+                    mousedown = true; 
+                };
                 scope.caret.setMouseup = function() {
                     scope.caret.setGetPos();
                     mousedown = false;
                 };
                 
-                element.on('keydown', function (event) {
+                element.on('keypress', function (event) {
+                    console.log(event.keyCode);
+                    
+                    controller.setPosPoint(getPos(element[0])[0]);
+                    controller.coordsFromRange(getPos(element[0])); // consider ridding position and using range always
                     var drawOutputs = controller.changeChar(event);
+                    console.log('drawoutput ' + drawOutputs);
                     setPos(element[0], drawOutputs);
                 });
+                
 //                element.on('keydown keyup click', function(event) {
 //                    scope.$apply(function() {
 //                        scope.caret.get = controller.coordsFromRange(getPos(element[0]));
 //                    });
 //                });
-                scope.$watch('caret.set', function(newVal) {
-                    if (typeof newVal === 'undefined') return;
-                    setPos(element[0], newVal);
-                });
+                // No watch because we want immediate 2-way binding
+//                scope.$watch('caret.set', function(newVal) {
+//                    if (typeof newVal === 'undefined') return;
+//                    setPos(element[0], newVal);
+//                });
             }
         };
     });
