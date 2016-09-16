@@ -10,6 +10,7 @@
         // Currently, a row of width spaces with a border (if toggled) and \n at the end 
         this.spaces = '';
         this.focused = null;
+        this.mode = 'line';
         
         this.confirmReset = function () {
             var reset = confirm('Are you sure you want to clear the image? All your work will be lost. Press OK to continue or Cancel to cancel.');

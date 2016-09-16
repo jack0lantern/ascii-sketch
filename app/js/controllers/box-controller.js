@@ -545,14 +545,14 @@ function Box(id, rows, cols, settings) {  // TODO: little privacy here
     };
     
     // Clears the box dimensions area of the footer and sets mouseDown
-    this.setMouseDown = function() {
+    this.setMouseDown = function() { // 
         mouseDown = true;
         log('setMouseDown ' + mouseDown);
         log('position of cursor ' + this.getPos());
     };
     
     // Sets mouseDown false.
-    this.setMouseUp = function() {
+    this.setMouseUp = function() { //
         mouseDown = false;
         log('setMouseUp ' + mouseDown);
         log('position of cursor ' + this.getPos());
@@ -689,7 +689,7 @@ function Frame (settings_, window_) {
             that.boxes[0].bd.toggleFill(that.settings);
         });
 
-        $(Id('toggleBorders')).on('click', function() {
+        $(Id('toggleBorders')).on('click', function() {//
             that.boxes[0].toggleBorders(); 
         });
         
@@ -697,19 +697,19 @@ function Frame (settings_, window_) {
             that.boxes[0].paste();
         });
         
-        $(Id('resetButton')).on('click', function() { 
+        $(Id('resetButton')).on('click', function() { //
             that.boxes[0].confirmReset();
         });
         
-        $(Id('changeButton')).on('click', function() {
+        $(Id('changeButton')).on('click', function() {//
             that.boxes[0].changeBox(document.getElementById('h').value, document.getElementById('w').value);
         });
         
-        $(Id('shiftVertButton')).on('click', function() {
+        $(Id('shiftVertButton')).on('click', function() {//
             that.boxes[0].shiftVert(document.getElementById('shiftValue').value);
         });
         
-        $(Id('shiftHorizButton')).on('click', function() {
+        $(Id('shiftHorizButton')).on('click', function() {//
             that.boxes[0].shiftHoriz(document.getElementById('shiftValue').value);
         });
         
@@ -781,6 +781,10 @@ var ui = (function () {
         var MAX_BOX_HEIGHT = 1000;
         var MAX_BOX_WIDTH = 1000;
         
+        self.log = function (txt) {
+            console.log(txt);
+        };
+        
         // public functions
         self.makeBox = function (h, w) {
             console.log('makebox h: ' + h + 'w: ' + w);
@@ -790,6 +794,17 @@ var ui = (function () {
             SettingService.focused = self;
             console.log(SettingService.focused);
             console.log('post reset make box currstr ' + $scope.box.currStr);
+        };
+        
+        // rangeArray: [beginIndex, endIndex]
+        self.coordsFromRange = function (rangeArray) {
+            range = rangeArray;
+            var display = [getRow(rangeArray[0]), getCol(rangeArray[0])].join(', ') 
+            
+            if (rangeArray[0] != rangeArray[1]) {
+                display += ') -- (' +  [getRow(rangeArray[1]), getCol(rangeArray[1])].join(', ');
+            }
+            return display;
         };
         
         // Keeps the contents, changes the canvas dimensions. Previously, changeBox. 
@@ -857,7 +872,7 @@ var ui = (function () {
         };
 
         //
-        this.shiftCurrVert = function(units) {
+        self.shiftCurrVert = function(units) {
             var newStr = '';
             var i;
             var lineLen;
@@ -894,6 +909,132 @@ var ui = (function () {
     //        this.pushUndo(); //TODO
         };
         
+        //    onkeydown:
+        //    1. script runs
+        //    2. key executes
+        //    a a a a ... a   | \n
+        //    0 1 2 3 ... c-1 c c+1
+        //
+        //    TODO should do nothing on (but no preventDefault()):
+        //    esc, f1, f2, ... f12, prtsc, (ins?), home, end, pgUp, pgDown, tab, capslock, shift(unless its with a char), ctrl, alt, windows, command, apple, arrow keys, menu, scroll lock, num lock
+        //    
+        this.changeChar = function(e) {// TODO: split
+            var unicode = null;
+
+            log('this r ' + r);
+            log('this c ' + c);
+
+            var range = this.getSelectionRange(document.getElementById(this.id));
+
+            if (window.event) { // IE					
+                    unicode = e.keyCode;
+            } else
+                if (e.which) { // Netscape/Firefox/Opera					
+                    unicode = e.which;
+                 }
+
+            if (!(e.altKey || e.ctrlKey) && unicode) {
+                e.preventDefault();
+
+                var row = this.getPosPoint().row;
+                var d = this.getPosPoint().col;
+                if (d >= c) { 
+                    this.setCaretToPos(this.positionFromCoordinates(this.getPosPoint().row + 1, 0));
+                    return;
+                }
+
+                var startPoint = new Point(this.getRow(range[0]), this.getCol(range[0]), range[0]), 
+                    endPoint   = new Point(this.getRow(range[1]), this.getCol(range[1]), range[1]);
+
+
+                // TODO: SO much repetitive code! There must be a better design.
+                switch (SettingService.mode) {
+                    case 'line':
+                        ranges = this.getLineRanges(startPoint, endPoint);
+                        break;
+
+                    case 'block':
+                        ranges = this.getBlockRanges(startPoint, endPoint);
+                        break;
+
+                    case 'bucket':
+                        ranges = this.getBucketRanges(startPoint);
+                        break;
+
+                    case 'circle':                      
+                        ranges = this.getEllipseRanges(startPoint, endPoint);
+                        break;
+
+                    default:
+                        ranges = null;
+                        console.log('invalid mode');
+                }
+
+                log(ranges);
+                // TODO: by using PointRange, get rid of colDiff arg/param
+                this.loadRanges(String.fromCharCode(unicode), ranges, Math.abs(endPoint.col - startPoint.col) + 1);
+            }
+            else if (e.ctrlKey) {  
+                // event listeners do CUT/COPY/PASTE. Should have event listeners for undo/redo too? Would have to build from scratch, as there is no built-in event for them
+                if (e.which === CHAR_Z) {
+                    e.preventDefault(); // this doesn't actually seem to prevent the default undo action for other textboxes
+//                    popUndo();// TODO
+                }
+                else if (e.which === CHAR_Y) {
+                    e.preventDefault();
+//                    popRedo(); // TODO
+                }
+            }
+            this.setFooterCoords();
+        };
+
+        this.nonKeyPress = function(e) {// TODO: split
+            if (!(e.altKey || e.ctrlKey)) {
+                var unicode = null;
+                if (window.event) { // IE					
+                        unicode = e.keyCode;
+                }else
+                    if (e.which) { // Netscape/Firefox/Opera					
+                        unicode = e.which;
+                     }
+
+                this.setPos();
+                this.setCurr();
+                var d = this.getPosPoint().col;
+
+                // the below should be in model.js TODOs
+                if (unicode === BACKSPACE) {
+                    if (d > c || d == 0) {
+                        e.preventDefault();
+                    }
+                    else {
+                        this.setCurr(this.getCurr().substring(0, this.getPos()) + ' ' +  this.getCurr().substring(this.getPos()));
+                        this.bd.setArea();
+                        this.setCaretToPos(this.getPos());
+                    }
+                }
+                else if (unicode === DELETE) { 
+                    if (d >= c)
+                        e.preventDefault();
+                    else {
+                        this.setCurr(this.getCurr().substring(0, this.getPos() + 1) + CHAR_SPACE + this.getCurr().substring(this.getPos() + 1));
+                        this.bd.setArea();
+                        this.setCaretToPos(this.getPos());
+                    }
+                }
+                else if (unicode === ENTER) { // TODO: remember where user started typing
+                    e.preventDefault();
+                    this.setCaretToPos(this.positionFromCoordinates(this.getPosPoint().row + 1, this.getPosPoint().col));
+                }
+                else if (unicode === SHIFT) {
+                    if (mouseDown) {
+                        // Insert code to straighten selection line here
+                    }
+                }
+            }
+            this.setFooterCoords();
+        };
+        
         // Init
         self.makeBox();
         
@@ -901,6 +1042,7 @@ var ui = (function () {
         function setDims (h, w) {
             r = parseInt(h || r);
             c = parseInt(w || c);
+            console.log('setdims called with r: ' + r + ' and c: ' + c);
         }
         
         // returns the line at a given row index. This cuts off the ending \n.
@@ -1007,23 +1149,6 @@ var ui = (function () {
             log('setCaretToPos Calledddddddd ' + pos);
             setSelectionRange(pos, pos);
         }
-        
-        // not working yet
-        function setSelectionRange (selectionStart, selectionEnd) {
-            console.log('setselectionrange called');
-            if (self.setSelectionRange) {
-                self.focus();
-                self.setSelectionRange(selectionStart, selectionEnd);
-            }
-            else if (self.createTextRange) {
-                var range = self.createTextRange();
-                range.collapse(true);
-                range.moveEnd('character', selectionEnd);
-                range.moveStart('character', selectionStart);
-                range.select();
-            }
-        }
-        
             
         // returns the row index from the cursor position.
         function getRow (pos) {// put in ui.js  - done
@@ -1038,21 +1163,6 @@ var ui = (function () {
         // return the textarea index of the character at a specified row and col
         function positionFromCoordinates (ri, ci) {// put in ui.js - done
            return ri * (hasBorders ? (c + 2) : (c + 1)) + ci; 
-        };
-        
-        function setSelectionRange (selectionStart, selectionEnd) {
-            var input = document.getElementById(this.id);
-            if (input.setSelectionRange) {
-                input.focus();
-                input.setSelectionRange(selectionStart, selectionEnd);
-            }
-            else if (input.createTextRange) {
-                var range = input.createTextRange();
-                range.collapse(true);
-                range.moveEnd('character', selectionEnd);
-                range.moveStart('character', selectionStart);
-                range.select();
-            }
         };
     }]);
 }) (window.angular);
