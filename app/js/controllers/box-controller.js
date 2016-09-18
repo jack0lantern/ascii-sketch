@@ -330,135 +330,12 @@ function Box(id, rows, cols, settings) {  // TODO: little privacy here
             this.settings.fillMode = 'transparent';
     };
     
-    // Create the range set for a block and load it
-    this.getBlockRanges = function(start, end) {// TODO: split
-        var startRow = start.row, endRow = end.row;
-        var startCol = Math.min(start.col, this.c - 1), endCol = Math.min(end.col, this.c - 1);
-        startCol = Math.min(startCol, this.c - 1);
-        endCol = Math.min(endCol, this.c - 1);
-        // note: rowDiff always >= 0, same CANNOT be said for colDiff
-        var rowDiff = endRow - startRow, colDiff = endCol - startCol; 
-        
-        if (rowDiff === 0 || colDiff === 0) {
-            return this.getLineRanges(start, end);
-        }
-
-        var trueStart = this.positionFromCoordinates(startRow, startCol);
-        var ranges = [[trueStart, trueStart + endCol - startCol], [this.positionFromCoordinates(endRow, startCol), this.positionFromCoordinates(endRow, endCol)]];
-
-        for (var i = 1; i < endRow - startRow; i++) {
-            addToRanges(this.positionFromCoordinates(startRow + i, startCol), ranges);
-            addToRanges(this.positionFromCoordinates(startRow + i, endCol), ranges);
-        }
-        return ranges;
-    };
-
-    // Put all the ranges of currStr that must be changes to user-input char into ranges
-    this.getEllipseRanges = function(start, end) {
-        var startRow = start.row;
-        var endRow = end.row;
-        
-        var startCol = Math.min(start.col, end.col), endCol = Math.max(start.col, end.col);
-        startCol = Math.min(startCol, this.c - 1);
-        endCol = Math.min(endCol, this.c - 1);
-        
-        var xRad = (endCol - startCol) / 2,
-            yRad = (endRow - startRow) / 2;
-
-        // Corner case
-        if (yRad === 0) {
-            return [[start.pos, end.pos]];
-        }
-        
-        var xLim = Math.ceil(xRad);
-        var yLim = Math.ceil(yRad);
-        var xDen = xRad * xRad;
-        var yDen = yRad * yRad;
-
-        var ranges = [];
-
-        var col;
-        var row;
-
-        for (var y = 0; y < Math.min(2 * yLim, this.r - 1 - startRow); y++) {
-            col = startCol + Math.round(-Math.sqrt((1 - Math.pow(y - yRad, 2)/yDen)*xDen) + xRad);
-            addToRanges(this.positionFromCoordinates(startRow + y, col), ranges);
-
-            col = startCol + Math.round(Math.sqrt((1 - Math.pow(y - yRad, 2)/yDen)*xDen) + xRad);
-            addToRanges(this.positionFromCoordinates(startRow + y, col), ranges);
-        }
-
-        // For the octant, xLim is the stopping point, but use 2*xLim-Pivot to mirror it across the y axis. Cuz math.
-        for (var x = 0; x <= Math.min(2 * xLim, this.c - 1 - startCol); x++) {
-            row = startRow + Math.round(-Math.sqrt((1 - Math.pow(x - xRad, 2)/xDen)*yDen) + yRad);
-            addToRanges(this.positionFromCoordinates(row, startCol + x), ranges);
-
-            row = startRow + Math.round(Math.sqrt((1 - Math.pow(x - xRad, 2)/xDen)*yDen) + yRad);
-            addToRanges(this.positionFromCoordinates(row, startCol + x), ranges);
-        }
-        //alert(ranges);
-        return ranges;
-    }
-
-    this.shouldEnqueue = function(toReplace, pos, visited) {
-        return visited[pos] === undefined && pos >= 0 && this.getRow(pos) < this.r && this.getCol(pos) < this.c && this.getCurr().charAt(pos) === toReplace;
-    };
-    
-    // Determine a list of ranges in which to assign the new character (in ranges, 
-    // a array of two-element range arrays, which are inclusive endpoints)
-    // A dynamic approach
-    this.dynBucketHelper = function(ranges, toReplace, posPt) {// put in model.js
-        var toCheckQ = new Queue();
-        var visited = [];
-
-        toCheckQ.enqueue(posPt);
-        visited[posPt.pos] = true;
-
-        while(!toCheckQ.isEmpty()) {
-            var currentPosPt = toCheckQ.dequeue().item;
-            var currentPos = currentPosPt.pos;
-            addToRanges(currentPos, ranges);
-            
-            var posToCheck;
-            if (this.shouldEnqueue(toReplace, posToCheck = this.positionFromCoordinates(currentPosPt.row + 1, currentPosPt.col), visited)) {
-                toCheckQ.enqueue(new Point(currentPosPt.row + 1, currentPosPt.col, posToCheck));
-                visited[posToCheck] = true;
-            }
-            if (this.shouldEnqueue(toReplace, posToCheck = currentPos + 1, visited)) {
-                toCheckQ.enqueue(new Point(currentPosPt.row, currentPosPt.col + 1, posToCheck));
-                visited[posToCheck] = true;
-            }
-            if (this.shouldEnqueue(toReplace, posToCheck = currentPos - 1, visited)) {
-                toCheckQ.enqueue(new Point(currentPosPt.row, currentPosPt.col - 1, posToCheck));
-                visited[posToCheck] = true;
-            }
-            if (this.shouldEnqueue(toReplace, posToCheck = this.positionFromCoordinates(currentPosPt.row - 1, currentPosPt.col), visited)) {
-                toCheckQ.enqueue(new Point(currentPosPt.row - 1, currentPosPt.col, posToCheck));
-                visited[posToCheck] = true;
-            }
-        }
-    };
-    
     this.getBucketRanges = function(start) {
         var charToFlood = this.getCurr().charAt(start.pos);
         var ranges = [];
         this.dynBucketHelper(ranges, charToFlood, start);
         //bucketHelper(ranges, charToFlood, [], start);
         return ranges;
-    };
-    
-    // Clears the box dimensions area of the footer and sets mouseDown
-    this.setMouseDown = function() { // 
-        mouseDown = true;
-        log('setMouseDown ' + mouseDown);
-        log('position of cursor ' + this.getPos());
-    };
-    
-    // Sets mouseDown false.
-    this.setMouseUp = function() { //
-        mouseDown = false;
-        log('setMouseUp ' + mouseDown);
-        log('position of cursor ' + this.getPos());
     };
     
     var popUndo = function() {
@@ -471,27 +348,7 @@ function Box(id, rows, cols, settings) {  // TODO: little privacy here
 }
 
 function BoxDisplay(outerBox) {
-    var box = outerBox;
-//    * puts whatever is in currStr in the textarea.
-//     * An essential function to call before performing any kind of text area
-//     * manipulation. 
-    this.setArea = function() {// put in ui.js
-    //    alert("ui.js: " + document.getElementById(box.id));
-        assert(document.getElementById(box.id), 'invalid box id');
-        document.getElementById(box.id).value = box.getCurr();
-        log('setarea getcurr: ' + box.getCurr());
-    };
-
-    // Sets the box's dimensions to its logical values
-    this.adjustBox = function() {//
-        document.getElementById(box.id).rows = box.r + 1;
-        document.getElementById(box.id).cols = box.c + 1;
-
-        // The below has not been adjusted to respond to boxes of differing size.
-        document.getElementById('h').value = box.r;
-        document.getElementById('w').value = box.c;
-    };
-
+    
     // boxObj is a jquery object representing the canvas box
     this.displayBox = function() {//
         var boxCode = '<textarea id="' + box.id + '" spellcheck="false"></textarea>';
@@ -828,9 +685,6 @@ var ui = (function () {
         this.changeChar = function(e) {// TODO: split
             var unicode = null;
 
-            log('this r ' + r);
-            log('this c ' + c);
-
             if (window.event) { // IE					
                     unicode = e.keyCode;
             } else
@@ -1139,5 +993,115 @@ console.log(startPoint);
             }
             return ranges;
         };
+        
+        // Create the range set for a block and load it
+        function getBlockRanges (start, end) {// TODO: split
+            var startRow = start.row, endRow = end.row;
+            var startCol = Math.min(start.col, c - 1), endCol = Math.min(end.col, c - 1);
+            startCol = Math.min(startCol, c - 1);
+            endCol = Math.min(endCol, c - 1);
+            // note: rowDiff always >= 0, same CANNOT be said for colDiff
+            var rowDiff = endRow - startRow, colDiff = endCol - startCol; 
+
+            if (rowDiff === 0 || colDiff === 0) {
+                return getLineRanges(start, end);
+            }
+
+            var trueStart = positionFromCoordinates(startRow, startCol);
+            var ranges = [[trueStart, trueStart + endCol - startCol], [positionFromCoordinates(endRow, startCol), positionFromCoordinates(endRow, endCol)]];
+
+            for (var i = 1; i < endRow - startRow; i++) {
+                addToRanges(positionFromCoordinates(startRow + i, startCol), ranges);
+                addToRanges(positionFromCoordinates(startRow + i, endCol), ranges);
+            }
+            return ranges;
+        }
+
+        // Put all the ranges of currStr that must be changes to user-input char into ranges
+        function getEllipseRanges (start, end) {
+            var startRow = start.row;
+            var endRow = end.row;
+
+            var startCol = Math.min(start.col, end.col), endCol = Math.max(start.col, end.col);
+            startCol = Math.min(startCol, c - 1);
+            endCol = Math.min(endCol, c - 1);
+
+            var xRad = (endCol - startCol) / 2,
+                yRad = (endRow - startRow) / 2;
+
+            // Corner case
+            if (yRad === 0) {
+                return [[start.pos, end.pos]];
+            }
+
+            var xLim = Math.ceil(xRad);
+            var yLim = Math.ceil(yRad);
+            var xDen = xRad * xRad;
+            var yDen = yRad * yRad;
+
+            var ranges = [];
+
+            var col;
+            var row;
+
+            for (var y = 0; y < Math.min(2 * yLim, r - 1 - startRow); y++) {
+                col = startCol + Math.round(-Math.sqrt((1 - Math.pow(y - yRad, 2)/yDen)*xDen) + xRad);
+                addToRanges(positionFromCoordinates(startRow + y, col), ranges);
+
+                col = startCol + Math.round(Math.sqrt((1 - Math.pow(y - yRad, 2)/yDen)*xDen) + xRad);
+                addToRanges(positionFromCoordinates(startRow + y, col), ranges);
+            }
+
+            // For the octant, xLim is the stopping point, but use 2*xLim-Pivot to mirror it across the y axis. Cuz math.
+            for (var x = 0; x <= Math.min(2 * xLim, c - 1 - startCol); x++) {
+                row = startRow + Math.round(-Math.sqrt((1 - Math.pow(x - xRad, 2)/xDen)*yDen) + yRad);
+                addToRanges(positionFromCoordinates(row, startCol + x), ranges);
+
+                row = startRow + Math.round(Math.sqrt((1 - Math.pow(x - xRad, 2)/xDen)*yDen) + yRad);
+                addToRanges(positionFromCoordinates(row, startCol + x), ranges);
+            }
+            //alert(ranges);
+            return ranges;
+        }
+
+        function shouldEnqueue (toReplace, pos, visited) {
+            return visited[pos] === undefined && pos >= 0 && getRow(pos) < r && getCol(pos) < c && getCurr().charAt(pos) === toReplace;
+        }
+
+        // Determine a list of ranges in which to assign the new character (in ranges, 
+        // a array of two-element range arrays, which are inclusive endpoints)
+        // A dynamic approach
+        function dynBucketHelper (ranges, toReplace, posPt) {// put in model.js
+            var toCheckQ = new Queue();
+            var visited = [];
+
+            toCheckQ.enqueue(posPt);
+            visited[posPt.pos] = true;
+
+            while(!toCheckQ.isEmpty()) {
+                var currentPosPt = toCheckQ.dequeue().item;
+                var currentPos = currentPosPt.pos;
+                addToRanges(currentPos, ranges);
+
+                var posToCheck;
+                if (shouldEnqueue(toReplace, posToCheck = positionFromCoordinates(currentPosPt.row + 1, currentPosPt.col), visited)) {
+                    toCheckQ.enqueue(new Point(currentPosPt.row + 1, currentPosPt.col, posToCheck));
+                    visited[posToCheck] = true;
+                }
+                if (shouldEnqueue(toReplace, posToCheck = currentPos + 1, visited)) {
+                    toCheckQ.enqueue(new Point(currentPosPt.row, currentPosPt.col + 1, posToCheck));
+                    visited[posToCheck] = true;
+                }
+                if (shouldEnqueue(toReplace, posToCheck = currentPos - 1, visited)) {
+                    toCheckQ.enqueue(new Point(currentPosPt.row, currentPosPt.col - 1, posToCheck));
+                    visited[posToCheck] = true;
+                }
+                if (shouldEnqueue(toReplace, posToCheck = positionFromCoordinates(currentPosPt.row - 1, currentPosPt.col), visited)) {
+                    toCheckQ.enqueue(new Point(currentPosPt.row - 1, currentPosPt.col, posToCheck));
+                    visited[posToCheck] = true;
+                }
+            }
+        }
+    
     }]);
 }) (window.angular);

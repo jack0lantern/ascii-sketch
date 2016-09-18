@@ -31,11 +31,11 @@
         <script defer src="js/controllers/box-controller.js"></script>
         
         <script defer src="js/services/setting-service.js"></script>
-        
+        <!--
         <script defer src="../model-old.js"></script>
         <script defer src="../ui-old.js"></script>
         <script defer src="../ascii2-old.js"></script>
-        <!---->
+        -->
     </head>
 
     <body ng-app="AsciiApp" ng-controller="MainController as main">
@@ -122,11 +122,7 @@
                 
                 <div class="tab_data" id="draw_content" style="display: block">
                     <section id="draw_buttons">
-                        <img src="img/line.png" class="tool active_tool" id="line" />
-                        <img src="img/square.png" class="tool" id="block" />
-                        <br />
-                        <img src="img/bucket.png" class="tool" id="bucket" />
-                        <img src="img/circle.png" class="tool" id="circle" />
+                        <img ng-repeat="mode in set.modes" src="{{ mode.path }}" class="tool" ng-class="set.getActiveClass(mode)" ng-click="set.setMode(mode)" />
                     </section>
                     <section id="fill_options">
                         <label for="fill">Fill</label> <input type="checkbox" id="fill" name="Phil"><span id="fillOptions"></span>
