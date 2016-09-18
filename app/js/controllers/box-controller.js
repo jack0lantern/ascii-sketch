@@ -1065,7 +1065,7 @@ console.log(startPoint);
         }
 
         function shouldEnqueue (toReplace, pos, visited) {
-            return visited[pos] === undefined && pos >= 0 && getRow(pos) < r && getCol(pos) < c && getCurr().charAt(pos) === toReplace;
+            return visited[pos] === undefined && pos >= 0 && getRow(pos) < r && getCol(pos) < c && self.currStr.charAt(pos) === toReplace;
         }
 
         // Determine a list of ranges in which to assign the new character (in ranges, 
@@ -1103,5 +1103,13 @@ console.log(startPoint);
             }
         }
     
+        function getBucketRanges (start) {
+            var charToFlood = self.currStr.charAt(start.pos);
+            var ranges = [];
+            dynBucketHelper(ranges, charToFlood, start);
+            //bucketHelper(ranges, charToFlood, [], start);
+            return ranges;
+        }
+        
     }]);
 }) (window.angular);
