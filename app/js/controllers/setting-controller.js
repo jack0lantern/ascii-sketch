@@ -3,6 +3,8 @@
         // Initialize UI values
         var self = this;
         self.shiftValue = SettingService.shiftValue;
+        self.selectedMode = SettingService.mode;
+        
         self.modes = [
             {
                 name: 'line',
@@ -39,11 +41,10 @@
         
         self.setMode = function (mode) {
             SettingService.mode = mode.name;
-            console.log(mode.name);
-            self.selectedMode = mode;
+            self.selectedMode = mode.name;
         };
         self.getActiveClass = function (mode) {
-            return (self.selectedMode === mode) ? 'active_tool' : '';
+            return (self.selectedMode === mode.name) ? 'active_tool' : '';
         };
     }]);
 }) (window.angular);
