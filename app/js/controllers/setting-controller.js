@@ -4,6 +4,7 @@
         var self = this;
         self.shiftValue = SettingService.shiftValue;
         self.selectedMode = SettingService.mode;
+        self.fillChar = SettingService.fillChar;
         
         self.modes = [
             {
@@ -68,6 +69,23 @@
         
         self.shiftHoriz = function (val) {
             SettingService.shiftHoriz(val);
+        };
+        
+        self.fillToggled = false;
+        self.toggleFill = function () {
+            // The fillToggled check is the NEW value.
+            if (self.fillToggled) {
+                SettingService.fillMode = 'fill';
+            }
+            else {
+                SettingService.fillMode = 'transparent';
+            }
+        };
+        self.setCustom = function () {
+            SettingService.fillMode = 'custom';
+        };
+        self.setFillSame = function () {
+            SettingService.fillMode = 'fill';
         };
     }]);
 }) (window.angular);

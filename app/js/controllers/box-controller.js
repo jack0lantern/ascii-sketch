@@ -253,24 +253,8 @@ function Box(id, rows, cols, settings) {  // TODO: little privacy here
 }
 
 function BoxDisplay(outerBox) {
-    
-
-    // changes the state of fillMode
-    // TODO: refactor HTML injection
-    this.toggleFill = function(settings) {// put in ui.js
-        if (settings.fillMode === 'transparent') {
-            document.getElementById('fillOptions').innerHTML = '<label for="fillChar">with: </label> <br /> <input type="radio" id="fillSame" name="fillOptions" value="same" checked /> <label for="fillSame"> Same characters </label><br /> <input type="radio" id="fillDiff" name="fillOptions" value="diff" /> <label for="fillDiff">This character: </label><input type="text" class="text" id="fillChar" maxlength="1" value=" "  />';
-            $(Id('fillChar')).on('change', function() {
-               box.setBlockRadioSettings(); 
-            });
-        }
-        else {
-            document.getElementById('fillOptions').innerHTML = '';
-        }
-        box.setBlockRadioSettings();
-    }
-}
-
+  }
+  
 // Class constructor representing a collection of boxes and their associated settings. Basically, a wrapper for settings.
 // Currently having only one frame, so window_ is document by default.
 function Frame (settings_, window_) {
@@ -704,6 +688,7 @@ var ui = (function () {
             for (var i = 0; i < c; i++)
                 fillLine += charToPut;
 
+            console.log(SettingService.fillMode);
             if (SettingService.fillMode === 'custom') 
                 for (var i = 0; i < colDiff; i++) 
                     appendage += SettingService.fillChar;
