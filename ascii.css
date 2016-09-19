@@ -210,6 +210,7 @@ button > span {
 #draw_buttons {
     float: left;
     height: 75px;
+    width: 75px;
     margin-right: 10px;
 }
 
