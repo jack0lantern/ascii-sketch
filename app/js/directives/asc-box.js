@@ -50,13 +50,11 @@
                 };
                 
                 element.on('keypress', function (event) {
-                    console.log(event.keyCode);
-                    
                     controller.setPosPoint(getPos(element[0])[0]);
                     controller.coordsFromRange(getPos(element[0])); // consider ridding position and using range always
                     var drawOutputs = controller.changeChar(event);
-                    console.log('drawoutput ' + drawOutputs);
                     setPos(element[0], drawOutputs);
+                    scope.caret.setGetPos();
                 });
                 
 //                element.on('keydown keyup click', function(event) {

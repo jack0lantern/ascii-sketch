@@ -25,6 +25,7 @@
         <!--<script src="js/filters/point-range-filter.js"></script>
         -->
         <script defer src="js/directives/asc-box.js"></script>
+        <script defer src="js/directives/tab-content.js"></script>
         
         <script defer src="js/controllers/main-controller.js"></script>
         <script defer src="js/controllers/setting-controller.js"></script>
@@ -41,174 +42,12 @@
     <body ng-app="AsciiApp" ng-controller="MainController as main">
         <header ng-controller="SettingController as set">
             <div id="tabs">
-                <div class="tab active_tab" id="draw">
-                    <span class="tab_text">Draw</span>
+                <div class="tab" ng-repeat="tab in main.tabs" ng-class=" main.isActiveTab(tab)" ng-click="main.setActiveTab(tab)">
+                    <span class="tab_text">{{ tab.name }}</span>
                 </div>
-                <div class="tab" id="window">
-                    <span class="tab_text">Window</span>
-                </div>
-                <div class="tab" id="edit">
-                    <span class="tab_text">Edit</span>
-                </div>
-                <div class="tab" id="help">
-                    <span class="tab_text">Help</span>
-                </div><!--
-                <div class="tab" id="advanced">
-                    <span class="tab_text">Advanced</span>
-                </div>-->
             </div>
             <div id="tab_content">
-                <div class="tab_data" id="help_content">
-                    <a id="back" href="projects/"><span>Back <br />to <br />Projects</span></a>
-                    <button>DEBUG</button>
-                </div>
-                
-                <div class="tab_data" id="window_content">
-                    <section>
-                        <table>
-                            <tr>
-                                <td colspan="2">
-                                    Canvas dimensions: <br />
-                                </td>
-                            </tr>
-                            <tr>
-                                <td>Height: </td>
-                                <td><input type="text" class="text" ng-model="set.boxHeight" /></td>
-                            </tr>
-                            <tr>
-                                <td>Width: </td>
-                                <td><input type="text" class="text" ng-model="set.boxWidth" /></td>
-                            </tr>
-                        </table>
-                        <table>
-                            <tr>
-                                <td>
-                                    <button ng-click="set.setDims(); main.resetOnConfirm()">Reset </button>
-                                </td>
-                                <td>
-                                    <button ng-click="set.setDims(); main.changeBoxDims()">Change dimensions</button>
-                                </td>
-                            </tr>
-                            <tr>
-                                <td colspan="2">
-                            <input type="checkbox" id="tb" ng-model="main.bordersChecked" ng-change="main.toggleBoxBorders()" style="width: auto" /> <label for="tb">Edge Borders</label>
-                                    </td>
-                            </tr>
-                        </table>
-                    </section>
-                    <section class="left_bar">
-                        <table id="shifts">
-                            <tr>
-                                <td>
-                                    <button id="shiftVertButton" style="margin-top: 15px; margin-left: 10px;" ng-click="main.shiftVert(set.shiftValue)">Shift image up (negative for down) this much: </button>
-                                </td>
-                                <td rowspan="2">
-                                    <input type="text" class="text" id="shiftValue" ng-model="set.shiftValue" value="1" style="margin-right: 10px" />
-                                </td>
-                            </tr>
-                            <tr>
-                                <td>
-                                    <button id="shiftHorizButton" style="margin-top: 5px; margin-left: 10px;" ng-click="main.shiftHoriz(set.shiftValue)">Shift image right (negative for left) this much: </button>
-                                </td>
-                            </tr>
-                        </table>
-                    </section>
-                    <section class="left_bar">
-                        <button id="trimButton" style="margin-left: 10px; height: 50px; margin-top: 10px">
-                            Trim Edges
-                        </button>
-                    </section>
-                </div>
-                
-                <div class="tab_data" id="draw_content" style="display: block">
-                    <section id="draw_buttons">
-                        <img ng-repeat="mode in set.modes" src="{{ mode.path }}" class="tool" ng-class="set.getActiveClass(mode)" ng-click="set.setMode(mode)" />
-                    </section>
-                    <section id="fill_options">
-                        <label for="fill">Fill</label> <input type="checkbox" id="fill" name="Phil"><span id="fillOptions"></span>
-                    </section>
-                    <section id="palette">
-                        
-                        <br />
-
-                    </section>
-                
-                </div>
-                
-                <div class="tab_data" id="edit_content">
-                    <section>
-                        <button id="cutButton">
-                            Cut<br />
-                            <span>(<span class="cmd">Ctrl</span> + X)</span>
-                        </button>
-                        <button id="copyButton">
-                            Copy<br />
-                            <span>(<span class="cmd">Ctrl</span> + C)</span>
-                        </button>
-                        <div style="display: inline-block; margin-right: 10px; text-align: center">
-                            <button id="pasteButton" style="float: none">
-                                Paste<br />
-                                <span>(<span class="cmd">Ctrl</span> + V)</span>
-                            </button><br />
-                            <form autocomplete="off">
-                                <input type="checkbox" id="pasteTrans" />
-                                <label for="pasteTrans" style="display: block; float: left">
-                                    Transparent
-                                </label>
-                            </form>
-                        </div>
-                    </section>
-                    <section class="left_bar">
-                        <button id="undoButton">
-                            Undo<br />
-                            <span>(<span class="cmd">Ctrl</span> + Z)</span>
-                        </button>
-                        <button id="redoButton">
-                            Redo<br />
-                            <span>(<span class="cmd">Ctrl</span> + Y)</span>
-                        </button>
-                    </section>
-                </div>
-                
-                <div class="tab_data" id="advanced_content">
-                    <div id="extra">
-                        <table style="float: left">
-                            <tr>
-                                <!--<td>
-                                    <label for="character">Character: </label>
-                                </td>
-                                <td>
-                                    <input type="text" id="character" maxlength="1" style="width: 12px" value="/" onchange="setCopyLinearArgs()" />
-                                </td>-->
-                            </tr>
-                            <tr>
-                                <td>
-                                    <label for="rise">Rise: </label>
-                                </td>
-                                <td>
-                                    <input type="text" name="rise" id="rise" class="text" style="width: 48px" value="1" />
-                                </td>
-                            </tr>
-                            <tr>
-                                <td>
-                                    <label for="rise">Run: </label>
-                                </td>
-                                <td>
-                                    <input type="text" name="run" id="run" class="text" style="width: 48px" value="1" />
-                                </td>
-                            </tr>
-                            <tr>
-                                <td>
-                                    <label for="rise">Times to copy: </label>
-                                </td>
-                                <td>
-                                    <input type="text" class="text" name="iters" id="iters" style="width: 48px" value="3" />
-                                </td>
-                            </tr>
-                        </table>
-                        <button style="float: left; height: 50px; margin-left: 5px; margin-top: 15px">Print this<br />line at cursor</button>
-                    </div>
-                </div>
+                <tab-content></tab-content>
             </div>
         </header>
         <div id="content">
@@ -256,7 +95,7 @@
         -->
             <span id="debug">{{ hello }}</span>
             <!-- How odd, angular enables trimming in ngmodel by default. http://stackoverflow.com/questions/14958418/how-to-disable-trimming-of-inputs-in-angularjs -->
-            <textarea rows="{{ box.rows }}" cols="{{ box.cols }}" caret="caret" ng-model="box.currStr" ng-change="caret.setGetPos()" ng-mousedown="caret.setMousedown()" ng-mouseup="caret.setMouseup()" ng-mousemove="caret.setGetPos()" ng-trim="false"></textarea>
+            <textarea rows="{{ box.rows }}" cols="{{ box.cols }}" caret="caret" ng-model="box.currStr" ng-keypress="caret.setGetPos()" ng-mousedown="caret.setMousedown()" ng-mouseup="caret.setMouseup()" ng-mousemove="caret.setGetPos()" ng-trim="false"></textarea>
             <textarea style="display: none">{{ box.currStr }}</textarea>
         </div>
         <iframe src="../tests.html" style="height: 1000px; width: 700px;position: relative; top: 170px"></iframe>

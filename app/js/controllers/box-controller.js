@@ -76,10 +76,8 @@ function Box(id, rows, cols, settings) {  // TODO: little privacy here
             log('keydown');
             that.nonKeyPress(event);
         });
-        boxObj.on('keypress', function(event) {
-            log('keypress');
-            that.changeChar(event);
-        });
+
+
         boxObj.on('keyup', function() {
             that.setFooterCoords();
         });
@@ -108,75 +106,7 @@ function Box(id, rows, cols, settings) {  // TODO: little privacy here
 //    TODO should do nothing on (but no preventDefault()):
 //    esc, f1, f2, ... f12, prtsc, (ins?), home, end, pgUp, pgDown, tab, capslock, shift(unless its with a char), ctrl, alt, windows, command, apple, arrow keys, menu, scroll lock, num lock
 //    
-    this.changeChar = function(e) {// TODO: split
-        var unicode = null;
 
-        log('this r ' + this.r);
-        log('this c ' + this.c);
-
-        var range = this.getSelectionRange(document.getElementById(this.id));
-
-        if (window.event) { // IE					
-                unicode = e.keyCode;
-        } else
-            if (e.which) { // Netscape/Firefox/Opera					
-                unicode = e.which;
-             }
-
-        if (!(e.altKey || e.ctrlKey) && unicode) {
-            e.preventDefault();
-            
-            var row = this.getPosPoint().row;
-            var d = this.getPosPoint().col;
-            if (d >= this.c) { 
-                this.setCaretToPos(this.positionFromCoordinates(this.getPosPoint().row + 1, 0));
-                return;
-            }
-
-            var startPoint = new Point(this.getRow(range[0]), this.getCol(range[0]), range[0]), 
-                endPoint   = new Point(this.getRow(range[1]), this.getCol(range[1]), range[1]);
-            
-
-            // TODO: SO much repetitive code! There must be a better design.
-            switch (settings.mode) {
-                case 'line':
-                    ranges = this.getLineRanges(startPoint, endPoint);
-                    break;
-
-                case 'block':
-                    ranges = this.getBlockRanges(startPoint, endPoint);
-                    break;
-
-                case 'bucket':
-                    ranges = this.getBucketRanges(startPoint);
-                    break;
-
-                case 'circle':                      
-                    ranges = this.getEllipseRanges(startPoint, endPoint);
-                    break;
-
-                default:
-                    ranges = null;
-                    console.log('invalid mode');
-            }
-                                
-            log(ranges);
-            // TODO: by using PointRange, get rid of colDiff arg/param
-            this.loadRanges(String.fromCharCode(unicode), ranges, Math.abs(endPoint.col - startPoint.col) + 1);
-        }
-        else if (e.ctrlKey) {  
-            // event listeners do CUT/COPY/PASTE. Should have event listeners for undo/redo too? Would have to build from scratch, as there is no built-in event for them
-            if (e.which === CHAR_Z) {
-                e.preventDefault(); // this doesn't actually seem to prevent the default undo action for other textboxes
-                popUndo();
-            }
-            else if (e.which === CHAR_Y) {
-                e.preventDefault();
-                popRedo();
-            }
-        }
-        this.setFooterCoords();
-    };
 
     this.nonKeyPress = function(e) {// TODO: split
         if (!(e.altKey || e.ctrlKey)) {
@@ -225,23 +155,6 @@ function Box(id, rows, cols, settings) {  // TODO: little privacy here
         this.setFooterCoords();
     };
     
-    this.setFooterCoords = function() { // put in ui.js
-        this.setPos();
-        var selection = this.getSelectionRange($(Id(this.id)));
-        if (DEBUG){
-            document.getElementById('debug').innerHTML = selection + " " + this.getPos() + '\n' + this.getPosPoint().col;
-        }
-        document.getElementById('coords').innerHTML = '(' + this.getPosPoint().col + ', ' + this.getPosPoint().row + ')';
-
-        if (selection[1] - selection[0]) {
-            var x1 = this.getCol(selection[0]), x2 = this.getCol(selection[1]);
-            var y1 = this.getRow(selection[0]), y2 = this.getRow(selection[1]);
-            var xdiff = Math.abs(x2 - x1);
-            var ydiff = Math.abs(y2 - y1);
-            document.getElementById('coords').innerHTML = '(' + x1 + ', ' + y1 + ') -- ' + '(' + x2 + ', ' + y2 + ')';
-            document.getElementById('dims').innerHTML = (xdiff + 1) + ' x ' + (ydiff + 1);
-        }
-    };
     
     // Puts a block selection in the clipboard.
     // If cut is set, we white-space out the block selection in addition.
@@ -330,14 +243,6 @@ function Box(id, rows, cols, settings) {  // TODO: little privacy here
             this.settings.fillMode = 'transparent';
     };
     
-    this.getBucketRanges = function(start) {
-        var charToFlood = this.getCurr().charAt(start.pos);
-        var ranges = [];
-        this.dynBucketHelper(ranges, charToFlood, start);
-        //bucketHelper(ranges, charToFlood, [], start);
-        return ranges;
-    };
-    
     var popUndo = function() {
         that.bs.processPopUndo();
     };
@@ -349,20 +254,7 @@ function Box(id, rows, cols, settings) {  // TODO: little privacy here
 
 function BoxDisplay(outerBox) {
     
-    // boxObj is a jquery object representing the canvas box
-    this.displayBox = function() {//
-        var boxCode = '<textarea id="' + box.id + '" spellcheck="false"></textarea>';
-        document.getElementById(box.container).innerHTML = '<div id="box0">' + boxCode + '</div>';
 
-        var boxObj = $(Id(box.id));
-        this.setArea();
-        this.adjustBox();
-        
-        boxObj.wrap = "off";
-        
-        return boxObj;
-    };
-    
     // changes the state of fillMode
     // TODO: refactor HTML injection
     this.toggleFill = function(settings) {// put in ui.js
@@ -388,18 +280,6 @@ function Frame (settings_, window_) {
     
     this.addBox = function(id, rows, cols) {
         this.boxes.push(new Box(id, rows, cols, this.settings));
-    };
-    
-    // Sets the selection mode to user specified mode
-    // @param newMode: HTML element to set the mode of
-    this.setMode = function(newMode) {
-        var oldSetting = $(Id(this.settings.mode));
-        if (this.settings.mode === 'custom')
-            oldSetting = $(Id('block'));
-        oldSetting.removeClass('active_tool');
-
-        this.settings.mode = newMode.id;
-        $(Id(newMode.id)).addClass('active_tool');
     };
 
     // @param newTab: HTML element (a tab, presumably) to activate
@@ -552,12 +432,9 @@ var ui = (function () {
             resetCurrStr();
             adjustBox();
             SettingService.focused = self;
-            console.log(SettingService.focused);
-            console.log('post reset make box currstr ' + $scope.box.currStr);
         };
         
         self.setPosPoint = function (pointOfOrigin) {
-            console.log('pospoint ' + pointOfOrigin);
             position = new Point(getRow(pointOfOrigin), getCol(pointOfOrigin), pointOfOrigin);
         };
         
@@ -704,7 +581,6 @@ var ui = (function () {
                 var startPoint = new Point(getRow(range[0]), getCol(range[0]), range[0]), 
                     endPoint   = new Point(getRow(range[1]), getCol(range[1]), range[1]);
 
-console.log(startPoint);
                 // TODO: SO much repetitive code! There must be a better design.
                 switch (SettingService.mode) {
                     case 'line':
@@ -728,12 +604,10 @@ console.log(startPoint);
                         console.log('invalid mode');
                 }
 
-                console.log(ranges);
                 // TODO: by using PointRange, get rid of colDiff arg/param
                 // return this info and run loadranges in directive
                 
                 loadRanges(String.fromCharCode(unicode), ranges, Math.abs(endPoint.col - startPoint.col) + 1);
-                console.log(position);
                 return position.pos + 1;
             }
             else if (e.ctrlKey) {  
@@ -749,6 +623,7 @@ console.log(startPoint);
             }
         };
 
+        // returns the new cursor position to set
         this.nonKeyPress = function(e) {// TODO: split
             if (!(e.altKey || e.ctrlKey)) {
                 var unicode = null;
@@ -759,9 +634,7 @@ console.log(startPoint);
                         unicode = e.which;
                      }
 
-                this.setPos();
-                this.setCurr();
-                var d = this.getPosPoint().col;
+                var d = position.pos.col;
 
                 // the below should be in model.js TODOs
                 if (unicode === BACKSPACE) {
@@ -769,23 +642,20 @@ console.log(startPoint);
                         e.preventDefault();
                     }
                     else {
-                        this.setCurr(this.getCurr().substring(0, this.getPos()) + ' ' +  this.getCurr().substring(this.getPos()));
-                        this.bd.setArea();
-                        this.setCaretToPos(this.getPos());
+                        self.currStr = self.currStr.substring(0, position.pos) + CHAR_SPACE +  self.currStr.substring(position.pos);
+                        return position.pos;
                     }
                 }
                 else if (unicode === DELETE) { 
                     if (d >= c)
                         e.preventDefault();
                     else {
-                        this.setCurr(this.getCurr().substring(0, this.getPos() + 1) + CHAR_SPACE + this.getCurr().substring(this.getPos() + 1));
-                        this.bd.setArea();
-                        this.setCaretToPos(this.getPos());
+                        self.currStr = self.currStr.substring(0, position.pos + 1) + CHAR_SPACE + self.currStr.substring(position.pos + 1);
                     }
                 }
                 else if (unicode === ENTER) { // TODO: remember where user started typing
                     e.preventDefault();
-                    this.setCaretToPos(this.positionFromCoordinates(this.getPosPoint().row + 1, this.getPosPoint().col));
+                    return positionFromCoordinates(position.row + 1, position.col);
                 }
                 else if (unicode === SHIFT) {
                     if (mouseDown) {
@@ -793,7 +663,6 @@ console.log(startPoint);
                     }
                 }
             }
-            this.setFooterCoords();
         };
         
         // Init
@@ -803,7 +672,6 @@ console.log(startPoint);
         function setDims (h, w) {
             r = parseInt(h || r);
             c = parseInt(w || c);
-            console.log('setdims called with r: ' + r + ' and c: ' + c);
         }
         
         // returns the line at a given row index. This cuts off the ending \n.
@@ -863,7 +731,6 @@ console.log(startPoint);
         
         // Sets currStr to an empty box string
         function resetCurrStr () {
-            console.log('resetCurrStr called');
             var border = hasBorders ? '|' : '';
             self.currStr = '';
             // TODO: make a more efficient way to reassign spaces, depending on whether or not the new value is more or less.
@@ -879,7 +746,6 @@ console.log(startPoint);
                 else
                     self.currStr += SettingService.spaces.substring(0, SettingService.spaces.length - 1);  // chop off last \n
             }
-            console.log(self.currStr);
         }
         
         
@@ -924,11 +790,8 @@ console.log(startPoint);
         }
         
         function adjustBox () {
-            console.log('adjustbox called r ' + r + ' c ' + c);
-            console.log(self);
             self.rows = r + 1;
             self.cols = c + (hasBorders? 2 : 1);
-            console.log('rows ' + self.rows + ' cols ' + self.cols);
         }
         
         function writeBorders() {
@@ -969,7 +832,6 @@ console.log(startPoint);
 
             // note: rowDiff always >= 0, same CANNOT be said for colDiff
             var rowDiff = endRow - startRow, colDiff = endCol - startCol;
-            console.log(colDiff);
             var rowsMoreThanCols = rowDiff > Math.abs(colDiff);
             var d = rowDiff / colDiff;
             d = d || 0; // in case d is NaN due to 0/0
