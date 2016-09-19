@@ -46,5 +46,28 @@
         self.getActiveClass = function (mode) {
             return (self.selectedMode === mode.name) ? 'active_tool' : '';
         };
+        
+        // Modifiers
+        self.resetOnConfirm = function () {
+            console.log('resetonconfirm called');
+            SettingService.confirmReset();
+        };
+        
+        self.changeBoxDims = function () {
+            SettingService.changeBox();
+        };
+        
+        self.toggleBoxBorders = function () {
+            console.log('toggleboxborders called');
+            SettingService.toggleBorders();
+        };
+        
+        self.shiftVert = function (val) {
+            SettingService.shiftVert(val);
+        };
+        
+        self.shiftHoriz = function (val) {
+            SettingService.shiftHoriz(val);
+        };
     }]);
 }) (window.angular);

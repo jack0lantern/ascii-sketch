@@ -136,7 +136,7 @@ function BoxController(outerBox) {
 // Manage the compnents of ascii-app
 // http://stackoverflow.com/questions/24496201/load-html-template-from-file-into-a-variable-in-angularjs
 (function(angular) {
-    angular.module('AsciiApp').controller('MainController', ['$scope', '$rootScope', '$templateRequest', 'SettingService', function ($scope, $rootScope, $templateRequest, SettingService) {
+    angular.module('AsciiApp').controller('MainController', ['$scope', '$rootScope', '$templateRequest', function ($scope, $rootScope, $templateRequest) {
         var self = this;
 //        console.log($filter);
 //        self.footerCoords = $filter('pointRange')(new Range(new Point(0, 0), null));
@@ -168,29 +168,6 @@ function BoxController(outerBox) {
         
         self.setActiveTab = function (newTab) {
             self.activeTab = newTab;
-        };
-        
-        // TODO: move the below to settingcontroller
-        self.resetOnConfirm = function () {
-            console.log('resetonconfirm called');
-            SettingService.confirmReset();
-        };
-        
-        self.changeBoxDims = function () {
-            SettingService.changeBox();
-        };
-        
-        self.toggleBoxBorders = function () {
-            console.log('toggleboxborders called');
-            SettingService.toggleBorders();
-        };
-        
-        self.shiftVert = function (val) {
-            SettingService.shiftVert(val);
-        };
-        
-        self.shiftHoriz = function (val) {
-            SettingService.shiftHoriz(val);
         };
     }]);
 }) (window.angular);
