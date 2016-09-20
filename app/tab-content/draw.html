@@ -8,11 +8,11 @@
         
         <span id="fillOptions" ng-show="set.fillToggled">
             <label for="fillChar">with: </label><br />
-            <input type="radio" id="fillSame" name="fillOptions" value="same" checked />
+            <input type="radio" id="fillSame" name="fillOptions" checked />
             <label for="fillSame"> Same characters </label><br />
-            <input type="radio" id="fillDiff" name="fillOptions" value="diff" />
+            <input type="radio" id="fillDiff" name="fillOptions" ng-model="set.fillMode" />
             <label for="fillDiff">This character: </label>
-            <input type="text" class="text" maxlength="1" ng-model="set.fillChar" />
+            <input type="text" class="text" maxlength="1"  />
         </span>
     </section>
     <section id="palette">

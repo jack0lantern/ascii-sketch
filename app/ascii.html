@@ -98,7 +98,6 @@
             <textarea rows="{{ box.rows }}" cols="{{ box.cols }}" caret="caret" ng-model="box.currStr" ng-keypress="caret.setGetPos()" ng-mousedown="caret.setMousedown()" ng-mouseup="caret.setMouseup()" ng-mousemove="caret.setGetPos()" ng-trim="false"></textarea>
             <textarea style="display: none">{{ box.currStr }}</textarea>
         </div>
-        <iframe src="../tests.html" style="height: 1000px; width: 700px;position: relative; top: 170px"></iframe>
         <footer>
             <span id="coords">({{ caret.get || '0, 0'}})</span><span id="dims"></span>
         </footer>

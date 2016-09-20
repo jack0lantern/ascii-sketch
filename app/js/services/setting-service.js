@@ -32,5 +32,8 @@
         this.shiftHoriz = function (val) {
             this.focused.shiftCurrHoriz(val);
         };
+        this.trim = function () {
+            this.focused.trim();
+        };
     }]);
 }) (window.angular);

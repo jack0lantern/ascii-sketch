@@ -70,6 +70,9 @@
         self.shiftHoriz = function (val) {
             SettingService.shiftHoriz(val);
         };
+        self.trim = function () {
+            SettingService.trim();
+        };
         
         self.fillToggled = false;
         self.toggleFill = function () {
