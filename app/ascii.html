@@ -42,7 +42,7 @@
     <body ng-app="AsciiApp" ng-controller="MainController as main">
         <header ng-controller="SettingController as set">
             <div id="tabs">
-                <div class="tab" ng-repeat="tab in main.tabs" ng-class=" main.isActiveTab(tab)" ng-click="main.setActiveTab(tab)">
+                <div class="tab" ng-repeat="tab in main.tabs" ng-class="main.isActiveTab(tab)" ng-click="main.setActiveTab(tab)">
                     <span class="tab_text">{{ tab.name }}</span>
                 </div>
             </div>
@@ -95,7 +95,7 @@
         -->
             <span id="debug">{{ hello }}</span>
             <!-- How odd, angular enables trimming in ngmodel by default. http://stackoverflow.com/questions/14958418/how-to-disable-trimming-of-inputs-in-angularjs -->
-            <textarea rows="{{ box.rows }}" cols="{{ box.cols }}" caret="caret" ng-model="box.currStr" ng-keypress="caret.setGetPos()" ng-mousedown="caret.setMousedown()" ng-mouseup="caret.setMouseup()" ng-mousemove="caret.setGetPos()" ng-trim="false"></textarea>
+            <textarea rows="{{ box.rows }}" cols="{{ box.cols }}" caret="caret" ng-model="box.currStr" ng-keypress="caret.setGetPos()" ng-mousedown="caret.setMousedown()" ng-mouseup="caret.setMouseup()" ng-mousemove="caret.setGetPos()" ng-trim="false" spellcheck="false"></textarea>
             <textarea style="display: none">{{ box.currStr }}</textarea>
         </div>
         <footer>
