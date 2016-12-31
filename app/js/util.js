@@ -20,13 +20,13 @@ function inRange(value, a, b) {
     return (a <= value && value <= b) || (b <= value && value <= a);
 }
 
-
 // loop through ranges list, if it is within 1 outside of a range, absorb it, otherwise add new range
 // return the changed range
 // @param value: a number we are adding to the range
 // @param ranges: the ranges array we are adding to
 // NOTE: this is a HUUUGE bottle neck for certain functions like bucket. optimize it
 function addToRanges(value, ranges) {// TODO: put in model.js
+// optimization idea: have object store adjacent indexes as keys and actual indexes as values. finding if a number can be added to an existing range is O(1)
     var changedRange = null;
     assert(ranges, 'ranges is ' + ranges);
     for (var i = 0; i < ranges.length && !changedRange; i++) {
