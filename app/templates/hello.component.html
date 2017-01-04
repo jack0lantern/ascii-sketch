@@ -1,10 +1,9 @@
-<h1>{{title}}</h1>
-<h2>My Heroes</h2>
-<ul class="heroes">
-<li *ngFor="let hero of heroes"
-  [class.selected]="hero === selectedHero"
-  (click)="onSelect(hero)">
-  <span class="badge">{{hero.id}}</span> {{hero.name}}
-</li>
-</ul>
-<my-hero-detail [hero]="selectedHero"></my-hero-detail>
+<setting-bar></setting-bar>
+<!--    <div id="content">
+    <span id="debug">{{ hello }}</span>
+    <textarea rows="{{ box.rows }}" cols="{{ box.cols }}" caret="caret" ng-model="box.currStr" ng-keypress="caret.setGetPos()" ng-mousedown="caret.setMousedown()" ng-mouseup="caret.setMouseup()" ng-mousemove="caret.setGetPos()" ng-trim="false" spellcheck="false"></textarea>
+    <textarea style="display: none">{{ box.currStr }}</textarea>
+</div>
+<footer>
+    <span id="coords">({{ caret.get || '0, 0'}})</span><span id="dims"></span>
+</footer>-->

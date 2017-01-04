@@ -1,7 +1,8 @@
 import { NgModule }      from '@angular/core';
 import { BrowserModule } from '@angular/platform-browser';
 import { FormsModule } from '@angular/forms';
-import { HeroDetailComponent } from './hero-detail.component'
+import { TabContentComponent } from './tab-content.component'
+import { SettingBarComponent } from './setting-bar.component';
 import { HeroService } from './hero.service'
 
 import { AppComponent }  from './app.component';
@@ -11,9 +12,12 @@ import { AppComponent }  from './app.component';
   	BrowserModule, 
   	FormsModule
   ],
-  declarations: [ AppComponent, HeroDetailComponent ],
+  declarations: [ AppComponent, 
+	  TabContentComponent, 
+	  SettingBarComponent 
+  ],
   bootstrap:    [ AppComponent ],
-  providers:	[ HeroService ]
+  providers:	[ HeroService ],
 })
 
 export class AppModule { }
