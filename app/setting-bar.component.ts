@@ -1,7 +1,6 @@
-import { Component, ViewChild, ViewContainerRef, ComponentFactoryResolver } from '@angular/core';
+import { Component, ComponentFactory, ViewChild, ViewContainerRef, ComponentFactoryResolver } from '@angular/core';
 import { Tab } from './tab';
 import { TABS } from './tabs';
-import { HelpTabComponent } from './help-tab.component';
 
 @Component({
 	selector: 'setting-bar',
@@ -17,8 +16,14 @@ export class SettingBarComponent {
 
   ngOnInit(){
     //Magic!
-    const factory = this.resolver.resolveComponentFactory(HelpTabComponent);
-    this.viewContainerRef.createComponent(factory);
+    // this.factory = this.resolver.resolveComponentFactory(HelpTabComponent);
+  	for (let i = 0; i < TABS.length; ++i) {
+
+			const factory = this.resolver.resolveComponentFactory(TABS[i].component);
+
+  		this.viewContainerRef.createComponent(factory);
+  	}		
+		
   }
 
 	// Input()
@@ -27,20 +32,6 @@ export class SettingBarComponent {
 
 	setActiveTab(tab: Tab) : void {
 		this.activeTab = tab;
+
 	}
 }
-
-// export class Test implements OnInit{
-//   @ViewChild('placeholder',  {read: ViewContainerRef}) viewContainerRef;
-//   constructor(
-//     private resolver:ComponentFactoryResolver ,
-//     private viewContainerRef:ViewContainerRef
-//   ){}
-
-//   ngOnInit(){
-//     //Magic!
-//     const factory = this.resolver.resolveComponentFactory(HelpTabComponent);
-//     this.viewContainerRef.createComponent(factory);
-//   }
-
-// }
