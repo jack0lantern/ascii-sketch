@@ -1,25 +1,24 @@
-import { Component, Input, ComponentFactoryResolver } from '@angular/core';
-
+import { Component } from '@angular/core';
+import { Tab } from './tab';
 
 @Component({
-  selector: 'tab-content',
-  template: '<div id="tab_content"></div>',
+  selector: 'my-tabs',
+  templateUrl: 'app/templates/tabs.component.html'
 })
-
 export class TabContentComponent {
-	public constructor(private loader: ComponentFactoryResolver){
-		
+  
+  tabs:Tab[] = [];
+  selected : Tab;
+  
+  addTab(tab:Tab) {
+    if (!this.tabs.length) {
+      tab.selected = true;
     }
-
-    ngOnInit() {
-    
-      @Component({ selector: 'article-' + 1, templateUrl: 'article-' + 1 + '.html' })
-      class ArticleFakeComponent{}
-
-      const childComponent = this.loader.resolveComponentFactory(ArticleFakeComponent);
-
-    }
-
-	@Input()
-	url: string;
+    this.tabs.push(tab);
+  }
+  
+  selectTab(tab:Tab) {
+    this.selected.selected = false;
+    tab.selected = true;    
+  }
 }
