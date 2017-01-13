@@ -1,14 +1,12 @@
-import { Component, /*Directive ,*/ Input, OnInit, ComponentFactoryResolver ,ViewContainerRef } from '@angular/core';
+import { Directive , ViewChild, Input, OnInit, ComponentFactoryResolver ,ViewContainerRef } from '@angular/core';
 
 import { HelpTabComponent } from './help-tab.component';
 
-@Component({
-  selector:'test',
-  template: '<div></div>',
-  entryComponents: [HelpTabComponent],
+@Directive({
+  selector:'test'
 })
 export class Test implements OnInit{
-
+  @ViewChild('placeholder',  {read: ViewContainerRef}) viewContainerRef;
   constructor(
     private resolver:ComponentFactoryResolver ,
     private viewContainerRef:ViewContainerRef
@@ -16,8 +14,8 @@ export class Test implements OnInit{
 
   ngOnInit(){
     //Magic!
-    this.resolver.resolveComponentFactory(HelpTabComponent)
-    .create(this.viewContainerRef.injector);
+    const factory = this.resolver.resolveComponentFactory(HelpTabComponent);
+    this.viewContainerRef.createComponent(factory);
   }
 
 }

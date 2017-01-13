@@ -25,13 +25,13 @@ import { AppComponent }  from './app.component';
   ],
   bootstrap:    [ AppComponent ],
   providers:	[ HeroService ],
-  // entryComponents: [
+  entryComponents: [
 
-  //   HelpTabComponent, 
+    HelpTabComponent, 
   //   EditTabComponent, 
   //   WindowTabComponent,
   //   DrawTabComponent,
-  //   ]
+    ]
 })
 
 export class AppModule { }
