@@ -175,6 +175,11 @@ button > span {
     width: 100%;
 }
 
+#edit_content {
+    position: relative;
+    top: 7px;
+}
+
 #edit_content button {
     height: auto;
     padding: 3px;
@@ -234,10 +239,6 @@ button > span {
     margin-right: 10px;
 }
 
-#edit_content {
-    position: relative;
-    top: 7px;
-}
 
 #extra {
     /*TODO*/

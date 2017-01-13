@@ -1,6 +1,5 @@
 import { Component, ComponentFactory, ViewChild, ViewContainerRef, ComponentFactoryResolver } from '@angular/core';
-import { Tab } from './tab';
-import { TABS } from './tabs';
+import * as tabComponents from './tabs.component';
 
 @Component({
 	selector: 'setting-bar',
@@ -8,7 +7,11 @@ import { TABS } from './tabs';
 })
 
 export class SettingBarComponent {
-  @ViewChild('placeholder',  {read: ViewContainerRef}) viewContainerRef;
+  tabs: any[] = []
+	// Input()
+	activeTab: any
+
+  @ViewChild('placeholder',  {read: ViewContainerRef}) viewContainerRef : any;
   constructor(
     private resolver:ComponentFactoryResolver ,
     // private viewContainerRef:ViewContainerRef
@@ -17,20 +20,23 @@ export class SettingBarComponent {
   ngOnInit(){
     //Magic!
     // this.factory = this.resolver.resolveComponentFactory(HelpTabComponent);
-  	for (let i = 0; i < TABS.length; ++i) {
+  	for (let i in tabComponents) {
+  	// 	let component = {
+			// 	selector: TABS[i].name + '-tab',
+			// 	templateUrl: TABS[i].path,
+			// };
+			// @Component(component) 
+			// class Com {}
 
-			const factory = this.resolver.resolveComponentFactory(TABS[i].component);
+			const factory = this.resolver.resolveComponentFactory(tabComponents[i]);
 
-  		this.viewContainerRef.createComponent(factory);
+  		this.tabs.push(this.viewContainerRef.createComponent(factory).instance);
   	}		
-		
+		this.activeTab = this.tabs[0];
   }
 
-	// Input()
-	activeTab: Tab = TABS[0];
-	tabs: Tab[] = TABS;
 
-	setActiveTab(tab: Tab) : void {
+	setActiveTab(tab: any) : void {
 		this.activeTab = tab;
 
 	}

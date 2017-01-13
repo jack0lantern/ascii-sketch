@@ -3,13 +3,15 @@ import { BrowserModule } from '@angular/platform-browser';
 import { FormsModule } from '@angular/forms';
 import { TabContentComponent } from './tab-content.component'
 import { SettingBarComponent } from './setting-bar.component';
-import { HelpTabComponent } from './help-tab.component';
-import { EditTabComponent } from './edit-tab.component';
-import { WindowTabComponent } from './window-tab.component';
-import { DrawTabComponent } from './draw-tab.component';
+import * as Tabs from './tabs.component';
 import { HeroService } from './hero.service';
 
 import { AppComponent }  from './app.component';
+
+let tabs = [];
+for (let i in Tabs) {
+  tabs.push(Tabs[i]);
+}
 
 @NgModule({
   imports:      [
@@ -19,20 +21,12 @@ import { AppComponent }  from './app.component';
   declarations: [ AppComponent, 
 	  TabContentComponent, 
 	  SettingBarComponent,
-    HelpTabComponent, 
-    EditTabComponent, 
-    WindowTabComponent,
-    DrawTabComponent,
-  ],
+  ].concat(tabs),
   bootstrap:    [ AppComponent ],
   providers:	[ HeroService ],
   entryComponents: [
 
-    HelpTabComponent, 
-    EditTabComponent, 
-    WindowTabComponent,
-    DrawTabComponent,
-    ]
+  ].concat(tabs)
 })
 
 export class AppModule { }
