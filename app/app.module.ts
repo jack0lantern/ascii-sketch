@@ -1,7 +1,6 @@
 import { NgModule }      from '@angular/core';
 import { BrowserModule } from '@angular/platform-browser';
 import { FormsModule } from '@angular/forms';
-import { TabContentComponent } from './tab-content.component'
 import { SettingBarComponent } from './setting-bar.component';
 import * as Tabs from './tabs.component';
 import { HeroService } from './hero.service';
@@ -19,7 +18,6 @@ for (let i in Tabs) {
   	FormsModule
   ],
   declarations: [ AppComponent, 
-	  TabContentComponent, 
 	  SettingBarComponent,
   ].concat(tabs),
   bootstrap:    [ AppComponent ],
