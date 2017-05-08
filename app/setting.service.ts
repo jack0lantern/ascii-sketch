@@ -7,24 +7,38 @@ export class SettingService {
 	modes : any[] = [
         {
             name: 'line',
-            path: 'img/line.png'
+            path: 'app/img/line.png'
         },
         {
             name: 'block',
-            path: 'img/square.png'
+            path: 'app/img/square.png'
         },
         {
             name: 'bucket',
-            path: 'img/bucket.png'
+            path: 'app/img/bucket.png'
         },
         {
             name: 'circle',
-            path: 'img/circle.png'
+            path: 'app/img/circle.png'
         }
     ];
 
+    mode: string;
+
 	constructor() {
-		
+		this.mode = 'line';
+	}
+
+	getModes() {
+		return this.modes;
+	}
+
+	getMode() {
+		return this.mode;
+	}
+
+	setMode(mode: string) {
+		this.mode = mode;
 	}
 
 	// Simulate slow connection

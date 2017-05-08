@@ -2,7 +2,7 @@
  <div class="tab_data" id="draw_content" *ngIf="selected">
  Draw stuff 
     <section id="draw_buttons">
-        <img *ngFor="let mode of modes" [src]="mode.path" class="tool" ng-class="set.getActiveClass(mode)" ng-click="set.setMode(mode)" />
+        <img *ngFor="let mode of modes" [src]="mode.path" class="tool" [class]="getActiveClass(mode.name)" (click)="setMode(mode.name)" />
     </section>
     <!--    
     <section id="fill_options">
