@@ -2,7 +2,7 @@
     <div id="tabs">
         <div class="tab" 
             *ngFor="let tab of tabs" 
-            [class.active_tab]="tab === activeTab" 
+            [class.active_tab]="tab == activeTab" 
             (click)="setActiveTab(tab)">
             <span class="tab_text">{{ tab.name }}</span>
         </div>

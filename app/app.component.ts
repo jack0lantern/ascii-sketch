@@ -1,5 +1,4 @@
 import { Component, OnInit } from '@angular/core';
-import { Tab } from './tab';
 import { HeroService } from './hero.service';
 
 @Component({

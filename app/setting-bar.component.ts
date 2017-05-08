@@ -27,7 +27,7 @@ export class SettingBarComponent {
 			// };
 			// @Component(component) 
 			// class Com {}
-
+			console.log(i);
 			const factory = this.resolver.resolveComponentFactory(tabComponents[i]);
 
   		this.tabs.push(this.viewContainerRef.createComponent(factory).instance);
