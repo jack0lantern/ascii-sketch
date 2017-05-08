@@ -1,5 +1,5 @@
 import { Component, OnInit } from '@angular/core';
-import { HeroService } from './hero.service';
+import { SettingService } from './setting.service';
 
 @Component({
   selector: 'ascii-app',
@@ -7,12 +7,12 @@ import { HeroService } from './hero.service';
 })
 
 export class AppComponent implements OnInit { 
-	constructor(private heroService: HeroService) {
+	constructor(private settingService: SettingService) {
 
 	}
 
 	ngOnInit(): void {
-		this.getHeroes();
+		// this.getHeroes();
 	}
 
 	getHeroes(): void {
