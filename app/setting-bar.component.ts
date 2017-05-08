@@ -37,7 +37,8 @@ export class SettingBarComponent {
 
 
 	setActiveTab(tab: any) : void {
+		this.activeTab.selected = false;
 		this.activeTab = tab;
-
+		tab.selected = true;
 	}
 }
