@@ -4,8 +4,27 @@ import { Injectable } from '@angular/core';
 
 @Injectable()
 export class SettingService {
+	modes : any[] = [
+        {
+            name: 'line',
+            path: 'img/line.png'
+        },
+        {
+            name: 'block',
+            path: 'img/square.png'
+        },
+        {
+            name: 'bucket',
+            path: 'img/bucket.png'
+        },
+        {
+            name: 'circle',
+            path: 'img/circle.png'
+        }
+    ];
+
 	constructor() {
-		this.mode = null;
+		
 	}
 
 	// Simulate slow connection
