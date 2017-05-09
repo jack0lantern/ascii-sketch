@@ -13,14 +13,6 @@ class BaseTabComponent {
 	constructor(protected settingService: SettingService){
 		this.modes = this.settingService.getModes();
 	}
-
-	getMode() {
-		return this.settingService.getMode();
-	}
-
-	setMode(mode: string) {
-		this.settingService.setMode(mode);
-	}
 }
 
 @Component({
@@ -35,6 +27,14 @@ export class DrawTabComponent extends BaseTabComponent {
 
 	constructor(settingService: SettingService) {
 		super(settingService);
+	}
+
+	getMode() {
+		return this.settingService.getMode();
+	}
+
+	setMode(mode: string) {
+		this.settingService.setMode(mode);
 	}
 
 	getActiveClass(mode: string) {
