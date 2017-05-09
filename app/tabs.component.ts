@@ -31,11 +31,24 @@ class BaseTabComponent {
 export class DrawTabComponent extends BaseTabComponent {
 	name = 'Draw';
 	selected = true;
+	fillToggled : boolean = false;
+
 	constructor(settingService: SettingService) {
 		super(settingService);
 	}
+
 	getActiveClass(mode: string) {
 		return mode === this.settingService.getMode() ? 'active_tool' : '';
+	}
+
+	toggleFill() {
+        // The fillToggled check is the NEW value.
+        if (this.fillToggled) {
+            this.settingService.fillMode = 'fill';
+        }
+        else {
+            this.settingService.fillMode = 'transparent';
+        }
 	}
 }
 
@@ -75,5 +88,45 @@ export class WindowTabComponent extends BaseTabComponent {
 	selected = false;
 	constructor(settingService: SettingService) {
 		super(settingService);
+	}
+
+    boxHeight = this.settingService.boxHeight;
+    boxWidth = this.settingService.boxWidth;
+    bordersChecked = this.settingService.bordersChecked;
+    shiftValue = this.settingService.shiftValue;
+
+	// TODO
+	setDims() {
+
+	}
+
+	// TODO
+	resetOnConfirm() {
+
+	}
+
+	// TODO
+	changeBoxDims() {
+
+	}
+
+	// TODO
+	toggleBoxBorders() {
+
+	}
+
+	// TODO
+	shiftVert() {
+
+	}
+
+	// TODO
+	shiftHoriz() {
+
+	}
+
+	// TODO
+	trim() {
+
 	}
 }

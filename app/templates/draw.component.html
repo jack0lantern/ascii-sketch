@@ -1,18 +1,16 @@
 <!-- SettingController as set -->
  <div class="tab_data" id="draw_content" *ngIf="selected">
- Draw stuff 
     <section id="draw_buttons">
         <img *ngFor="let mode of modes" [src]="mode.path" class="tool" [class]="getActiveClass(mode.name)" (click)="setMode(mode.name)" />
     </section>
-    <!--    
     <section id="fill_options">
-        <label for="fill">Fill</label> <input type="checkbox" ng-model="set.fillToggled" ng-change="set.toggleFill()">
+        <label for="fill">Fill</label> <input type="checkbox" [(ngModel)]="fillToggled" (change)="toggleFill()">
         
-        <span id="fillOptions" ng-show="set.fillToggled">
+        <span id="fillOptions" *ngIf="fillToggled">
             <label for="fillChar">with: </label><br />
             <input type="radio" id="fillSame" name="fillOptions" checked />
             <label for="fillSame"> Same characters </label><br />
-            <input type="radio" id="fillDiff" name="fillOptions" ng-model="set.fillMode" />
+            <input type="radio" id="fillDiff" name="fillOptions" [(ngModel)]="fillMode" />
             <label for="fillDiff">This character: </label>
             <input type="text" class="text" maxlength="1"  />
         </span>
@@ -20,6 +18,5 @@
     <section id="palette">
 
         <br />
-
-    </section>-->
+    </section>
 </div> 

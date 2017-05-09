@@ -24,9 +24,19 @@ export class SettingService {
     ];
 
     mode: string;
+    fillMode: string;
+    boxHeight: number;
+    boxWidth: number;
+    bordersChecked: boolean;
+    shiftValue: number;
 
 	constructor() {
-		this.mode = 'line';
+		this.mode = 'line';	// line, block, bucket, circle
+		this.fillMode = 'transparent'; // fill, transparent
+		this.boxHeight = 20;
+	    this.boxWidth = 40;
+	    this.bordersChecked = false;
+	    this.shiftValue = 1;
 	}
 
 	getModes() {

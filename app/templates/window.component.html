@@ -8,25 +8,25 @@
             </tr>
             <tr>
                 <td>Height: </td>
-                <td><input type="text" class="text" ng-model="set.boxHeight" /></td>
+                <td><input type="text" class="text" [(ngModel)]="boxHeight" /></td>
             </tr>
             <tr>
                 <td>Width: </td>
-                <td><input type="text" class="text" ng-model="set.boxWidth" /></td>
+                <td><input type="text" class="text" [(ngModel)]="boxWidth" /></td>
             </tr>
         </table>
         <table>
             <tr>
                 <td>
-                    <button ng-click="set.setDims(); set.resetOnConfirm()">Reset </button>
+                    <button (click)="setDims(); resetOnConfirm()">Reset </button>
                 </td>
                 <td>
-                    <button ng-click="set.setDims(); set.changeBoxDims()">Change dimensions</button>
+                    <button (click)="setDims(); changeBoxDims()">Change dimensions</button>
                 </td>
             </tr>
             <tr>
                 <td colspan="2">
-            <input type="checkbox" id="tb" ng-model="set.bordersChecked" ng-change="set.toggleBoxBorders()" style="width: auto" /> <label for="tb">Edge Borders</label>
+            <input type="checkbox" id="tb" [(ngModel)]="bordersChecked" (change)="toggleBoxBorders()" style="width: auto" /> <label for="tb">Edge Borders</label>
                     </td>
             </tr>
         </table>
@@ -35,21 +35,21 @@
         <table id="shifts">
             <tr>
                 <td>
-                    <button id="shiftVertButton" style="margin-top: 15px; margin-left: 10px;" ng-click="set.shiftVert(set.shiftValue)">Shift image up (negative for down) this much: </button>
+                    <button id="shiftVertButton" style="margin-top: 15px; margin-left: 10px;" (click)="shiftVert(shiftValue)">Shift image up (negative for down) this much: </button>
                 </td>
                 <td rowspan="2">
-                    <input type="text" class="text" id="shiftValue" ng-model="set.shiftValue" value="1" style="margin-right: 10px" />
+                    <input type="text" class="text" id="shiftValue" [(ngModel)]="shiftValue" value="1" style="margin-right: 10px" />
                 </td>
             </tr>
             <tr>
                 <td>
-                    <button id="shiftHorizButton" style="margin-top: 5px; margin-left: 10px;" ng-click="set.shiftHoriz(set.shiftValue)">Shift image right (negative for left) this much: </button>
+                    <button id="shiftHorizButton" style="margin-top: 5px; margin-left: 10px;" (click)="shiftHoriz(shiftValue)">Shift image right (negative for left) this much: </button>
                 </td>
             </tr>
         </table>
     </section>
     <section class="left_bar">
-        <button id="trimButton" style="margin-left: 10px; height: 50px; margin-top: 10px" ng-click="set.trim()" >
+        <button id="trimButton" style="margin-left: 10px; height: 50px; margin-top: 10px" (click)="trim()" >
             Trim Edges
         </button>
     </section>
