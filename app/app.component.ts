@@ -3,7 +3,7 @@ import { SettingService } from './setting.service';
 
 @Component({
   selector: 'ascii-app',
-  templateUrl: `app/templates/hello.component.html`,
+  templateUrl: `app/templates/app.component.html`,
 })
 
 export class AppComponent implements OnInit { 
