@@ -8,9 +8,8 @@ import { SettingService } from './setting.service';
 })
 
 export class SettingBarComponent {
-	tabs: any[] = []
-	// Input()
-	activeTab: any
+	tabs: any[] = [];
+	activeTab: any;
 
 	@ViewChild('placeholder',  {read: ViewContainerRef}) viewContainerRef : any;
 	constructor(
@@ -39,9 +38,5 @@ export class SettingBarComponent {
 	getActiveClass(mode: any) {
 		console.log(this.settingService);
 		return mode.name == this.settingService.mode;
-	}
-
-	setMode(mode: any) {
-		this.settingService.mode = mode;
 	}
 }

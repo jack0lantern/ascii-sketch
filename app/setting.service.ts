@@ -1,4 +1,4 @@
-import { Injectable } from '@angular/core';
+import { Injectable, EventEmitter } from '@angular/core';
 
 // import { HEROES } from './mock-heroes';
 
@@ -30,6 +30,9 @@ export class SettingService {
     bordersChecked: boolean;
     shiftValue: number;
 
+    modeUpdated = new EventEmitter();
+    fillModeUpdated = new EventEmitter();
+
 	constructor() {
 		this.mode = 'line';	// line, block, bucket, circle
 		this.fillMode = 'transparent'; // fill, transparent
@@ -49,6 +52,12 @@ export class SettingService {
 
 	setMode(mode: string) {
 		this.mode = mode;
+		this.modeUpdated.emit(mode);
+	}
+
+	setFillMode(mode: string) {
+		this.fillMode = mode;
+		this.fillModeUpdated.emit(mode);
 	}
 
 	// Simulate slow connection

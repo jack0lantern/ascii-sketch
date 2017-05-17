@@ -44,10 +44,10 @@ export class DrawTabComponent extends BaseTabComponent {
 	toggleFill() {
         // The fillToggled check is the NEW value.
         if (this.fillToggled) {
-            this.settingService.fillMode = 'fill';
+            this.settingService.setFillMode('fill');
         }
         else {
-            this.settingService.fillMode = 'transparent';
+            this.settingService.setFillMode('transparent');
         }
 	}
 }
