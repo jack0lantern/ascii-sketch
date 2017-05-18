@@ -30,6 +30,7 @@ export class SettingService {
 
     mode: string;
     fillMode: string;
+    fillChar: string;
     boxHeight: number;
     boxWidth: number;
     bordersChecked: boolean;
@@ -43,6 +44,7 @@ export class SettingService {
 	constructor() {
 		this.mode = 'line';	// line, block, bucket, circle
 		this.fillMode = 'transparent'; // fill, transparent
+		this.fillChar = ' ';
 		this.boxHeight = 20;
 	    this.boxWidth = 40;
 	    this.bordersChecked = false;
@@ -65,6 +67,14 @@ export class SettingService {
 	setFillMode(mode: string) {
 		this.fillMode = mode;
 		this.fillModeUpdated.emit(mode);
+	}
+
+	getHeight() {
+		return this.boxHeight;
+	}
+
+	getWidth() {
+		return this.boxWidth;
 	}
 
 	setDims(h: number, w: number) {
