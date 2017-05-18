@@ -34,6 +34,7 @@ export class SettingService {
     boxWidth: number;
     bordersChecked: boolean;
     shiftValue: number;
+    spaces: string = '';
 
     modeUpdated = new EventEmitter();
     fillModeUpdated = new EventEmitter();
