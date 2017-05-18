@@ -1,4 +1,5 @@
 import { Injectable, EventEmitter } from '@angular/core';
+import { BoxComponent } from './boxes.component';
 
 // import { HEROES } from './mock-heroes';
 
@@ -22,6 +23,9 @@ export class SettingService {
             path: 'app/img/circle.png'
         }
     ];
+
+    boxes: any[] = [];
+    focused: BoxComponent;
 
     mode: string;
     fillMode: string;
@@ -58,6 +62,14 @@ export class SettingService {
 	setFillMode(mode: string) {
 		this.fillMode = mode;
 		this.fillModeUpdated.emit(mode);
+	}
+
+	reset() {
+	}
+
+	pushBox(box: BoxComponent) {
+		this.boxes.push(box);
+		console.log(this.boxes);
 	}
 
 	// Simulate slow connection

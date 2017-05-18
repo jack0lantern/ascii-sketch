@@ -3,7 +3,7 @@ import { SettingService } from './setting.service';
 
 @Component({
 	selector: 'base-tab',
-	template: 'Base tab content here'
+	template: 'Error!'
 })
 class BaseTabComponent {
 	name: string;
@@ -97,7 +97,10 @@ export class WindowTabComponent extends BaseTabComponent {
 
 	// TODO
 	setDims() {
-
+        var reset = confirm('Are you sure you want to clear the image? All your work will be lost. Press OK to continue or Cancel to cancel.');
+        if (reset) {
+        	this.settingService.reset();
+        }
 	}
 
 	// TODO
