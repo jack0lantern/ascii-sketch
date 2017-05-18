@@ -24,7 +24,8 @@ export class SettingService {
         }
     ];
 
-    boxes: any[] = [];
+    // If we ever extend utility to multiple canvasses, these vars come in handy
+    boxes: BoxComponent[] = [];
     focused: BoxComponent;
 
     mode: string;
@@ -36,6 +37,7 @@ export class SettingService {
 
     modeUpdated = new EventEmitter();
     fillModeUpdated = new EventEmitter();
+    resetter = new EventEmitter();
 
 	constructor() {
 		this.mode = 'line';	// line, block, bucket, circle
@@ -65,11 +67,15 @@ export class SettingService {
 	}
 
 	reset() {
+		this.resetter.emit({
+			h: this.boxHeight, 
+			w: this.boxWidth
+		});
 	}
 
 	pushBox(box: BoxComponent) {
 		this.boxes.push(box);
-		console.log(this.boxes);
+		this.focused = box;
 	}
 
 	// Simulate slow connection
