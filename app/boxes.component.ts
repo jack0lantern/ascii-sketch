@@ -1,18 +1,22 @@
-import { Component, OnInit, ComponentFactory, ViewChild, ViewContainerRef, ComponentFactoryResolver, HostListener } from '@angular/core';
+import { Component, OnInit, ComponentFactory, ViewChild, ViewContainerRef, ComponentFactoryResolver, HostListener, ElementRef } from '@angular/core';
 import { SettingService } from './setting.service';
+import { Point } from './point'
 
 @Component({
 	selector: 'box',
-	template: '<textarea rows=20 cols=40 [ngModel]=currStr></textarea>',
+	template: '<textarea rows="{{ r }}" cols="{{ c }}" [ngModel]=currStr></textarea>',
 	// styleUrls: ['app/css/style.css']
 })
 export class BoxComponent {
 	CHAR_SPACE: string = ' ';
 
+
 	hasBorders: boolean = false;
 	r: number;
 	c: number;
 	currStr: string;
+	position: Point = new Point(0, 0, 0);
+	range: number[] = [];
 
 	constructor(private settingService: SettingService) {
 		this.r = settingService.boxHeight;
@@ -20,69 +24,70 @@ export class BoxComponent {
 		this.resetCurrStr();
 	}
 
-
-
 	@HostListener('keypress', ['$event']) onKeyPress(e: any) {
-	// 	var unicode = null;
+		var unicode = null;
 
-	//     if (window.event) { // IE					
-	//             unicode = e.keyCode;
-	//     } else if (e.which) { // Netscape/Firefox/Opera					
- //            unicode = e.which;
- //         }
+	    if (window.event) { // IE					
+	            unicode = e.keyCode;
+	    } else if (e.which) { // Netscape/Firefox/Opera					
+            unicode = e.which;
+         }
 
-	//     if (!(e.altKey || e.ctrlKey) && unicode) {
-	//         e.preventDefault();
+	    if (!(e.altKey || e.ctrlKey) && unicode) {
+	        e.preventDefault();
 
-	//         var row = position.row;
-	//         var d = position.col;
-	//         if (d >= c) { 
-	//             return position.pos + 1;
-	//         }
+	        var row = this.position.row;
+	        var d = this.position.col;
+	        if (d >= this.c) { 
+	            return this.position.pos + 1;
+	        }
 
-	//         var startPoint = new Point(getRow(range[0]), getCol(range[0]), range[0]), 
-	//             endPoint   = new Point(getRow(range[1]), getCol(range[1]), range[1]);
+	        var startPoint = new Point(this.getRow(this.range[0]), this.getCol(this.range[0]), this.range[0]), 
+	            endPoint   = new Point(this.getRow(this.range[1]), this.getCol(this.range[1]), this.range[1]);
 
-	//         // TODO: SO much repetitive code! There must be a better design.
-	//         switch (SettingService.mode) {
-	//             case 'line':
-	//                 ranges = getLineRanges(startPoint, endPoint);
-	//                 break;
+	        // this line was not in ang1 version. o.o
+	        var ranges;
 
-	//             case 'block':
-	//                 ranges = getBlockRanges(startPoint, endPoint);
-	//                 break;
+	        // TODO: SO much repetitive code! There must be a better design.
+	        switch (this.settingService.mode) {
+	            case 'line':
+	                ranges = getLineRanges(startPoint, endPoint);
+	                break;
 
-	//             case 'bucket':
-	//                 ranges = getBucketRanges(startPoint);
-	//                 break;
+	            case 'block':
+	                ranges = getBlockRanges(startPoint, endPoint);
+	                break;
 
-	//             case 'circle':                      
-	//                 ranges = getEllipseRanges(startPoint, endPoint);
-	//                 break;
+	            case 'bucket':
+	                ranges = getBucketRanges(startPoint);
+	                break;
 
-	//             default:
-	//                 ranges = null;
-	//                 console.log('invalid mode');
-	//         }
+	            case 'circle':                      
+	                ranges = getEllipseRanges(startPoint, endPoint);
+	                break;
 
-	//         // TODO: by using PointRange, get rid of colDiff arg/param
-	//         // return this info and run loadranges in directive
+	            default:
+	                ranges = null;
+	                console.log('invalid mode');
+	        }
+
+	        // TODO: by using PointRange, get rid of colDiff arg/param
+	        // return this info and run loadranges in directive
 	        
-	//         loadRanges(String.fromCharCode(unicode), ranges, Math.abs(endPoint.col - startPoint.col) + 1);
-	//         return position.pos + 1;
-	//     }
-	//     else if (e.ctrlKey) {  
-	//         // event listeners do CUT/COPY/PASTE. Should have event listeners for undo/redo too? Would have to build from scratch, as there is no built-in event for them
-	//         if (e.which === CHAR_Z) {
-	//             e.preventDefault(); // this doesn't actually seem to prevent the default undo action for other textboxes
-	// //                    popUndo();// TODO
-	//         }
-	//         else if (e.which === CHAR_Y) {
-	//             e.preventDefault();
-	// //                    popRedo(); // TODO
-	//         }
- //  	  	}
+	        loadRanges(String.fromCharCode(unicode), ranges, Math.abs(endPoint.col - startPoint.col) + 1);
+	        return this.position.pos + 1;
+	    }
+	    else if (e.ctrlKey) {  
+	        // event listeners do CUT/COPY/PASTE. Should have event listeners for undo/redo too? Would have to build from scratch, as there is no built-in event for them
+	        if (e.which === CHAR_Z) {
+	            e.preventDefault(); // this doesn't actually seem to prevent the default undo action for other textboxes
+	//                    popUndo();// TODO
+	        }
+	        else if (e.which === CHAR_Y) {
+	            e.preventDefault();
+	//                    popRedo(); // TODO
+	        }
+  	  	}
   	}
 
 	// Sets currStr to an empty box string
@@ -110,10 +115,9 @@ export class BoxComponent {
             this.c = parseInt(w || this.c);
     }
 
-    // TODO:
     adjustBox() {
-        // self.rows = r + 1;
-        // self.cols = c + (hasBorders? 2 : 1);
+        this.r = this.settingService.boxHeight + 1;
+        this.c = this.settingService.boxWidth + (this.hasBorders ? 2 : 1);
     }
 
     makeBox (h: number, w: number) {
@@ -125,6 +129,10 @@ export class BoxComponent {
 
 	// TODO:
 	getRow(idx: number): number {
+		return 0;
+	}
+
+	getCol(idx: number): number {
 		return 0;
 	}
 

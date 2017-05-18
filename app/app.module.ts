@@ -5,6 +5,7 @@ import { SettingBarComponent } from './setting-bar.component';
 import { BoxComponent, BoxesComponent } from './boxes.component';
 import * as Tabs from './tabs.component';
 import { SettingService } from './setting.service';
+import { Point } from './point';
 
 import { AppComponent }  from './app.component';
 
@@ -21,7 +22,7 @@ for (let i in Tabs) {
   declarations: [ AppComponent, 
 	  SettingBarComponent,
     BoxComponent,
-    BoxesComponent
+    BoxesComponent,
   ].concat(tabs),
   bootstrap:    [ AppComponent ],
   providers:	[ SettingService ],

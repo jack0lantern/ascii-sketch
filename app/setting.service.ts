@@ -67,6 +67,11 @@ export class SettingService {
 		this.fillModeUpdated.emit(mode);
 	}
 
+	setDims(h: number, w: number) {
+		this.boxHeight = h;
+		this.boxWidth = w;
+	}
+
 	reset() {
 		this.resetter.emit({
 			h: this.boxHeight, 
