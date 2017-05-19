@@ -5,7 +5,7 @@ import { keys } from './keys';
 
 @Component({
 	selector: 'box',
-	template: '<textarea rows="{{ r }}" cols="{{ c }}" [ngModel]=currStr></textarea>',
+	template: '<textarea #myTextArea rows="{{ r }}" cols="{{ c }}" [ngModel]="currStr" (click)="getPos(myTextArea)" (keyup)="setPos(myTextArea, position.pos + 1)"></textarea>',
 	// styleUrls: ['app/css/style.css']
 })
 export class BoxComponent {
@@ -23,6 +23,33 @@ export class BoxComponent {
 		this.c = settingService.boxWidth;
 		this.resetCurrStr();
 	}
+
+	setPos(element: any, caretPos: any) {
+        if (element.createTextRange) {
+            var range = element.createTextRange();
+            range.move('character', caretPos);
+            range.select();
+        } else {
+            element.focus();
+            if (element.selectionStart !== undefined) {
+                element.setSelectionRange(caretPos, caretPos);
+            }
+        }
+    }
+
+	getPos(element: any) {
+            if ('selectionStart' in element) {
+            	this.position = new Point(this.getRow(element.selectionStart), this.getCol(element.selectionStart), element.selectionStart)
+            	this.range = [element.selectionStart, element.selectionEnd];
+                return [element.selectionStart, element.selectionEnd];
+            } /*else if (document.selection) {
+                element.focus();
+                var sel = document.selection.createRange();
+                var selLen = document.selection.createRange().text.length;
+                sel.moveStart('character', -element.value.length);
+                return sel.text.length - selLen;
+            }*/
+        }
 
 	/*** UTIL ***/
 	// Takes a new subject and imposes it on tgt, taking tgt's content where subject has a space.
@@ -320,6 +347,7 @@ export class BoxComponent {
 	        // TODO: SO much repetitive code! There must be a better design.
 	        switch (this.settingService.mode) {
 	            case 'line':
+	            	console.log('before line');
 	                ranges = this.getLineRanges(startPoint, endPoint);
 	                break;
 
@@ -348,15 +376,16 @@ export class BoxComponent {
 	    }
 	    else if (e.ctrlKey) {  
 	        // event listeners do CUT/COPY/PASTE. Should have event listeners for undo/redo too? Would have to build from scratch, as there is no built-in event for them
-	        if (e.which === CHAR_Z) {
+	        if (e.which === keys.CHAR_Z) {
 	            e.preventDefault(); // this doesn't actually seem to prevent the default undo action for other textboxes
 	//                    popUndo();// TODO
 	        }
-	        else if (e.which === CHAR_Y) {
+	        else if (e.which === keys.CHAR_Y) {
 	            e.preventDefault();
 	//                    popRedo(); // TODO
 	        }
   	  	}
+
   	}
 
   	// returns the new cursor position to set
