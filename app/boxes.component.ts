@@ -6,7 +6,7 @@ import { keys } from './keys';
 // TODO: delete (keyup)="setCaret(myBox)"
 @Component({
 	selector: 'box',
-	template: '<form #myForm="ngForm"><textarea #myBox rows="{{ r }}" cols="{{ c }}" [ngModel]=currStr (keypress)="getCaret(myBox); setCaret(myBox, onKeyPress($event))" (key)="log(\'dddd\' + myBox.value)" [ngModelOptions]="{standalone: true}" ngControl="box"></textarea></form>',
+	template: '<textarea #myBox rows="{{ r }}" cols="{{ c }}" [ngModel]=currStr (keypress)="getCaret(myBox); setCaret(myBox, onKeyPress($event))" (ngModelChange)="log(\'dddd\' + myBox.value)"></textarea>',
 	// styleUrls: ['app/css/style.css']
 })
 export class BoxComponent {
@@ -21,13 +21,6 @@ export class BoxComponent {
 
     log(val: any) {
         console.log(val);
-    }
-
-    @ViewChild('myForm') form;
-
-    ngAfterViewInit(){
-        console.log(this.form);
-        this.form.control.valueChanges.subscribe(values => console.log(values));
     }
 
 	constructor(private settingService: SettingService) {
