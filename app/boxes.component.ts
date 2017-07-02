@@ -3,9 +3,10 @@ import { SettingService } from './setting.service';
 import { Point, Queue } from './data-structures';
 import { keys } from './keys';
 
+// TODO: delete (keyup)="setCaret(myBox)"
 @Component({
 	selector: 'box',
-	template: '<textarea #myTextArea rows="{{ r }}" cols="{{ c }}" [ngModel]="currStr" (click)="getPos(myTextArea)" (keyup)="setPos(myTextArea, position.pos + 1)"></textarea>',
+	template: '<form #myForm="ngForm"><textarea #myBox rows="{{ r }}" cols="{{ c }}" [ngModel]=currStr (keypress)="getCaret(myBox); setCaret(myBox, onKeyPress($event))" (key)="log(\'dddd\' + myBox.value)" [ngModelOptions]="{standalone: true}" ngControl="box"></textarea></form>',
 	// styleUrls: ['app/css/style.css']
 })
 export class BoxComponent {
@@ -18,38 +19,62 @@ export class BoxComponent {
 	range: number[] = [0, 0];
 	mouseDown: boolean;
 
+    log(val: any) {
+        console.log(val);
+    }
+
+    @ViewChild('myForm') form;
+
+    ngAfterViewInit(){
+        console.log(this.form);
+        this.form.control.valueChanges.subscribe(values => console.log(values));
+    }
+
 	constructor(private settingService: SettingService) {
 		this.r = settingService.boxHeight;
 		this.c = settingService.boxWidth;
 		this.resetCurrStr();
 	}
 
-	setPos(element: any, caretPos: any) {
+    getCaret(element: any) {
+        if ('selectionStart' in element) {
+//          console.log('selectionstart in' + element.selectionStart);
+            this.position.pos = element.selectionStart;
+            this.range = [element.selectionStart, element.selectionEnd];
+            return [element.selectionStart, element.selectionEnd];
+        } /*else if (document.selection) {
+            element.focus();
+            var sel = document.selection.createRange();
+            var selLen = document.selection.createRange().text.length;
+            sel.moveStart('character', -element.value.length);
+            return sel.text.length - selLen;
+        }*/
+    }
+
+    setCaret(element: any, caretPos = this.position.pos) {
+            console.log('setcaret ' + caretPos);
         if (element.createTextRange) {
             var range = element.createTextRange();
             range.move('character', caretPos);
             range.select();
-        } else {
-            element.focus();
-            if (element.selectionStart !== undefined) {
-                element.setSelectionRange(caretPos, caretPos);
-            }
         }
+        else {
+            var that = this;
+//            Zone.current.run(
+ //               function() {
+                    console.log('box value ' + element.value);
+                    console.log(element);
+                    element.focus();
+                    if (element.selectionStart !== undefined) {
+                        
+                        element.setSelectionRange(caretPos, caretPos);
+                    }
+                    console.log(this.position.pos);
+   //             }
+   //         );
+        }
+        console.log('end setcaret');
     }
-
-	getPos(element: any) {
-            if ('selectionStart' in element) {
-            	this.position = new Point(this.getRow(element.selectionStart), this.getCol(element.selectionStart), element.selectionStart)
-            	this.range = [element.selectionStart, element.selectionEnd];
-                return [element.selectionStart, element.selectionEnd];
-            } /*else if (document.selection) {
-                element.focus();
-                var sel = document.selection.createRange();
-                var selLen = document.selection.createRange().text.length;
-                sel.moveStart('character', -element.value.length);
-                return sel.text.length - selLen;
-            }*/
-        }
 
 	/*** UTIL ***/
 	// Takes a new subject and imposes it on tgt, taking tgt's content where subject has a space.
@@ -280,8 +305,8 @@ export class BoxComponent {
         return ranges;
     }
 
-	
-	// ranges is an array of ranges of indexes in which to fill with charToPut
+    
+    // ranges is an array of ranges of indexes in which to fill with charToPut
     // inside the box's canvas
     // loadRanges takes ranges and displays them according to the settings
     loadRanges (charToPut: string, ranges: any[], colDiff: number) {
@@ -320,59 +345,59 @@ export class BoxComponent {
         this.currStr = newStr;
     }
 
-	@HostListener('keypress', ['$event']) onKeyPress(e: any) {
-		var unicode = null;
+    /*@HostListener('keypress', ['$event']) */onKeyPress(e: any) {
+        var unicode = null;
 
-	    if (window.event) { // IE					
-	            unicode = e.keyCode;
-	    } else if (e.which) { // Netscape/Firefox/Opera					
+        if (window.event) { // IE                   
+                unicode = e.keyCode;
+        } else if (e.which) { // Netscape/Firefox/Opera                 
             unicode = e.which;
          }
 
-	    if (!(e.altKey || e.ctrlKey) && unicode) {
-	        e.preventDefault();
+        if (!(e.altKey || e.ctrlKey) && unicode) {
+            e.preventDefault();
 
-	        var row = this.position.row;
-	        var d = this.position.col;
-	        if (d >= this.c) { 
-	            return this.position.pos + 1;
-	        }
+            var row = this.position.row;
+            var d = this.position.col;
+            if (d >= this.c) { 
+                return this.position.pos + 1;
+            }
 
-	        var startPoint = new Point(this.getRow(this.range[0]), this.getCol(this.range[0]), this.range[0]), 
-	            endPoint   = new Point(this.getRow(this.range[1]), this.getCol(this.range[1]), this.range[1]);
+            var startPoint = new Point(this.getRow(this.range[0]), this.getCol(this.range[0]), this.range[0]), 
+                endPoint   = new Point(this.getRow(this.range[1]), this.getCol(this.range[1]), this.range[1]);
 
-	        // this line was not in ang1 version. o.o
-	        var ranges;
+            // this line was not in ang1 version. o.o
+            var ranges;
 
-	        // TODO: SO much repetitive code! There must be a better design.
-	        switch (this.settingService.mode) {
-	            case 'line':
-	            	console.log('before line');
-	                ranges = this.getLineRanges(startPoint, endPoint);
-	                break;
+            // TODO: SO much repetitive code! There must be a better design.
+            switch (this.settingService.mode) {
+                case 'line':
+                    ranges = this.getLineRanges(startPoint, endPoint);
+                    break;
 
-	            case 'block':
-	                ranges = this.getBlockRanges(startPoint, endPoint);
-	                break;
+                case 'block':
+                    ranges = this.getBlockRanges(startPoint, endPoint);
+                    break;
 
-	            case 'bucket':
-	                ranges = this.getBucketRanges(startPoint);
-	                break;
+                case 'bucket':
+                    ranges = this.getBucketRanges(startPoint);
+                    break;
 
-	            case 'circle':                      
-	                ranges = this.getEllipseRanges(startPoint, endPoint);
-	                break;
+                case 'circle':                      
+                    ranges = this.getEllipseRanges(startPoint, endPoint);
+                    break;
 
-	            default:
-	                ranges = null;
-	                console.log('invalid mode');
-	        }
+                default:
+                    ranges = null;
+                    console.log('invalid mode');
+            }
 
-	        // TODO: by using PointRange, get rid of colDiff arg/param
-	        // return this info and run loadranges in directive
-	        
-	        this.loadRanges(String.fromCharCode(unicode), ranges, Math.abs(endPoint.col - startPoint.col) + 1);
-	        return this.position.pos + 1;
+            // TODO: by using PointRange, get rid of colDiff arg/param
+            // return this info and run loadranges in directive
+            
+            this.loadRanges(String.fromCharCode(unicode), ranges, Math.abs(endPoint.col - startPoint.col) + 1);
+//          console.log('onkeypress ends');
+	        return this.position.pos = this.position.pos + 1;
 	    }
 	    else if (e.ctrlKey) {  
 	        // event listeners do CUT/COPY/PASTE. Should have event listeners for undo/redo too? Would have to build from scratch, as there is no built-in event for them
@@ -385,7 +410,6 @@ export class BoxComponent {
 	//                    popRedo(); // TODO
 	        }
   	  	}
-
   	}
 
   	// returns the new cursor position to set
@@ -403,19 +427,19 @@ export class BoxComponent {
 
             // the below should be in model.js TODOs
             if (unicode === keys.BACKSPACE) {
-                if (d > c || d == 0) {
+                if (d > this.c || d == 0) {
                     e.preventDefault();
                 }
                 else {
-                    this.currStr = this.currStr.substring(0, this.position.pos) + keys.CHAR_SPACE +  self.currStr.substring(position.pos);
+                    this.currStr = this.currStr.substring(0, this.position.pos) + keys.CHAR_SPACE + this.currStr.substring(this.position.pos);
                     return this.position.pos;
                 }
             }
             else if (unicode === keys.DELETE) { 
-                if (d >= c)
+                if (d >= this.c)
                     e.preventDefault();
                 else {
-                    this.currStr = this.currStr.substring(0, this.position.pos + 1) + keys.CHAR_SPACE + self.currStr.substring(position.pos + 1);
+                    this.currStr = this.currStr.substring(0, this.position.pos + 1) + keys.CHAR_SPACE + this.currStr.substring(this.position.pos + 1);
                 }
             }
             else if (unicode === keys.ENTER) { // TODO: remember where user started typing
@@ -474,19 +498,19 @@ export class BoxComponent {
             emptyRow += keys.CHAR_SPACE;
         }
         
-        if (c > newWidth) {
-            emptyRow = emptyRow.substring(c - newWidth);
+        if (this.c > newWidth) {
+            emptyRow = emptyRow.substring(this.c - newWidth);
         }
         
         // should make an accessor for hasborders? used in other places
         var borderChar = this.hasBorders ? '|' : '';
         emptyRow += borderChar;
-        SettingService.spaces = emptyRow + '\n';
+        this.settingService.spaces = emptyRow + '\n';
         for (var currRow = 0; currRow < newHeight; currRow++) {
-                if (currRow >= r)
+                if (currRow >= this.r)
                     newStr += emptyRow;
                 else
-                    newStr += this.getLine(currRow, false).substring(0, Math.min(newWidth, c)) + spacesToAdd + borderChar;
+                    newStr += this.getLine(currRow, false).substring(0, Math.min(newWidth, this.c)) + spacesToAdd + borderChar;
                 if (currRow < newHeight - 1)
                     newStr += '\n';
         }
@@ -526,7 +550,7 @@ export class BoxComponent {
 	getLine(line: number, withNewLine: boolean): string {
 		if (line < this.r) {
             var str = '';
-            var newlineIndex = this.hasBorders ? c + 1 : c;
+            var newlineIndex = this.hasBorders ? this.c + 1 : this.c;
             var addNewline = withNewLine ? 0 : -1;
             str = this.currStr.substring(line * (newlineIndex + 1), (line + 1) * (newlineIndex + 1) + addNewline);
 //                console.log('first index ' + (line * (newlineIndex + 1)) + ' end index ' + ((line + 1) * (newlineIndex + 1) - addNewline));
@@ -607,7 +631,7 @@ export class BoxComponent {
 @Component({
 	selector: 'boxes',
 	template: `
-		<div id="content">
+		<div>
 			<div #boxes>
 			</div>
 		</div>

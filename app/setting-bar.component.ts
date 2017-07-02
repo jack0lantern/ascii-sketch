@@ -36,7 +36,6 @@ export class SettingBarComponent {
 	}
 
 	getActiveClass(mode: any) {
-		console.log(this.settingService);
 		return mode.name == this.settingService.mode;
 	}
 }
