@@ -132,6 +132,6 @@ export class WindowTabComponent extends BaseTabComponent {
 
 	// TODO
 	trim() {
-
+		this.settingService.trim();
 	}
 }

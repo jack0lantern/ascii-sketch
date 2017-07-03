@@ -37,6 +37,7 @@ export class SettingService {
     dimsChanged = new EventEmitter();
     borders = new EventEmitter();
     shiftEmitter = new EventEmitter();
+    trimEmitter = new EventEmitter();
 
 	constructor() {
 		// Initial values
@@ -95,6 +96,10 @@ export class SettingService {
 			vert: 0,
 			horiz: n
 		});
+	}
+
+	trim() {
+		this.trimEmitter.emit({});
 	}
 
 	pushBox(box: BoxComponent) {
