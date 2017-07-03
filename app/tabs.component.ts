@@ -113,7 +113,7 @@ export class WindowTabComponent extends BaseTabComponent {
 
 	// TODO
 	toggleBoxBorders() {
-
+		this.settingService.toggleBorders();
 	}
 
 	// TODO

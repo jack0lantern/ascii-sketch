@@ -38,12 +38,13 @@ export class SettingService {
     fillModeUpdated = new EventEmitter();
     resetter = new EventEmitter();
     dimsChanged = new EventEmitter();
+    borders = new EventEmitter();
 
 	constructor() {
+		// Initial values
 		this.mode = 'line';	// line, block, bucket, circle
 		this.fillMode = 'transparent'; // fill, transparent
 		this.fillChar = ' ';
-		// Initial height and width values
 		this.boxHeight = 20;
 	    this.boxWidth = 40;
 	    this.bordersChecked = false;
@@ -80,6 +81,10 @@ export class SettingService {
 			h: boxHeight,
 			w: boxWidth
 		});
+	}
+
+	toggleBorders() {
+		this.borders.emit({});
 	}
 
 	pushBox(box: BoxComponent) {

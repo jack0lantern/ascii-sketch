@@ -37,6 +37,10 @@ export class BoxComponent {
 
         this.settingService.dimsChanged.subscribe((data) => {
             this.adjustCurrStr(data.h, data.w);
+        });
+
+        this.settingService.borders.subscribe((data) => {
+            this.toggleBorders();
         })
     }
 
@@ -524,8 +528,8 @@ export class BoxComponent {
         this.currStr = newStr || this.currStr;
     }
 
-    writeBorders() {
-        console.log('writeborders called');
+    toggleBorders() {
+        console.log('toggleBorders called');
         var newStr = '';
         for (var i = 0; i < this.r; ++i) {
             var temp = this.getLine(i, false);
@@ -537,6 +541,7 @@ export class BoxComponent {
             }
         }
         this.currStr = newStr;
+        this.hasBorders = !this.hasBorders;
     }
 
     makeBox (h: number, w: number) {
