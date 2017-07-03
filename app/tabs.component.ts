@@ -95,21 +95,14 @@ export class WindowTabComponent extends BaseTabComponent {
 		this.w = settingService.boxWidth;
 	}
 
-    boxHeight = this.settingService.boxHeight;
-    boxWidth = this.settingService.boxWidth;
     bordersChecked = this.settingService.bordersChecked;
     shiftValue = this.settingService.shiftValue;
-
-	// TODO
-	setDims() {
-		this.settingService.setDims(this.h, this.w);
-	}
 
 	// TODO
 	resetOnConfirm() {
         var reset = confirm('Are you sure you want to clear the image? All your work will be lost. Press OK to continue or Cancel to cancel.');
         if (reset) {
-        	this.settingService.reset();
+        	this.settingService.reset(this.h, this.w);
         }
 	}
 

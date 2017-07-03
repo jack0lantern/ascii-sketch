@@ -8,20 +8,20 @@
             </tr>
             <tr>
                 <td>Height: </td>
-                <td><input type="text" class="text" [(ngModel)]="boxHeight" /></td>
+                <td><input type="text" class="text" [(ngModel)]="h" /></td>
             </tr>
             <tr>
                 <td>Width: </td>
-                <td><input type="text" class="text" [(ngModel)]="boxWidth" /></td>
+                <td><input type="text" class="text" [(ngModel)]="w" /></td>
             </tr>
         </table>
         <table>
             <tr>
                 <td>
-                    <button (click)="setDims(); resetOnConfirm()">Reset </button>
+                    <button (click)="resetOnConfirm()">Reset </button>
                 </td>
                 <td>
-                    <button (click)="setDims(); changeBoxDims()">Change dimensions</button>
+                    <button (click)="changeBoxDims()">Change dimensions</button>
                 </td>
             </tr>
             <tr>

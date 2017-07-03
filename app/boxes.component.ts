@@ -6,7 +6,7 @@ import { keys } from './keys';
 // TODO: delete (keyup)="setCaret(myBox)"
 @Component({
 	selector: 'box',
-	template: '<textarea #myBox rows="{{ r }}" cols="{{ c }}" [ngModel]=currStr (keypress)="getCaret(myBox); setCaret(myBox, onKeyPress($event))" (ngModelChange)="log(\'dddd\' + myBox.value)"></textarea>',
+	template: '<textarea #myBox rows="{{ r + 1 }}" cols="{{ c + (hasBorders ? 2 : 1) }}" [ngModel]=currStr (keypress)="setCaret(myBox, onKeyPress($event))" (click)="getCaret(myBox)" (keydown)="getCaret(myBox)" (keyup)="setCaret(myBox)"></textarea>',
 	// styleUrls: ['app/css/style.css']
 })
 export class BoxComponent {
@@ -18,6 +18,7 @@ export class BoxComponent {
 	// inclusive of indices TODO: make end-exclusive with Points?
 	range: number[] = [0, 0];
 	mouseDown: boolean;
+    spaces: string = '';
 
     log(val: any) {
         console.log(val);
@@ -28,6 +29,13 @@ export class BoxComponent {
 		this.c = settingService.boxWidth;
 		this.resetCurrStr();
 	}
+
+    ngOnInit() {
+        this.settingService.resetter.subscribe((data) => {
+            this.makeBox(data.h, data.w);
+        });
+
+    }
 
     getCaret(element: any) {
         if ('selectionStart' in element) {
@@ -45,7 +53,7 @@ export class BoxComponent {
     }
 
     setCaret(element: any, caretPos = this.position.pos) {
-            console.log('setcaret ' + caretPos);
+        console.log('setcaret ' + caretPos);
         if (element.createTextRange) {
             var range = element.createTextRange();
             range.move('character', caretPos);
@@ -57,6 +65,7 @@ export class BoxComponent {
  //               function() {
                     console.log('box value ' + element.value);
                     console.log(element);
+                    console.log(Zone.current);
                     element.focus();
                     if (element.selectionStart !== undefined) {
                         
@@ -415,7 +424,7 @@ export class BoxComponent {
                 if (e.which) { // Netscape/Firefox/Opera					
                     unicode = e.which;
                  }
-
+                 console.log('non key press ' + unicode);
             var d = this.position.col;
 
             // the below should be in model.js TODOs
@@ -452,17 +461,17 @@ export class BoxComponent {
         var border = this.hasBorders ? '|' : '';
         this.currStr = '';
         // TODO: make a more efficient way to reassign spaces, depending on whether or not the new value is more or less.
-        this.settingService.spaces = '';
+        this.spaces = '';
 
         for (var i = 0; i < this.c; i++) { 
-            this.settingService.spaces += keys.CHAR_SPACE;
+            this.spaces += keys.CHAR_SPACE;
         }
-        this.settingService.spaces += border + '\n';
+        this.spaces += border + '\n';
         for (var j = 0; j < this.r; j++) {
             if (j < this.r - 1)
-                this.currStr += this.settingService.spaces;
+                this.currStr += this.spaces;
             else
-                this.currStr += this.settingService.spaces.substring(0, this.settingService.spaces.length - 1);  // chop off last \n
+                this.currStr += this.spaces.substring(0, this.spaces.length - 1);  // chop off last \n
         }
     }
 
@@ -481,7 +490,7 @@ export class BoxComponent {
             return;
 
         // TODO: change spaces implementation to not include borders or newline characters to avoid this substring use
-        var emptyRow = this.settingService.spaces.substring(0, this.c);
+        var emptyRow = this.spaces.substring(0, this.c);
         var newStr = '';
         var spacesToAdd = '';
         var i = this.c;
@@ -498,7 +507,7 @@ export class BoxComponent {
         // should make an accessor for hasborders? used in other places
         var borderChar = this.hasBorders ? '|' : '';
         emptyRow += borderChar;
-        this.settingService.spaces = emptyRow + '\n';
+        this.spaces = emptyRow + '\n';
         for (var currRow = 0; currRow < newHeight; currRow++) {
                 if (currRow >= this.r)
                     newStr += emptyRow;
@@ -510,11 +519,6 @@ export class BoxComponent {
 
         this.setDims(newHeight, newWidth);
         this.currStr = newStr || this.currStr;
-    }
-
-    adjustBox() {
-        this.r = this.settingService.boxHeight + 1;
-        this.c = this.settingService.boxWidth + (this.hasBorders ? 2 : 1);
     }
 
     writeBorders() {
@@ -536,7 +540,6 @@ export class BoxComponent {
         console.log('makebox h: ' + h + 'w: ' + w);
         this.setDims(h, w);
         this.resetCurrStr();
-        this.adjustBox();
     };
 
 	// TODO:
@@ -616,7 +619,6 @@ export class BoxComponent {
 	    // this.r = stop - this.getRow(beginIndex) + 1;
 	    // this.c = maxCol - minCol + 1;
 	    
-	    // this.adjustBox();
 	    // this.pushUndo();
 	}
 }
