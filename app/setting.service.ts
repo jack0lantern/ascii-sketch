@@ -32,13 +32,11 @@ export class SettingService {
     fillMode: string;
     fillChar: string;
     bordersChecked: boolean;
-    shiftValue: number;
 
-    modeUpdated = new EventEmitter();
-    fillModeUpdated = new EventEmitter();
     resetter = new EventEmitter();
     dimsChanged = new EventEmitter();
     borders = new EventEmitter();
+    shiftEmitter = new EventEmitter();
 
 	constructor() {
 		// Initial values
@@ -61,12 +59,10 @@ export class SettingService {
 
 	setMode(mode: string) {
 		this.mode = mode;
-		this.modeUpdated.emit(mode);
 	}
 
 	setFillMode(mode: string) {
 		this.fillMode = mode;
-		this.fillModeUpdated.emit(mode);
 	}
 
 	reset(boxHeight: number, boxWidth: number) {
@@ -85,6 +81,20 @@ export class SettingService {
 
 	toggleBorders() {
 		this.borders.emit({});
+	}
+
+	shiftVert(n: number) {
+		this.shiftEmitter.emit({
+			vert: n,
+			horiz: 0
+		});
+	}
+	
+	shiftHoriz(n: number) {
+		this.shiftEmitter.emit({
+			vert: 0,
+			horiz: n
+		});
 	}
 
 	pushBox(box: BoxComponent) {

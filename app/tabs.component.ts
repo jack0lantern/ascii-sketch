@@ -24,6 +24,7 @@ export class DrawTabComponent extends BaseTabComponent {
 	name = 'Draw';
 	selected = true;
 	fillToggled : boolean = false;
+	isCustom : boolean = false;
 
 	constructor(settingService: SettingService) {
 		super(settingService);
@@ -43,8 +44,14 @@ export class DrawTabComponent extends BaseTabComponent {
 
 	toggleFill() {
         // The fillToggled check is the NEW value.
+        console.log('iscustom ' + this.isCustom);
+        
         if (this.fillToggled) {
-            this.settingService.setFillMode('fill');
+            if (this.isCustom) {
+            	this.settingService.setFillMode('custom');
+            }
+            else
+ 	           this.settingService.setFillMode('fill');
         }
         else {
             this.settingService.setFillMode('transparent');
@@ -98,7 +105,6 @@ export class WindowTabComponent extends BaseTabComponent {
     bordersChecked = this.settingService.bordersChecked;
     shiftValue = this.settingService.shiftValue;
 
-	// TODO
 	resetOnConfirm() {
         var reset = confirm('Are you sure you want to clear the image? All your work will be lost. Press OK to continue or Cancel to cancel.');
         if (reset) {
@@ -106,24 +112,22 @@ export class WindowTabComponent extends BaseTabComponent {
         }
 	}
 
-	// TODO
 	changeBoxDims() {
 		this.settingService.changeDims(this.h, this.w);
 	}
 
-	// TODO
 	toggleBoxBorders() {
 		this.settingService.toggleBorders();
 	}
 
 	// TODO
 	shiftVert() {
-
+		this.settingService.shiftVert(this.shiftValue);
 	}
 
 	// TODO
 	shiftHoriz() {
-
+		this.settingService.shiftHoriz(this.shiftValue);
 	}
 
 	// TODO

@@ -10,7 +10,7 @@
             <label for="fillChar">with: </label><br />
             <input type="radio" id="fillSame" name="fillOptions" checked />
             <label for="fillSame"> Same characters </label><br />
-            <input type="radio" id="fillDiff" name="fillOptions" [(ngModel)]="fillMode" />
+            <input type="radio" id="fillDiff" name="fillOptions" [(ngModel)]="isCustom" (ngModelChange)="toggleFill()" />
             <label for="fillDiff">This character: </label>
             <input type="text" class="text" maxlength="1"  />
         </span>

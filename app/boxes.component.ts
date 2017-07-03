@@ -31,16 +31,29 @@ export class BoxComponent {
 	}
 
     ngOnInit() {
-        this.settingService.resetter.subscribe((data) => {
+        this.settingService.resetter.subscribe((data: any) => {
             this.makeBox(data.h, data.w);
         });
 
-        this.settingService.dimsChanged.subscribe((data) => {
+        this.settingService.dimsChanged.subscribe((data: any) => {
             this.adjustCurrStr(data.h, data.w);
         });
 
-        this.settingService.borders.subscribe((data) => {
+        this.settingService.borders.subscribe((data: any) => {
             this.toggleBorders();
+        });
+
+        this.settingService.shiftEmitter.subscribe((data: any) => {
+            if (data.vert == 0) {
+                this.shiftCurrHoriz(data.horiz);
+            }
+            else if (data.horiz == 0) {
+                this.shiftCurrVert(data.vert);
+            }
+            else {
+                this.shiftCurrHoriz(data.horiz);
+                this.shiftCurrVert(data.vert);
+            }
         })
     }
 
@@ -562,6 +575,79 @@ export class BoxComponent {
         }
         return '';
 	}
+
+    // 
+    shiftCurrHoriz(rawUnits: string) {
+        var newStr = '';
+        var spaces = this.spaces;
+        var units = parseInt(rawUnits);
+        var padSpaces = spaces.substring(0, Math.abs(units));
+        var i;
+        var startIdx = 0;
+        var endIdx = this.c;
+
+        if (units > 0) {
+            units = Math.min(this.c, units); // in case the user puts a number > cols
+            endIdx -= units;
+        }
+        else if (units < 0) {
+            units = Math.max(-this.c, units);
+            startIdx -= units;
+        }
+        else
+            return;
+
+        for (i = 0; i < this.r; i++) {
+            var temp = this.getLine(i, false);
+            if (units > 0)
+                newStr += padSpaces;
+            newStr += temp.substring(startIdx, endIdx);
+            if (units < 0)
+                newStr += padSpaces;
+            newStr += this.hasBorders ? '|' : '';
+            newStr += i < (this.r - 1) ? '\n' : '';
+        }
+        this.currStr = newStr;
+//        this.pushUndo(); //TODO
+    };
+
+    //
+    shiftCurrVert(rawUnits: string) {
+        var newStr = '';
+        var i;
+        var lineLen;
+        var startIdx = 0;
+        var endIdx = this.currStr.length;
+        var units = parseInt(rawUnits);
+        var spaces = this.spaces;
+
+        lineLen = spaces.length;
+        if (units > 0) {
+            units = Math.min(this.r, units); // in case the user puts a number > rows
+            startIdx += units*lineLen;
+        }
+        else if (units < 0) {
+            units = Math.max(-this.r, units);
+            endIdx += units*lineLen;
+        }
+        else
+            return;
+
+        if (units < 0) {
+            for (i = 0; i < Math.abs(units); i++)
+                newStr += spaces;
+        }
+        newStr += this.currStr.substring(startIdx, endIdx);
+        if (units > 0) {
+            newStr += '\n';
+            for (i = 0; i < Math.abs(units); i++)
+                newStr += spaces;
+            newStr = newStr.substring(0, newStr.length - 1); // take off the last \n
+        }
+
+        this.currStr = newStr;
+//        this.pushUndo(); //TODO
+    };
 
 	// TODO:
 	// Clears out all whitespace surrounding the image and resizes to close on
