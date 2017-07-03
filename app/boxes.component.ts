@@ -35,6 +35,9 @@ export class BoxComponent {
             this.makeBox(data.h, data.w);
         });
 
+        this.settingService.dimsChanged.subscribe((data) => {
+            this.adjustCurrStr(data.h, data.w);
+        })
     }
 
     getCaret(element: any) {
@@ -482,10 +485,10 @@ export class BoxComponent {
     }
 
     // Grow or shrink the textarea's dimensions while maintaining content as much as possible. Chops off content on shrink, adds spaces on grow.
-    adjustCurrStr () {
-        console.log('adjustCurrStr called hasBorders: ' + this.hasBorders);
-        var newHeight = this.settingService.getHeight();
-        var newWidth = this.settingService.getWidth();
+    adjustCurrStr (h: number, w: number) {
+        console.log('adjustCurrStr called hasBorders: ' + h + ' ' + w + ' ' + this.hasBorders);
+        var newHeight = h;
+        var newWidth = w;
         if (this.r === newHeight && this.c === newWidth)
             return;
 

@@ -37,6 +37,7 @@ export class SettingService {
     modeUpdated = new EventEmitter();
     fillModeUpdated = new EventEmitter();
     resetter = new EventEmitter();
+    dimsChanged = new EventEmitter();
 
 	constructor() {
 		this.mode = 'line';	// line, block, bucket, circle
@@ -70,6 +71,13 @@ export class SettingService {
 	reset(boxHeight: number, boxWidth: number) {
 		this.resetter.emit({
 			h: boxHeight, 
+			w: boxWidth
+		});
+	}
+
+	changeDims(boxHeight: number, boxWidth: number) {
+		this.dimsChanged.emit({
+			h: boxHeight,
 			w: boxWidth
 		});
 	}

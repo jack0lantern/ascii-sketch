@@ -108,7 +108,7 @@ export class WindowTabComponent extends BaseTabComponent {
 
 	// TODO
 	changeBoxDims() {
-
+		this.settingService.changeDims(this.h, this.w);
 	}
 
 	// TODO
