@@ -6,7 +6,7 @@ import { keys } from './keys';
 // TODO: delete (keyup)="setCaret(myBox)"
 @Component({
 	selector: 'box',
-	template: '<textarea #myBox rows="{{ r + 1 }}" cols="{{ c + (hasBorders ? 2 : 1) }}" [ngModel]=currStr (keypress)="setCaret(myBox, onKeyPress($event))" (click)="getCaret(myBox)" (keydown)="getCaret(myBox)" (keyup)="setCaret(myBox)"></textarea>',
+	template: '<textarea #myBox rows="{{ r + 1 }}" cols="{{ c + (hasBorders ? 2 : 1) }}" [ngModel]=currStr (keypress)="setCaret(myBox, onKeyPress($event))" (click)="getCaret(myBox)" (keydown)="getCaret(myBox); setCaret(myBox, nonKeyPress($event))"></textarea>',
 	// styleUrls: ['app/css/style.css']
 })
 export class BoxComponent {
@@ -28,6 +28,10 @@ export class BoxComponent {
 		this.r = settingService.boxHeight;
 		this.c = settingService.boxWidth;
 		this.resetCurrStr();
+	}
+
+	ngOnChanges(changes: any) {
+		console.log('changes: ' + changes);
 	}
 
 	ngOnInit() {
@@ -61,10 +65,17 @@ export class BoxComponent {
 		})
 	}
 
+	setPos(n: number) {
+		this.position.row = this.getRow(n);
+		this.position.col = this.getCol(n);
+		this.position.pos = n;
+		return n;
+	}
+
 	getCaret(element: any) {
 		if ('selectionStart' in element) {
 //          console.log('selectionstart in' + element.selectionStart);
-			this.position.pos = element.selectionStart;
+			this.setPos(element.selectionStart);
 			this.range = [element.selectionStart, element.selectionEnd];
 			return [element.selectionStart, element.selectionEnd];
 		} /*else if (document.selection) {
@@ -87,9 +98,9 @@ export class BoxComponent {
 			var that = this;
 //            Zone.current.run(
  //               function() {
-					console.log('box value ' + element.value);
+//					console.log('box value ' + element.value);
 					console.log(element);
-					console.log(Zone.current);
+//					console.log(Zone.current);
 					element.focus();
 					if (element.selectionStart !== undefined) {
 						
@@ -378,10 +389,18 @@ export class BoxComponent {
 				unicode = e.keyCode;
 		} else if (e.which) { // Netscape/Firefox/Opera                 
 			unicode = e.which;
-		 }
+		}
+		console.log('keypress ' + unicode);
 
 		if (!(e.altKey || e.ctrlKey) && unicode) {
 			e.preventDefault();
+
+			if (unicode === keys.ENTER) { // TODO: remember where user started typing
+				e.preventDefault();
+				console.log('enter' + this.positionFromCoordinates(this.position.row + 1, this.position.col));
+
+				return this.positionFromCoordinates(this.position.row + 1, this.position.col);
+			}
 
 			var row = this.position.row;
 			var d = this.position.col;
@@ -423,7 +442,7 @@ export class BoxComponent {
 			
 			this.loadRanges(String.fromCharCode(unicode), ranges, Math.abs(endPoint.col - startPoint.col) + 1);
 //          console.log('onkeypress ends');
-			return this.position.pos = this.position.pos + 1;
+			return this.setPos(this.position.pos + 1);
 		}
 		else if (e.ctrlKey) {  
 			// event listeners do CUT/COPY/PASTE. Should have event listeners for undo/redo too? Would have to build from scratch, as there is no built-in event for them
@@ -438,8 +457,8 @@ export class BoxComponent {
 		}
 	}
 
-	// returns the new cursor position to set
-	@HostListener('keyup', ['$event']) nonKeyPress(e: any) {// TODO: split
+	// Things that don't categorize as keypress behavior
+	/*@HostListener('keyup', ['$event'])*/ nonKeyPress(e: any) {
 		if (!(e.altKey || e.ctrlKey)) {
 			var unicode = null;
 			if (window.event) { // IE					
@@ -448,33 +467,30 @@ export class BoxComponent {
 				if (e.which) { // Netscape/Firefox/Opera					
 					unicode = e.which;
 				 }
-				 console.log('non key press ' + unicode);
+			
+			console.log('non key press ' + unicode);
 			var d = this.position.col;
 
-			// the below should be in model.js TODOs
 			if (unicode === keys.BACKSPACE) {
-				if (d > this.c || d == 0) {
-					e.preventDefault();
-				}
-				else {
-					this.currStr = this.currStr.substring(0, this.position.pos) + keys.CHAR_SPACE + this.currStr.substring(this.position.pos);
-					return this.position.pos;
-				}
-			}
-			else if (unicode === keys.DELETE) { 
-				if (d >= this.c)
-					e.preventDefault();
-				else {
-					this.currStr = this.currStr.substring(0, this.position.pos + 1) + keys.CHAR_SPACE + this.currStr.substring(this.position.pos + 1);
-				}
-			}
-			else if (unicode === keys.ENTER) { // TODO: remember where user started typing
 				e.preventDefault();
-				return this.positionFromCoordinates(this.position.row + 1, this.position.col);
+
+				if (d <= this.c && d != 0) {
+					this.currStr = this.currStr.substring(0, this.position.pos - 1) + keys.CHAR_SPACE + this.currStr.substring(this.position.pos);
+				}
+				return this.position.pos - 1;
 			}
 			else if (unicode === keys.SHIFT) {
 				if (this.mouseDown) {
 					// Insert code to straighten selection line here
+				}
+			}
+			else if (unicode === keys.DELETE) { 
+				e.preventDefault();
+				if (d < this.c)
+				{
+					var temp = this.currStr.substring(0, this.position.pos) + keys.CHAR_SPACE + this.currStr.substring(this.position.pos + 1);
+					this.currStr = temp; 
+					return this.position.pos;
 				}
 			}
 		}

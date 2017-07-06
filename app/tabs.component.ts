@@ -120,17 +120,14 @@ export class WindowTabComponent extends BaseTabComponent {
 		this.settingService.toggleBorders();
 	}
 
-	// TODO
 	shiftVert() {
 		this.settingService.shiftVert(this.shiftValue);
 	}
 
-	// TODO
 	shiftHoriz() {
 		this.settingService.shiftHoriz(this.shiftValue);
 	}
 
-	// TODO
 	trim() {
 		this.settingService.trim();
 	}

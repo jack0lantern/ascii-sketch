@@ -32,6 +32,11 @@ export class SettingService {
     fillMode: string;
     fillChar: string;
     bordersChecked: boolean;
+    
+    // TODO: consider deleting
+    boxHeight: number = 20;
+    boxWidth: number = 40;
+    shiftValue: number = 1;
 
     resetter = new EventEmitter();
     dimsChanged = new EventEmitter();
@@ -44,10 +49,7 @@ export class SettingService {
 		this.mode = 'line';	// line, block, bucket, circle
 		this.fillMode = 'transparent'; // fill, transparent
 		this.fillChar = ' ';
-		this.boxHeight = 20;
-	    this.boxWidth = 40;
 	    this.bordersChecked = false;
-	    this.shiftValue = 1;
 	}
 
 	getModes() {

@@ -1,8 +1,10 @@
 import { Directive, ElementRef, Input, Output, EventEmitter } from '@angular/core';
 
 class Caret {
-	constructor(element: ElementRef, callback: any, position: number) {
+	element: ElementRef;
 
+	constructor(element: ElementRef, callback: any, position: number) {
+		this.element = element;
 	}
 }
 
@@ -20,7 +22,7 @@ export class CaretBegin {
 	@Output() caretChange = new EventEmitter();
 
 	ngOnInit() {
-		this.caret = new Caret(this.element, this.onCaretChange.bind(this), this._position);
+		this.caret = new Caret(this.caret.element, this.onCaretChange.bind(this), this._position);
 	}
 
 	onCaretChange() {
