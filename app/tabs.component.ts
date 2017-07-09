@@ -25,6 +25,11 @@ export class DrawTabComponent extends BaseTabComponent {
 	selected = true;
 	fillToggled : boolean = false;
 	isCustom : boolean = false;
+	fillChar : string = this.settingService.fillChar;
+
+	log(msg: any) {
+		console.log(msg);
+	}
 
 	constructor(settingService: SettingService) {
 		super(settingService);
@@ -56,6 +61,10 @@ export class DrawTabComponent extends BaseTabComponent {
         else {
             this.settingService.setFillMode('transparent');
         }
+	}
+
+	setChar() {
+		this.settingService.fillChar = this.fillChar;
 	}
 }
 
