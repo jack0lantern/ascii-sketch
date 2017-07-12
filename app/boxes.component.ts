@@ -6,7 +6,7 @@ import { keys } from './keys';
 // TODO: delete (keyup)="setCaret(myBox)"
 @Component({
 	selector: 'box',
-	template: '<textarea #myBox rows="{{ r + 1 }}" cols="{{ c + (hasBorders ? 2 : 1) }}" [ngModel]=currStr (keypress)="setCaret(myBox, onKeyPress($event))" (click)="getCaret(myBox)" (keydown)="getCaret(myBox); setCaret(myBox, nonKeyPress($event))" (cut)="getCaret(myBox); copy(true)"></textarea>',
+	template: '<textarea #myBox rows="{{ r + 1 }}" cols="{{ c + (hasBorders ? 2 : 1) }}" [ngModel]=currStr (keypress)="setCaret(myBox, onKeyPress($event))" (click)="getCaret(myBox)" (keydown)="getCaret(myBox); setCaret(myBox, nonKeyPress($event))" (cut)="getCaret(myBox); copy(true)" (copy)="copy(false)" (paste)="paste()"></textarea>',
 	// styleUrls: ['app/css/style.css']
 })
 export class BoxComponent {
@@ -530,8 +530,8 @@ export class BoxComponent {
         }
         var pointRange = [new Point(startRow, startCol, start), new Point(startCol, endCol, end)];
 
-        if (DEBUG)
-            document.getElementById('debug').innerHTML = "SR: " + startRow + " ER: " + endRow + " SC: " + startCol + " EC: " + endCol;
+//        if (DEBUG)
+//            document.getElementById('debug').innerHTML = "SR: " + startRow + " ER: " + endRow + " SC: " + startCol + " EC: " + endCol;
         
 		this.clipboard = [];
         for (var row = pointRange[0].row; row <= pointRange[1].row; row++) {
@@ -541,8 +541,35 @@ export class BoxComponent {
         if (cut) {
             this.replaceWithWhitespace(pointRange);
         }
-        
-        this.pushUndo();
+    //TODO    
+  //      this.pushUndo();
+    }
+
+    paste() {
+        var pasted = false;
+        if (this.clipboard.length) {
+            var newStr = this.currStr.substring(0, this.position.pos);
+            var posRow = this.position.row;
+            var posCol = this.position.col;
+            if (posCol < this.c) {
+                // index in a row string to cut off, in case of overflow
+                var cutoff = Math.min(this.clipboard[0].length, this.c - posCol);
+                var endOfRowIndex = Math.min(this.c, posCol + this.clipboard[0].length);
+                for (var row = 0; (row < this.clipboard.length) && ((posRow + row) < this.r); row++) {
+                    if (this.settingService.pasteTransparent)
+                        newStr += this.mergeOverSpace(this.clipboard[row].substring(0, cutoff), this.currStr.substring(this.positionFromCoordinates(posRow + row, posCol), this.positionFromCoordinates(posRow + row, posCol + cutoff)));
+                    else
+                        newStr += this.clipboard[row].substring(0, cutoff);
+                    newStr += this.currStr.substring(this.positionFromCoordinates(posRow + row, endOfRowIndex), this.positionFromCoordinates(posRow + row + 1, posCol));
+                }
+
+                newStr += this.currStr.substring(this.positionFromCoordinates(posRow + row, posCol));
+                this.currStr = newStr;
+//                this.pushUndo();
+                pasted = true;
+            }
+        }
+        return pasted;
     }
 
 	// Sets currStr to an empty box string
