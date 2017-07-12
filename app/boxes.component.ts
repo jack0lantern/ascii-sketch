@@ -6,7 +6,7 @@ import { keys } from './keys';
 // TODO: delete (keyup)="setCaret(myBox)"
 @Component({
 	selector: 'box',
-	template: '<textarea #myBox rows="{{ r + 1 }}" cols="{{ c + (hasBorders ? 2 : 1) }}" [ngModel]=currStr (keypress)="setCaret(myBox, onKeyPress($event))" (click)="getCaret(myBox)" (keydown)="getCaret(myBox); setCaret(myBox, nonKeyPress($event))"></textarea>',
+	template: '<textarea #myBox rows="{{ r + 1 }}" cols="{{ c + (hasBorders ? 2 : 1) }}" [ngModel]=currStr (keypress)="setCaret(myBox, onKeyPress($event))" (click)="getCaret(myBox)" (keydown)="getCaret(myBox); setCaret(myBox, nonKeyPress($event))" (cut)="getCaret(myBox); copy(true)"></textarea>',
 	// styleUrls: ['app/css/style.css']
 })
 export class BoxComponent {
@@ -87,28 +87,30 @@ export class BoxComponent {
 		}*/
 	}
 
-	setCaret(element: any, caretPos = this.position.pos) {
+	setCaret(element: any, caretPos) {
 		console.log('setcaret ' + caretPos);
-		if (element.createTextRange) {
-			var range = element.createTextRange();
-			range.move('character', caretPos);
-			range.select();
-		}
-		else {
-			var that = this;
-//            Zone.current.run(
- //               function() {
-//					console.log('box value ' + element.value);
-					console.log(element);
-//					console.log(Zone.current);
-					element.focus();
-					if (element.selectionStart !== undefined) {
-						
-						element.setSelectionRange(caretPos, caretPos);
-					}
-					console.log(this.position.pos);
-   //             }
-   //         );
+		if (typeof caretPos != 'undefined') {
+			if (element.createTextRange) {
+				var range = element.createTextRange();
+				range.move('character', caretPos);
+				range.select();
+			}
+			else {
+				var that = this;
+	//            Zone.current.run(
+	 //               function() {
+	//					console.log('box value ' + element.value);
+						console.log(element);
+	//					console.log(Zone.current);
+						element.focus();
+						if (element.selectionStart !== undefined) {
+							
+							element.setSelectionRange(caretPos, caretPos);
+						}
+						console.log(this.position.pos);
+	   //             }
+	   //         );
+			}
 		}
 		console.log('end setcaret');
 	}
@@ -495,6 +497,53 @@ export class BoxComponent {
 			}
 		}
 	}
+
+    replaceWithWhitespace(range: any) {
+        var startPoint = range[0];
+        var startRow = startPoint.row;
+        var startCol = startPoint.col;
+        var endPoint = range[1];
+        var endRow = endPoint.row;
+        var endCol = endPoint.col;
+        var newStr = this.currStr.substring(0, startPoint.pos);
+            for (var row = startRow; row <= endRow; row++) {
+                newStr += this.spaces.substring(0, endCol - startCol + 1);
+                newStr += this.currStr.substring(this.positionFromCoordinates(row, endCol + 1), this.positionFromCoordinates(row + 1, startCol));
+            }
+            newStr += this.currStr.substring(this.positionFromCoordinates(row, startCol));
+        this.currStr = newStr;
+    }
+
+	// Puts a block selection in the clipboard.
+    // If cut is set, we white-space out the block selection in addition.
+    copy(cut: boolean) {// TODO: split
+        var start = this.range[0], end = this.range[1];
+        var startRow = this.getRow(start), endRow = this.getRow(end);
+        var startCol = Math.min(this.getCol(start), this.getCol(end)), endCol = Math.max(this.getCol(start), this.getCol(end));
+        startCol = Math.min(startCol, this.c - 1);
+        endCol = Math.min(endCol, this.c - 1);
+        
+        // Note: coldiff is recomputed needlessly in replacewithwithspace.
+        var colDiff = endCol - startCol;    
+        if (colDiff === 0) {
+            return;
+        }
+        var pointRange = [new Point(startRow, startCol, start), new Point(startCol, endCol, end)];
+
+        if (DEBUG)
+            document.getElementById('debug').innerHTML = "SR: " + startRow + " ER: " + endRow + " SC: " + startCol + " EC: " + endCol;
+        
+		this.clipboard = [];
+        for (var row = pointRange[0].row; row <= pointRange[1].row; row++) {
+            this.clipboard.push(this.currStr.substring(this.positionFromCoordinates(row, pointRange[0].col), this.positionFromCoordinates(row, pointRange[1].col + 1)));
+        }
+
+        if (cut) {
+            this.replaceWithWhitespace(pointRange);
+        }
+        
+        this.pushUndo();
+    }
 
 	// Sets currStr to an empty box string
 	resetCurrStr() {
