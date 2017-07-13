@@ -79,6 +79,18 @@ export class EditTabComponent extends BaseTabComponent {
 	constructor(settingService: SettingService) {
 		super(settingService);
 	}
+
+	cut() {
+		this.settingService.copyEmitter.emit({cut: true});
+	}
+
+	copy() {
+		this.settingService.copyEmitter.emit({cut: false});
+	}
+
+	paste() {
+		this.settingService.pasteEmitter.emit({});
+	}
 }
 
 @Component({

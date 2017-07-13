@@ -34,6 +34,7 @@ export class BoxComponent {
 		console.log('changes: ' + changes);
 	}
 
+	// TODO: make subscription based on whether focused (in settingservice) or not
 	ngOnInit() {
 		this.settingService.resetter.subscribe((data: any) => {
 			this.makeBox(data.h, data.w);
@@ -62,7 +63,15 @@ export class BoxComponent {
 
 		this.settingService.trimEmitter.subscribe((data: any) => {
 			this.trimArea();
-		})
+		});
+
+		this.settingService.copyEmitter.subscribe((data: any) => {
+			this.copy(data.cut);
+		});
+
+		this.settingService.pasteEmitter.subscribe((data: any) => {
+			this.paste();
+		});
 	}
 
 	setPos(n: number) {
@@ -517,7 +526,8 @@ export class BoxComponent {
 	// Puts a block selection in the clipboard.
     // If cut is set, we white-space out the block selection in addition.
     copy(cut: boolean, e: any) {
-    	e.preventDefault();
+    	if (e)
+    		e.preventDefault();
         var start = this.range[0], end = this.range[1];
         var startRow = this.getRow(start), endRow = this.getRow(end);
         var startCol = Math.min(this.getCol(start), this.getCol(end)), endCol = Math.max(this.getCol(start), this.getCol(end));
@@ -547,7 +557,8 @@ export class BoxComponent {
     }
 
     paste(e: any) {
-    	e.preventDefault();
+    	if (e)
+    		e.preventDefault();
         var pasted = false;
         if (this.settingService.clipboard.length) {
             var newStr = this.currStr.substring(0, this.position.pos);

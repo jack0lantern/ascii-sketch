@@ -45,6 +45,8 @@ export class SettingService {
     borders = new EventEmitter();
     shiftEmitter = new EventEmitter();
     trimEmitter = new EventEmitter();
+    copyEmitter = new EventEmitter();
+    pasteEmitter = new EventEmitter();
 
 	constructor() {
 		// Initial values

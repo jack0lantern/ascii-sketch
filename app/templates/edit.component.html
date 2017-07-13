@@ -1,15 +1,15 @@
 <div class="tab_data" id="edit_content"  *ngIf="selected">
     <section>
-        <button id="cutButton">
+        <button id="cutButton" (click)="cut()">
             Cut<br />
             <span>(<span class="cmd">Ctrl</span> + X)</span>
         </button>
-        <button id="copyButton">
+        <button id="copyButton" (click)="copy()">
             Copy<br />
             <span>(<span class="cmd">Ctrl</span> + C)</span>
         </button>
         <div style="display: inline-block; margin-right: 10px; text-align: center">
-            <button id="pasteButton" style="float: none">
+            <button id="pasteButton" style="float: none" (click)="paste()">
                 Paste<br />
                 <span>(<span class="cmd">Ctrl</span> + V)</span>
             </button><br />
