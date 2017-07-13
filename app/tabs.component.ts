@@ -91,6 +91,10 @@ export class EditTabComponent extends BaseTabComponent {
 	paste() {
 		this.settingService.pasteEmitter.emit({});
 	}
+
+	toggleTrans() {
+		this.settingService.pasteTransparent = !this.settingService.pasteTransparent;
+	}
 }
 
 @Component({
