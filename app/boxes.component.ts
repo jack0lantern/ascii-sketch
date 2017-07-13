@@ -1,6 +1,6 @@
 import { Component, OnInit, ComponentFactory, ViewChild, ViewContainerRef, ComponentFactoryResolver, HostListener, ElementRef } from '@angular/core';
 import { SettingService } from './setting.service';
-import { Point, Queue } from './data-structures';
+import { Point, Queue, Stack } from './data-structures';
 import { keys } from './keys';
 
 // TODO: delete (keyup)="setCaret(myBox)"
@@ -66,11 +66,11 @@ export class BoxComponent {
 		});
 
 		this.settingService.copyEmitter.subscribe((data: any) => {
-			this.copy(data.cut);
+			this.copy(data.cut, null);
 		});
 
 		this.settingService.pasteEmitter.subscribe((data: any) => {
-			this.paste();
+			this.paste(null);
 		});
 	}
 
@@ -96,7 +96,7 @@ export class BoxComponent {
 		}*/
 	}
 
-	setCaret(element: any, caretPos) {
+	setCaret(element: any, caretPos: number) {
 		console.log('setcaret ' + caretPos);
 		if (typeof caretPos != 'undefined') {
 			if (element.createTextRange) {
@@ -456,9 +456,9 @@ export class BoxComponent {
 			return this.setPos(this.position.pos + 1);
 		}
 		else if (e.ctrlKey) {  
-			// event listeners do CUT/COPY/PASTE. Should have event listeners for undo/redo too? Would have to build from scratch, as there is no built-in event for them
+			// event listeners do CUT/COPY/PASTE. Should have event listeners for this.undo/this.redo too? Would have to build from scratch, as there is no built-in event for them
 			if (e.which === keys.CHAR_Z) {
-				e.preventDefault(); // this doesn't actually seem to prevent the default undo action for other textboxes
+				e.preventDefault(); // this doesn't actually seem to prevent the default this.undo action for other textboxes
 	//                    popUndo();// TODO
 			}
 			else if (e.which === keys.CHAR_Y) {
@@ -539,11 +539,8 @@ export class BoxComponent {
         if (colDiff === 0) {
             return;
         }
-        var pointRange = [new Point(startRow, startCol, start), new Point(startCol, endCol, end)];
+        var pointRange = [new Point(startRow, startCol, start), new Point(endRow, endCol, end)];
 
-//        if (DEBUG)
-//            document.getElementById('debug').innerHTML = "SR: " + startRow + " ER: " + endRow + " SC: " + startCol + " EC: " + endCol;
-        
 		this.settingService.clipboard = [];
         for (var row = pointRange[0].row; row <= pointRange[1].row; row++) {
             this.settingService.clipboard.push(this.currStr.substring(this.positionFromCoordinates(row, pointRange[0].col), this.positionFromCoordinates(row, pointRange[1].col + 1)));
@@ -584,6 +581,69 @@ export class BoxComponent {
         }
         console.log('paste: ' + newStr);
         return pasted;
+    }
+
+    clearStacks() {// put in model.js - done
+        this.undo = new Stack();
+        this.redo = new Stack();
+    };
+
+    
+    // Creates a new Image object containing only the things we need.
+    ImageFactory() {
+        return new Image(this.getCurr(), box.getPos(), box.r, box.c, spaces, box.hasBorders);
+    };
+    
+    // Pushes a change to currStr to this.undo
+    pushUndo() {
+        console.log(currStr);
+
+        this.undo.push(new Node(this.ImageFactory()));
+        this.redo = new Stack();
+    };
+
+    // Pops from the this.undo stack and sets the stack top to the image
+    popUndo() {// TODO: put in ui.js and split to model.js
+        var pos;
+        this.redo.push(this.undo.pop());
+        if (this.undo.isEmpty()) {
+            // TODO: Inefficient?
+            box.makeBox(box.r, box.c);        box.setCaretToPos(document.getElementById(box.id), box.getPos());
+        }
+        else { 
+            box.r = this.undo.top.item.ir;
+            box.c = this.undo.top.item.ic;
+            spaces = this.undo.top.item.sp;
+            currStr = this.undo.top.item.currStr;
+            box.bd.adjustBox();
+            box.bd.setArea();
+            if (box.hasBorders != this.undo.top.hb) {
+                box.hasBorders = this.undo.top.hb;
+                box.toggleBorders();
+            }
+            box.setCaretToPos(this.undo.top.item.pos);
+        }
+    };
+
+    // Pops from the this.redo stack and sets the stack top to the image
+    popRedo() {// TODO: put in ui.js and split to model.js
+        if (this.redo.isEmpty()) return;
+        var undid = this.redo.top.item;
+        this.undo.push(this.redo.pop());
+        if (undid) {
+            box.r = undid.ir;
+            box.c = undid.ic;
+            spaces = undid.sp;
+            currStr = undid.currStr;
+            box.bd.setArea();
+            if (box.hasBorders != undid.hb) {
+                box.hasBorders = undid.hb;
+                box.toggleBorders();
+            }
+            box.setCaretToPos(undid.pos);
+            box.bd.adjustBox();
+        }
+        return undid;
     }
 
 	// Sets currStr to an empty box string
