@@ -6,7 +6,7 @@ import { keys } from './keys';
 // TODO: delete (keyup)="setCaret(myBox)"
 @Component({
 	selector: 'box',
-	template: '<textarea #myBox rows="{{ r + 1 }}" cols="{{ c + (hasBorders ? 2 : 1) }}" [ngModel]=currStr (keypress)="setCaret(myBox, onKeyPress($event))" (click)="getCaret(myBox)" (keydown)="getCaret(myBox); setCaret(myBox, nonKeyPress($event))" (cut)="getCaret(myBox); copy(true)" (copy)="copy(false)" (paste)="paste()"></textarea>',
+	template: '<textarea #myBox rows="{{ r + 1 }}" cols="{{ c + (hasBorders ? 2 : 1) }}" [ngModel]=currStr (keypress)="setCaret(myBox, onKeyPress($event))" (click)="getCaret(myBox)" (keydown)="getCaret(myBox); setCaret(myBox, nonKeyPress($event))" (cut)="getCaret(myBox); copy(true, $event)" (copy)="copy(false, $event)" (paste)="paste($event)"></textarea>',
 	// styleUrls: ['app/css/style.css']
 })
 export class BoxComponent {
@@ -516,7 +516,8 @@ export class BoxComponent {
 
 	// Puts a block selection in the clipboard.
     // If cut is set, we white-space out the block selection in addition.
-    copy(cut: boolean) {// TODO: split
+    copy(cut: boolean, e: any) {
+    	e.preventDefault();
         var start = this.range[0], end = this.range[1];
         var startRow = this.getRow(start), endRow = this.getRow(end);
         var startCol = Math.min(this.getCol(start), this.getCol(end)), endCol = Math.max(this.getCol(start), this.getCol(end));
@@ -533,9 +534,9 @@ export class BoxComponent {
 //        if (DEBUG)
 //            document.getElementById('debug').innerHTML = "SR: " + startRow + " ER: " + endRow + " SC: " + startCol + " EC: " + endCol;
         
-		this.clipboard = [];
+		this.settingService.clipboard = [];
         for (var row = pointRange[0].row; row <= pointRange[1].row; row++) {
-            this.clipboard.push(this.currStr.substring(this.positionFromCoordinates(row, pointRange[0].col), this.positionFromCoordinates(row, pointRange[1].col + 1)));
+            this.settingService.clipboard.push(this.currStr.substring(this.positionFromCoordinates(row, pointRange[0].col), this.positionFromCoordinates(row, pointRange[1].col + 1)));
         }
 
         if (cut) {
@@ -545,21 +546,22 @@ export class BoxComponent {
   //      this.pushUndo();
     }
 
-    paste() {
+    paste(e: any) {
+    	e.preventDefault();
         var pasted = false;
-        if (this.clipboard.length) {
+        if (this.settingService.clipboard.length) {
             var newStr = this.currStr.substring(0, this.position.pos);
             var posRow = this.position.row;
             var posCol = this.position.col;
             if (posCol < this.c) {
                 // index in a row string to cut off, in case of overflow
-                var cutoff = Math.min(this.clipboard[0].length, this.c - posCol);
-                var endOfRowIndex = Math.min(this.c, posCol + this.clipboard[0].length);
-                for (var row = 0; (row < this.clipboard.length) && ((posRow + row) < this.r); row++) {
+                var cutoff = Math.min(this.settingService.clipboard[0].length, this.c - posCol);
+                var endOfRowIndex = Math.min(this.c, posCol + this.settingService.clipboard[0].length);
+                for (var row = 0; (row < this.settingService.clipboard.length) && ((posRow + row) < this.r); row++) {
                     if (this.settingService.pasteTransparent)
-                        newStr += this.mergeOverSpace(this.clipboard[row].substring(0, cutoff), this.currStr.substring(this.positionFromCoordinates(posRow + row, posCol), this.positionFromCoordinates(posRow + row, posCol + cutoff)));
+                        newStr += this.mergeOverSpace(this.settingService.clipboard[row].substring(0, cutoff), this.currStr.substring(this.positionFromCoordinates(posRow + row, posCol), this.positionFromCoordinates(posRow + row, posCol + cutoff)));
                     else
-                        newStr += this.clipboard[row].substring(0, cutoff);
+                        newStr += this.settingService.clipboard[row].substring(0, cutoff);
                     newStr += this.currStr.substring(this.positionFromCoordinates(posRow + row, endOfRowIndex), this.positionFromCoordinates(posRow + row + 1, posCol));
                 }
 
@@ -569,6 +571,7 @@ export class BoxComponent {
                 pasted = true;
             }
         }
+        console.log('paste: ' + newStr);
         return pasted;
     }
 

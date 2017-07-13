@@ -32,6 +32,8 @@ export class SettingService {
     fillMode: string;
     fillChar: string;
     bordersChecked: boolean;
+    pasteTransparent: boolean;
+    clipboard: string[];
     
     // TODO: consider deleting
     boxHeight: number = 20;
@@ -50,6 +52,8 @@ export class SettingService {
 		this.fillMode = 'transparent'; // fill, transparent
 		this.fillChar = ' ';
 	    this.bordersChecked = false;
+	    this.pasteTransparent = false;
+	    this.clipboard = [];
 	}
 
 	getModes() {
