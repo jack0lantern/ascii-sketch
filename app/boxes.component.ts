@@ -738,6 +738,7 @@ export class BoxComponent {
 
 	makeBox (h: number, w: number) {
 		console.log('makebox h: ' + h + 'w: ' + w);
+		this.clearStacks();
 		this.setDims(h, w);
 		this.resetCurrStr();
 	};
