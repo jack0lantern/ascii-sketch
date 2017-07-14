@@ -83,6 +83,9 @@ export class Stack {
         if (temp) {
             this.top = temp.next;
         }
+        else {
+            return null;
+        }
         return temp.item;
     }
 

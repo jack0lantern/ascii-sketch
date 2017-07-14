@@ -29,6 +29,8 @@ export class BoxComponent {
 	constructor(private settingService: SettingService) {
 		this.r = settingService.boxHeight;
 		this.c = settingService.boxWidth;
+		this.undo = new Stack();
+		this.redo = new Stack();
 		this.resetCurrStr();
 	}
 
@@ -464,6 +466,7 @@ export class BoxComponent {
 			
 			this.loadRanges(String.fromCharCode(unicode), ranges, Math.abs(endPoint.col - startPoint.col) + 1);
 //          console.log('onkeypress ends');
+			this.pushUndo();
 			return this.setPos(this.position.pos + 1);
 		}
 		else if (e.ctrlKey) {  
@@ -560,8 +563,8 @@ export class BoxComponent {
         if (cut) {
             this.replaceWithWhitespace(pointRange);
         }
-    //TODO    
-  //      this.pushUndo();
+
+    	this.pushUndo();
     }
 
     paste(e: any) {
@@ -586,7 +589,7 @@ export class BoxComponent {
 
                 newStr += this.currStr.substring(this.positionFromCoordinates(posRow + row, posCol));
                 this.currStr = newStr;
-//                this.pushUndo();
+                this.pushUndo();
                 pasted = true;
             }
         }
@@ -625,8 +628,8 @@ export class BoxComponent {
             this.c = this.undo.top.item.ic;
             this.spaces = this.undo.top.item.sp;
             this.currStr = this.undo.top.item.currStr;
-            if (this.hasBorders != this.undo.top.hb) {
-                this.hasBorders = this.undo.top.hb;
+            if (this.hasBorders != this.undo.top.item.hb) {
+                this.hasBorders = this.undo.top.item.hb;
                 this.toggleBorders();
             }
 //            this.setCaretToPos(this.undo.top.item.pos);
@@ -644,7 +647,7 @@ export class BoxComponent {
             this.spaces = undid.sp;
             this.currStr = undid.currStr;
             if (this.hasBorders != undid.hb) {
-                this.hasBorders = undid.hb;
+            	this.hasBorders = undid.hb;
                 this.toggleBorders();
             }
  //           this.setCaretToPos(undid.pos);
@@ -784,7 +787,7 @@ export class BoxComponent {
 			newStr += i < (this.r - 1) ? '\n' : '';
 		}
 		this.currStr = newStr;
-//        this.pushUndo(); //TODO
+        this.pushUndo(); //TODO
 	};
 
 	//
@@ -822,7 +825,7 @@ export class BoxComponent {
 		}
 
 		this.currStr = newStr;
-//        this.pushUndo(); //TODO
+        this.pushUndo(); //TODO
 	};
 
 	// TODO:
@@ -892,7 +895,7 @@ export class BoxComponent {
 		this.r = stop - this.getRow(beginIndex) + 1;
 		this.c = maxCol - minCol + 1;
 		
-		// this.pushUndo();
+		this.pushUndo();
 	}
 }
 
