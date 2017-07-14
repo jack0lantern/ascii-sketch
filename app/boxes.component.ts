@@ -1,6 +1,6 @@
 import { Component, OnInit, ComponentFactory, ViewChild, ViewContainerRef, ComponentFactoryResolver, HostListener, ElementRef } from '@angular/core';
 import { SettingService } from './setting.service';
-import { Point, Queue, Stack } from './data-structures';
+import { Point, Queue, Stack, Image } from './data-structures';
 import { keys } from './keys';
 
 // TODO: delete (keyup)="setCaret(myBox)"
@@ -19,6 +19,8 @@ export class BoxComponent {
 	range: number[] = [0, 0];
 	mouseDown: boolean;
 	spaces: string = '';
+	undo: Stack;
+	redo: Stack;
 
 	log(val: any) {
 		console.log(val);
@@ -71,6 +73,15 @@ export class BoxComponent {
 
 		this.settingService.pasteEmitter.subscribe((data: any) => {
 			this.paste(null);
+		});
+
+		this.settingService.doEmitter.subscribe((data: any) => {
+			if (data.undo) {
+				this.popUndo();
+			}
+			else {
+				this.popRedo();
+			}
 		});
 	}
 
@@ -459,11 +470,11 @@ export class BoxComponent {
 			// event listeners do CUT/COPY/PASTE. Should have event listeners for this.undo/this.redo too? Would have to build from scratch, as there is no built-in event for them
 			if (e.which === keys.CHAR_Z) {
 				e.preventDefault(); // this doesn't actually seem to prevent the default this.undo action for other textboxes
-	//                    popUndo();// TODO
+	            this.popUndo(); // TODO
 			}
 			else if (e.which === keys.CHAR_Y) {
 				e.preventDefault();
-	//                    popRedo(); // TODO
+	            this.popRedo(); // TODO
 			}
 		}
 	}
@@ -591,16 +602,14 @@ export class BoxComponent {
     
     // Creates a new Image object containing only the things we need.
     ImageFactory() {
-        return new Image(this.getCurr(), box.getPos(), box.r, box.c, spaces, box.hasBorders);
-    };
+        return new Image(this.currStr, this.position.pos, this.r, this.c, this.spaces, this.hasBorders);
+    }
     
     // Pushes a change to currStr to this.undo
     pushUndo() {
-        console.log(currStr);
-
-        this.undo.push(new Node(this.ImageFactory()));
+        this.undo.push(this.ImageFactory());
         this.redo = new Stack();
-    };
+    }
 
     // Pops from the this.undo stack and sets the stack top to the image
     popUndo() {// TODO: put in ui.js and split to model.js
@@ -608,20 +617,19 @@ export class BoxComponent {
         this.redo.push(this.undo.pop());
         if (this.undo.isEmpty()) {
             // TODO: Inefficient?
-            box.makeBox(box.r, box.c);        box.setCaretToPos(document.getElementById(box.id), box.getPos());
+            this.resetCurrStr();        
+//            this.setCaretToPos(this..., this.position.pos);
         }
         else { 
-            box.r = this.undo.top.item.ir;
-            box.c = this.undo.top.item.ic;
-            spaces = this.undo.top.item.sp;
-            currStr = this.undo.top.item.currStr;
-            box.bd.adjustBox();
-            box.bd.setArea();
-            if (box.hasBorders != this.undo.top.hb) {
-                box.hasBorders = this.undo.top.hb;
-                box.toggleBorders();
+            this.r = this.undo.top.item.ir;
+            this.c = this.undo.top.item.ic;
+            this.spaces = this.undo.top.item.sp;
+            this.currStr = this.undo.top.item.currStr;
+            if (this.hasBorders != this.undo.top.hb) {
+                this.hasBorders = this.undo.top.hb;
+                this.toggleBorders();
             }
-            box.setCaretToPos(this.undo.top.item.pos);
+//            this.setCaretToPos(this.undo.top.item.pos);
         }
     };
 
@@ -631,17 +639,15 @@ export class BoxComponent {
         var undid = this.redo.top.item;
         this.undo.push(this.redo.pop());
         if (undid) {
-            box.r = undid.ir;
-            box.c = undid.ic;
-            spaces = undid.sp;
-            currStr = undid.currStr;
-            box.bd.setArea();
-            if (box.hasBorders != undid.hb) {
-                box.hasBorders = undid.hb;
-                box.toggleBorders();
+            this.r = undid.ir;
+            this.c = undid.ic;
+            this.spaces = undid.sp;
+            this.currStr = undid.currStr;
+            if (this.hasBorders != undid.hb) {
+                this.hasBorders = undid.hb;
+                this.toggleBorders();
             }
-            box.setCaretToPos(undid.pos);
-            box.bd.adjustBox();
+ //           this.setCaretToPos(undid.pos);
         }
         return undid;
     }

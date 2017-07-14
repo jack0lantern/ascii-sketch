@@ -22,11 +22,11 @@
         </div>
     </section>
     <section class="left_bar">
-        <button id="undoButton">
+        <button id="undoButton" (click)="undo()">
             Undo<br />
             <span>(<span class="cmd">Ctrl</span> + Z)</span>
         </button>
-        <button id="redoButton">
+        <button id="redoButton" (click)="redo()">
             Redo<br />
             <span>(<span class="cmd">Ctrl</span> + Y)</span>
         </button>

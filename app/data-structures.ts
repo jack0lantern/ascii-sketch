@@ -83,14 +83,12 @@ export class Stack {
         if (temp) {
             this.top = temp.next;
         }
-        return temp;
+        return temp.item;
     }
 
-    push(node: any) {
-        if (node) {
-            node.next = this.top;
-            this.top = node;
-        }
+    push(item: any) {
+        var node = new Node(item, this.top);
+        this.top = node;
     }
 
     isEmpty() {

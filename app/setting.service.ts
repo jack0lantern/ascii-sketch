@@ -47,6 +47,7 @@ export class SettingService {
     trimEmitter = new EventEmitter();
     copyEmitter = new EventEmitter();
     pasteEmitter = new EventEmitter();
+    doEmitter = new EventEmitter();
 
 	constructor() {
 		// Initial values

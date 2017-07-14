@@ -92,6 +92,14 @@ export class EditTabComponent extends BaseTabComponent {
 		this.settingService.pasteEmitter.emit({});
 	}
 
+	undo() {
+		this.settingService.doEmitter.emit({undo: true});
+	}
+
+	redo() {
+		this.settingService.doEmitter.emit({undo: false});
+	}
+
 	toggleTrans() {
 		this.settingService.pasteTransparent = !this.settingService.pasteTransparent;
 	}
