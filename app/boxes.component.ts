@@ -354,7 +354,7 @@ export class BoxComponent {
 			this.addToRanges(this.positionFromCoordinates(startRow + y, col), ranges);
 		}
 
-		// For the octant, xLim is the stopping point, but use 2*xLim-Pivot to mirror it across the y axis. Cuz math.
+		// For the octant, xLim is the stopping point, but use 2*xLim to mirror it across the y axis. Cuz math.
 		for (var x = 0; x <= Math.min(2 * xLim, this.c - 1 - startCol); x++) {
 			row = startRow + Math.round(-Math.sqrt((1 - Math.pow(x - xRad, 2)/xDen)*yDen) + yRad);
 			this.addToRanges(this.positionFromCoordinates(row, startCol + x), ranges);
@@ -617,7 +617,10 @@ export class BoxComponent {
     // Pops from the this.undo stack and sets the stack top to the image
     popUndo() {// TODO: put in ui.js and split to model.js
         var pos;
-        this.redo.push(this.undo.pop());
+        var temp = this.undo.pop();
+        if (temp) {
+        	this.redo.push(temp);
+        }
         if (this.undo.isEmpty()) {
             // TODO: Inefficient?
             this.resetCurrStr();        
