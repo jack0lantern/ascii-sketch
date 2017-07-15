@@ -3,6 +3,7 @@ import { BrowserModule } from '@angular/platform-browser';
 import { FormsModule } from '@angular/forms';
 import { SettingBarComponent } from './setting-bar.component';
 import { BoxComponent, BoxesComponent } from './boxes.component';
+import { PaletteComponent } from './palette.component';
 import * as Tabs from './tabs.component';
 import { SettingService } from './setting.service';
 
@@ -22,6 +23,7 @@ for (let i in Tabs) {
 	  SettingBarComponent,
     BoxComponent,
     BoxesComponent,
+    PaletteComponent
   ].concat(tabs),
   bootstrap:    [ AppComponent ],
   providers:	[ SettingService ],

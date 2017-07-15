@@ -21,6 +21,10 @@ export class SettingService {
         {
             name: 'circle',
             path: 'app/img/circle.png'
+        },
+        {
+        	name: 'pencil',
+        	path: 'app/img/pencil.png'
         }
     ];
 

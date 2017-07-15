@@ -3,7 +3,7 @@ import { SettingService } from './setting.service';
 import { Point, Queue, Stack, Image } from './data-structures';
 import { keys } from './keys';
 
-// TODO: delete (keyup)="setCaret(myBox)"
+// TODO: fix corner case startcol = this.c should still work
 @Component({
 	selector: 'box',
 	template: '<textarea #myBox rows="{{ r + 1 }}" cols="{{ c + (hasBorders ? 2 : 1) }}" [ngModel]=currStr (keypress)="setCaret(myBox, onKeyPress($event))" (click)="getCaret(myBox)" (keydown)="getCaret(myBox); setCaret(myBox, nonKeyPress($event))" (cut)="getCaret(myBox); copy(true, $event)" (copy)="copy(false, $event)" (paste)="paste($event)"></textarea>',
@@ -440,6 +440,7 @@ export class BoxComponent {
 
 			// TODO: SO much repetitive code! There must be a better design.
 			switch (this.settingService.mode) {
+				case 'pencil':
 				case 'line':
 					ranges = this.getLineRanges(startPoint, endPoint);
 					break;

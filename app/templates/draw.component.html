@@ -6,17 +6,16 @@
     <section id="fill_options">
         <label for="fill">Fill</label> <input type="checkbox" [(ngModel)]="fillToggled" (change)="toggleFill()">
         
-        <span id="fillOptions" *ngIf="fillToggled">
+        <span *ngIf="fillToggled">
             <label for="fillChar">with: </label><br />
-            <input type="radio" id="fillSame" name="fillOptions" checked (change)="isCustom=!$event.target.checked; toggleFill()" />
+            <input type="radio" name="fillOptions" checked (change)="isCustom=!$event.target.checked; toggleFill()" />
             <label for="fillSame"> Same characters </label><br />
-            <input type="radio" id="fillDiff" name="fillOptions" (change)="isCustom=$event.target.checked; toggleFill()" />
+            <input type="radio" name="fillOptions" (change)="isCustom=$event.target.checked; toggleFill()" />
             <label for="fillDiff">This character: </label>
             <input type="text" class="text" maxlength="1" [(ngModel)]="fillChar" (change)="setChar()" />
         </span>
     </section>
-    <section id="palette">
-
-        <br />
+    <section id="draw_options">
+        <palette *ngIf="getMode() == 'pencil'"></palette>
     </section>
 </div> 
