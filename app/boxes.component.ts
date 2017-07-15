@@ -232,7 +232,7 @@ export class BoxComponent {
 		visited[posPt.pos] = true;
 
 		while(!toCheckQ.isEmpty()) {
-			var currentPosPt = toCheckQ.dequeue().item;
+			var currentPosPt = toCheckQ.dequeue();
 			var currentPos = currentPosPt.pos;
 			this.addToRanges(currentPos, ranges);
 

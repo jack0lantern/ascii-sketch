@@ -78,12 +78,20 @@ class Node {// TODO: put in model.js
 export class Stack {
     top: any = null;
 
+    top() {
+        if (top) 
+            return top.item;
+        return null;
+    }
+
     pop() {
         var temp = this.top;
         if (temp) {
             this.top = temp.next;
         }
         else {
+            // should throw exception for empty stack?
+            console.log("popped from empty stack, returning null");
             return null;
         }
         return temp.item;
@@ -118,14 +126,14 @@ export class Queue {
         }
     }
     
-    // returns and dequeues the node (not item) in the front
+    // dequeues the node and returns the item in the front
     dequeue() {
         if (this.front) {
             var temp = this.front;
             this.front = this.front.next;
             if (!this.front)
                 this.back = null;
-            return temp;
+            return temp.item;
         }
     }
     
