@@ -298,10 +298,10 @@ export class BoxComponent {
 	// Create the range set for a block and load it
 	getBlockRanges (start: Point, end: Point) {// TODO: split
 		var startRow = start.row, endRow = end.row;
-		var startCol = Math.min(start.col, this.c - 1), endCol = Math.min(end.col, this.c - 1);
-		startCol = Math.min(startCol, this.c - 1);
-		endCol = Math.min(endCol, this.c - 1);
-		// note: rowDiff always >= 0, same CANNOT be said for colDiff
+		var startCol = Math.min(start.col, end.col), endCol = Math.max(start.col, end.col);
+		startCol = Math.min(startCol, this.c - 1), endCol = Math.min(endCol, this.c - 1);
+
+		// assert rowDiff >= 0 && colDiff >= 0
 		var rowDiff = endRow - startRow, colDiff = endCol - startCol; 
 
 		if (rowDiff === 0 || colDiff === 0) {
@@ -791,7 +791,7 @@ export class BoxComponent {
         this.pushUndo(); //TODO
 	};
 
-	//
+	// TODO: combine with horiz
 	shiftCurrVert(rawUnits: string) {
 		var newStr = '';
 		var i;
