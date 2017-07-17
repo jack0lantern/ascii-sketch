@@ -78,9 +78,9 @@ class Node {// TODO: put in model.js
 export class Stack {
     top: any = null;
 
-    top() {
+    peek() {
         if (top) 
-            return top.item;
+            return this.top.item;
         return null;
     }
 
@@ -188,3 +188,24 @@ export const unitVectors = { // TODO: put in model.js
     NE: new Vector2D(sqrt2by2, sqrt2by2),
     E: new Vector2D(0, 1)
 };
+
+// Like number, but cannot be NaN or a float
+export class Int {
+    private _val: number;
+
+    constructor(n: any) {
+        if (isNaN(this._val = parseInt(n))) {
+            this._val = 0;
+        }
+    }
+
+    get val(): any {
+        return this._val;
+    }
+
+    set val(n: any) {
+        if (!isNaN(parseInt(n))) {
+            this._val = parseInt(n);
+        }
+    }
+}

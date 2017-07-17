@@ -8,11 +8,11 @@
             </tr>
             <tr>
                 <td>Height: </td>
-                <td><input type="text" class="text" [(ngModel)]="h" /></td>
+                <td><input type="text" class="text" [(ngModel)]="h.val" (ngModelChange)="verifyWindow($event)" /></td>
             </tr>
             <tr>
                 <td>Width: </td>
-                <td><input type="text" class="text" [(ngModel)]="w" /></td>
+                <td><input type="text" class="text" [(ngModel)]="w.val" (ngModelChange)="verifyWindow($event)" /></td>
             </tr>
         </table>
         <table>

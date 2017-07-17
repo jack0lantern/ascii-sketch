@@ -6,7 +6,7 @@ import { keys } from './keys';
 // TODO: fix corner case startcol = this.c should still work
 @Component({
 	selector: 'box',
-	template: '<textarea #myBox rows="{{ r + 1 }}" cols="{{ c + (hasBorders ? 2 : 1) }}" [ngModel]=currStr (keypress)="setCaret(myBox, onKeyPress($event))" (click)="getCaret(myBox)" (keydown)="getCaret(myBox); setCaret(myBox, nonKeyPress($event))" (cut)="getCaret(myBox); copy(true, $event)" (copy)="copy(false, $event)" (paste)="paste($event)"></textarea>',
+	template: '<textarea #myBox rows="{{ r + 1 }}" cols="{{ c + (hasBorders ? 2 : 1) }}" [ngModel]=currStr (keypress)="setCaret(myBox, onKeyPress($event))" (click)="getCaret(myBox)" (keydown)="getCaret(myBox); setCaret(myBox, nonKeyPress($event))" (cut)="getCaret(myBox); copy(true, $event)" (copy)="copy(false, $event)" (paste)="paste($event)" (mousemove)="getCaret(myBox); onMouseMove()" (mousedown)="onMouseDown()" (mouseup)="onMouseUp()"></textarea>',
 	// styleUrls: ['app/css/style.css']
 })
 export class BoxComponent {
@@ -406,6 +406,18 @@ export class BoxComponent {
 		this.currStr = newStr;
 	}
 
+	onMouseDown() {
+		this.mouseDown = true;
+	}
+
+	onMouseUp() {
+		this.mouseDown = false;
+	}
+
+	onMouseMove() {
+	
+	}
+
 	/*@HostListener('keypress', ['$event']) */onKeyPress(e: any) {
 		var unicode = null;
 
@@ -508,6 +520,7 @@ export class BoxComponent {
 			else if (unicode === keys.SHIFT) {
 				if (this.mouseDown) {
 					// Insert code to straighten selection line here
+					console.log('hihi');
 				}
 			}
 			else if (unicode === keys.DELETE) { 
@@ -601,7 +614,7 @@ export class BoxComponent {
     clearStacks() {// put in model.js - done
         this.undo = new Stack();
         this.redo = new Stack();
-    };
+    }
 
     
     // Creates a new Image object containing only the things we need.
@@ -628,22 +641,22 @@ export class BoxComponent {
 //            this.setCaretToPos(this..., this.position.pos);
         }
         else { 
-            this.r = this.undo.top.item.ir;
-            this.c = this.undo.top.item.ic;
-            this.spaces = this.undo.top.item.sp;
-            this.currStr = this.undo.top.item.currStr;
-            if (this.hasBorders != this.undo.top.item.hb) {
-                this.hasBorders = this.undo.top.item.hb;
+            this.r = this.undo.peek().ir;
+            this.c = this.undo.peek().ic;
+            this.spaces = this.undo.peek().sp;
+            this.currStr = this.undo.peek().currStr;
+            if (this.hasBorders != this.undo.peek().hb) {
+                this.hasBorders = this.undo.peek().hb;
                 this.toggleBorders();
             }
-//            this.setCaretToPos(this.undo.top.item.pos);
+//            this.setCaretToPos(this.undo.peek().pos);
         }
-    };
+    }
 
     // Pops from the this.redo stack and sets the stack top to the image
     popRedo() {// TODO: put in ui.js and split to model.js
         if (this.redo.isEmpty()) return;
-        var undid = this.redo.top.item;
+        var undid = this.redo.peek();
         this.undo.push(this.redo.pop());
         if (undid) {
             this.r = undid.ir;
@@ -745,7 +758,7 @@ export class BoxComponent {
 		this.clearStacks();
 		this.setDims(h, w);
 		this.resetCurrStr();
-	};
+	}
 
 	// TODO:
 	getLine(line: number, withNewLine: boolean): string {
@@ -793,7 +806,7 @@ export class BoxComponent {
 		}
 		this.currStr = newStr;
         this.pushUndo(); //TODO
-	};
+	}
 
 	// TODO: combine with horiz
 	shiftCurrVert(rawUnits: string) {
@@ -831,7 +844,7 @@ export class BoxComponent {
 
 		this.currStr = newStr;
         this.pushUndo(); //TODO
-	};
+	}
 
 	// TODO:
 	// Clears out all whitespace surrounding the image and resizes to close on

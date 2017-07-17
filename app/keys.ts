@@ -1,6 +1,4 @@
 export const keys = {
-	CHAR_C: 3,
-	CHAR_P: 15,    // TODO not sure, lol
 	CHAR_X: 24,
 	CHAR_Y: 25,
 	CHAR_Z: 26,

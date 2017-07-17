@@ -1,5 +1,6 @@
 import { Component, Output } from '@angular/core';
 import { SettingService } from './setting.service';
+import { Int } from './data-structures';
 
 @Component({
 	selector: 'base-tab',
@@ -126,13 +127,17 @@ export class HelpTabComponent extends BaseTabComponent {
 export class WindowTabComponent extends BaseTabComponent {
 	name = 'Window';
 	selected = false;
-	h: number;
-	w: number;
+	h: Int;
+	w: Int;
+	oldh: number;
+	oldw: number;
 
 	constructor(settingService: SettingService) {
 		super(settingService);
-		this.h = settingService.boxHeight;
-		this.w = settingService.boxWidth;
+		this.h = new Int(settingService.boxHeight);
+		this.w = new Int(settingService.boxWidth);
+		this.oldh = this.h.val;
+		this.oldw = this.w.val;
 	}
 
     bordersChecked = this.settingService.bordersChecked;
@@ -141,12 +146,12 @@ export class WindowTabComponent extends BaseTabComponent {
 	resetOnConfirm() {
         var reset = confirm('Are you sure you want to clear the image? All your work will be lost. Press OK to continue or Cancel to cancel.');
         if (reset) {
-        	this.settingService.reset(this.h, this.w);
+        	this.settingService.reset(this.h.val, this.w.val);
         }
 	}
 
 	changeBoxDims() {
-		this.settingService.changeDims(this.h, this.w);
+		this.settingService.changeDims(this.h.val, this.w.val);
 	}
 
 	toggleBoxBorders() {
@@ -163,5 +168,17 @@ export class WindowTabComponent extends BaseTabComponent {
 
 	trim() {
 		this.settingService.trim();
+	}
+
+	verifyWindow(e: any) {
+		var eInt = parseInt(e);
+		if (eInt <= 0 || isNaN(eInt)) {
+			this.h.val = this.oldh;
+			this.w.val = this.oldw;
+		}
+		else {
+			this.oldh = this.h.val;
+			this.oldw = this.w.val;
+		}
 	}
 }
