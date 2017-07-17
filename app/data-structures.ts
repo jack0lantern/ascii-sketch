@@ -189,7 +189,7 @@ export const unitVectors = { // TODO: put in model.js
     E: new Vector2D(0, 1)
 };
 
-// Like number, but cannot be NaN or a float
+// Like number, but cannot be NaN or a float. Good for idiot-proofing user input
 export class Int {
     private _val: number;
 

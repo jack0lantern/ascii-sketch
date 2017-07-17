@@ -131,6 +131,7 @@ export class WindowTabComponent extends BaseTabComponent {
 	w: Int;
 	oldh: number;
 	oldw: number;
+    shiftValue: Int;
 
 	constructor(settingService: SettingService) {
 		super(settingService);
@@ -138,10 +139,10 @@ export class WindowTabComponent extends BaseTabComponent {
 		this.w = new Int(settingService.boxWidth);
 		this.oldh = this.h.val;
 		this.oldw = this.w.val;
+		this.shiftValue = new Int(this.settingService.shiftValue);
 	}
 
     bordersChecked = this.settingService.bordersChecked;
-    shiftValue = this.settingService.shiftValue;
 
 	resetOnConfirm() {
         var reset = confirm('Are you sure you want to clear the image? All your work will be lost. Press OK to continue or Cancel to cancel.');
@@ -159,11 +160,11 @@ export class WindowTabComponent extends BaseTabComponent {
 	}
 
 	shiftVert() {
-		this.settingService.shiftVert(this.shiftValue);
+		this.settingService.shiftVert(this.shiftValue.val);
 	}
 
 	shiftHoriz() {
-		this.settingService.shiftHoriz(this.shiftValue);
+		this.settingService.shiftHoriz(this.shiftValue.val);
 	}
 
 	trim() {
