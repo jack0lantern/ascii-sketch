@@ -165,7 +165,7 @@ export class BoxComponent {
 	// @param value: a number we are adding to the range
 	// @param ranges: the ranges array we are adding to
 	// NOTE: this is a HUUUGE bottle neck for certain functions like bucket. optimize it
-	addToRanges(value: number, ranges: any[]) {// TODO: put in model.js
+	addToRanges(value: number, ranges: any[]) {
 	// optimization idea: have object store adjacent indexes as keys and actual indexes as values. finding if a number can be added to an existing range is O(1)
 		var changedRange = null;
 		// assert(ranges, 'ranges is ' + ranges);
@@ -265,7 +265,7 @@ export class BoxComponent {
 	}
 
 	// Draws a line of copies of a character, repeated as frequently as possible over an interval specified by the user's selection
-	getLineRanges (start: Point, end: Point) {// TODO: split
+	getLineRanges (start: Point, end: Point) {
 		var startRow = start.row, endRow = end.row;
 		var startCol = Math.min(start.col, this.c - 1), endCol = Math.min(end.col, this.c - 1);
 
@@ -486,11 +486,11 @@ export class BoxComponent {
 			// event listeners do CUT/COPY/PASTE. Should have event listeners for this.undo/this.redo too? Would have to build from scratch, as there is no built-in event for them
 			if (e.which === keys.CHAR_Z) {
 				e.preventDefault(); // this doesn't actually seem to prevent the default this.undo action for other textboxes
-	            this.popUndo(); // TODO
+	            this.popUndo();
 			}
 			else if (e.which === keys.CHAR_Y) {
 				e.preventDefault();
-	            this.popRedo(); // TODO
+	            this.popRedo();
 			}
 		}
 	}
@@ -629,14 +629,13 @@ export class BoxComponent {
     }
 
     // Pops from the this.undo stack and sets the stack top to the image
-    popUndo() {// TODO: put in ui.js and split to model.js
+    popUndo() {
         var pos;
         var temp = this.undo.pop();
         if (temp) {
         	this.redo.push(temp);
         }
         if (this.undo.isEmpty()) {
-            // TODO: Inefficient?
             this.resetCurrStr();        
 //            this.setCaretToPos(this..., this.position.pos);
         }
@@ -654,7 +653,7 @@ export class BoxComponent {
     }
 
     // Pops from the this.redo stack and sets the stack top to the image
-    popRedo() {// TODO: put in ui.js and split to model.js
+    popRedo() {
         if (this.redo.isEmpty()) return;
         var undid = this.redo.peek();
         this.undo.push(this.redo.pop());
@@ -760,7 +759,6 @@ export class BoxComponent {
 		this.resetCurrStr();
 	}
 
-	// TODO:
 	getLine(line: number, withNewLine: boolean): string {
 		if (line < this.r) {
 			var str = '';
@@ -805,7 +803,7 @@ export class BoxComponent {
 			newStr += i < (this.r - 1) ? '\n' : '';
 		}
 		this.currStr = newStr;
-        this.pushUndo(); //TODO
+        this.pushUndo();
 	}
 
 	// TODO: combine with horiz
@@ -843,13 +841,12 @@ export class BoxComponent {
 		}
 
 		this.currStr = newStr;
-        this.pushUndo(); //TODO
+        this.pushUndo();
 	}
 
-	// TODO:
 	// Clears out all whitespace surrounding the image and resizes to close on
 	// the image as tightly as possible.
-	trimArea() {// TODO: split
+	trimArea() {
 		var matches = [];
 		var beginIndex = -1;
 		var endIndex = -1;
@@ -857,6 +854,7 @@ export class BoxComponent {
 		var re: RegExp;
 		var hasBorders = this.hasBorders;
 
+		// Note: if keys.CHAR_SPACE is modified, the regexp will not match correctly
 		if (hasBorders)
 		    re = /[^\s][^\n]/gi; // /( [^\s][^\n])|([^\s][^\n]( |\|\n))/gi;
 		else
