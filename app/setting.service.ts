@@ -35,6 +35,7 @@ export class SettingService {
     mode: string;
     fillMode: string;
     fillChar: string;
+    pencilChar: string;
     bordersChecked: boolean;
     pasteTransparent: boolean;
     clipboard: string[];
@@ -58,6 +59,7 @@ export class SettingService {
 		this.mode = 'line';	// line, block, bucket, circle
 		this.fillMode = 'transparent'; // fill, transparent
 		this.fillChar = ' ';
+		this.pencilChar = '-';
 	    this.bordersChecked = false;
 	    this.pasteTransparent = false;
 	    this.clipboard = [];

@@ -109,6 +109,10 @@ button > span {
     width: 1000px;
 }
 
+.palette {
+    margin: 5px;
+}
+
 .active_tool {
     border: 2px solid #000;
     margin: 0;
@@ -219,12 +223,15 @@ button > span {
     margin-right: 10px;
 }
 
+#draw_options {
+    width: 250px;
+}
+
 #fill_options {
     width: 300px;
 }
 
 #palette {
-    width: 510px;
 }
 
 #coords {
@@ -238,7 +245,6 @@ button > span {
     float: right;
     margin-right: 10px;
 }
-
 
 #extra {
     /*TODO*/
