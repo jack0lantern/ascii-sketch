@@ -16,6 +16,6 @@
         </span>
     </section>
     <section id="draw_options">
-        <palette *ngIf="getMode() == 'pencil'"></palette>
+        <palette [hidden]="getMode() != 'pencil'"></palette>
     </section>
 </div> 

@@ -34,6 +34,7 @@ export class PaletteComponent implements OnInit {
 	}
 
 	ngOnInit() {
+		console.log('palette init');
 		const factory = this.resolver.resolveComponentFactory(PaletteCharComponent);
 		for (var i = 0; i < this.chars.length; ++i) {
 			var temp = this.viewContainerRef.createComponent(factory).instance;

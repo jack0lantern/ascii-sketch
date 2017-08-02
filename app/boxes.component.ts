@@ -1,4 +1,4 @@
-import { Component, OnInit, ComponentFactory, ViewChild, ViewContainerRef, ComponentFactoryResolver, HostListener, ElementRef } from '@angular/core';
+import { Component, OnInit, ComponentFactory, ViewChild, ViewContainerRef, ComponentFactoryResolver, HostListener, ElementRef, Renderer } from '@angular/core';
 import { SettingService } from './setting.service';
 import { Point, Queue, Stack, Image } from './data-structures';
 import { keys } from './keys';
