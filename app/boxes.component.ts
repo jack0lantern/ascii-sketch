@@ -6,7 +6,7 @@ import { keys } from './keys';
 // TODO: fix corner case startcol = this.c should still work
 @Component({
 	selector: 'box',
-	template: '<textarea #myBox rows="{{ r + 1 }}" cols="{{ c + (hasBorders ? 2 : 1) }}" [ngModel]=currStr (keypress)="setCaret(myBox, onKeyPress($event))" (click)="getCaret(myBox)" (keydown)="getCaret(myBox); setCaret(myBox, nonKeyPress($event))" (cut)="getCaret(myBox); copy(true, $event)" (copy)="copy(false, $event)" (paste)="paste($event)" (mousemove)="getCaret(myBox); onMouseMove()" (mousedown)="onMouseDown()" (mouseup)="onMouseUp()" (drag)="$event.preventDefault()"></textarea>',
+	template: '<textarea #myBox [class]="this.settingService.mode === \'pencil\' ? \'pencilMode\' : \'box\'" rows="{{ r + 1 }}" cols="{{ c + (hasBorders ? 2 : 1) }}" [ngModel]=currStr (keypress)="setCaret(myBox, onKeyPress($event))" (click)="getCaret(myBox)" (keydown)="getCaret(myBox); setCaret(myBox, nonKeyPress($event))" (cut)="getCaret(myBox); copy(true, $event)" (copy)="copy(false, $event)" (paste)="paste($event)" (mousemove)="getCaret(myBox); onMouseMove()" (mousedown)="onMouseDown()" (mouseup)="onMouseUp()" (drag)="$event.preventDefault()"></textarea>',
 	// styleUrls: ['app/css/style.css']
 })
 export class BoxComponent {
@@ -420,7 +420,9 @@ export class BoxComponent {
 	onMouseMove() {
 		if (this.settingService.mode === 'pencil' && this.mouseDown) {
 			// TODO: find a more efficient way to do this, rather than replacing the string twice
+			if (this.getCol(this.range[0]) < this.c)
 			this.loadRanges(this.settingService.pencilChar, [[this.range[0], this.range[0]]], 1);
+			if (this.getCol(this.range[1]) < this.c)
 			this.loadRanges(this.settingService.pencilChar, [[this.range[1], this.range[1]]], 1);
 		}
 	}

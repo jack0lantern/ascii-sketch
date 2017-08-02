@@ -74,6 +74,15 @@ button > span {
     font: 12px/14px arial;
 }
 
+
+.box::selection {
+    background-color: #ccc;
+}
+
+.pencilMode::selection {
+    background-color: #fff;
+}
+
 .tab {
     position: relative;
     top: 10px;
@@ -252,8 +261,4 @@ button > span {
 
 #info_content {
     /*TODO*/
-}
-
-#area::selection {
-    background-color: #ccc;
 }
