@@ -3,7 +3,7 @@ import { SettingService } from './setting.service';
 
 @Component({
 	selector: 'palette-char',
-	template: '<input type="text" maxlength="1" class="palette" [(ngModel)]="char" (click)="setPencilChar()/>',
+	template: '<input type="text" maxlength="1" class="palette" [(ngModel)]="char" (click)="setPencilChar()"/>',
 })
 export class PaletteCharComponent {
 	char: string;

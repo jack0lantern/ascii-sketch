@@ -8,12 +8,12 @@ export const keys = {
 	SHIFT: 16,
 	TAB: 9,
 	CAPS_LOCK: 20,
-	CHAR_SPACE: ' '
+	CHAR_SPACE: ' ',
+	WINDOWS: 91,
+	MENU: 93
 }
 
-var WINDOWS = 91;
-var MENU = 93;
-var CHAR_SPACE = ' ';
+// TODO: move
 var DEFAULT_ROWS = 20;
 var DEFAULT_COLS = 40;
 var MAX_BOX_HEIGHT = 1000;

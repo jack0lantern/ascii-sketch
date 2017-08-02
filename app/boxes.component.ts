@@ -415,7 +415,11 @@ export class BoxComponent {
 	}
 
 	onMouseMove() {
-	
+		if (this.settingService.mode === 'pencil' && this.mouseDown) {
+			// TODO: find a more efficient way to do this, rather than replacing the string twice
+			this.loadRanges(this.settingService.pencilChar, [[this.range[0], this.range[0]]], 1);
+			this.loadRanges(this.settingService.pencilChar, [[this.range[1], this.range[1]]], 1);
+		}
 	}
 
 	/*@HostListener('keypress', ['$event']) */onKeyPress(e: any) {
